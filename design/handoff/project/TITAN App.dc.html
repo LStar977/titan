@@ -1,0 +1,1391 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#07070C;font-family:'Barlow',system-ui,sans-serif}
+a{color:#A78BFA;text-decoration:none}a:hover{color:#C4B5FD}
+@keyframes prPulse{0%,100%{box-shadow:0 0 16px rgba(196,181,253,0.22),inset 0 0 14px rgba(139,92,246,0.14)}50%{box-shadow:0 0 32px rgba(196,181,253,0.48),inset 0 0 20px rgba(139,92,246,0.28)}}
+@keyframes recPulse{0%,100%{opacity:1}50%{opacity:0.35}}
+.dv-turn{padding:42px 46px 38px;border-bottom:1px solid rgba(139,92,246,0.12)}
+.dv-thd{display:flex;align-items:baseline;gap:10px;margin:0 0 4px}
+.dv-tid{font:600 10px ui-monospace,Menlo,monospace;padding:3px 7px;background:#8B5CF6;color:#fff;border-radius:4px;text-decoration:none}
+.dv-tname{font:600 15px 'Barlow',sans-serif;color:#EDEDF4}
+.dv-tdesc{font:400 12.5px/1.55 'Barlow',sans-serif;color:#8E8EA3;max-width:660px;margin:0 0 24px}
+.dv-opts{display:flex;flex-wrap:wrap;gap:38px;align-items:flex-start}
+.dv-opt{flex:none;display:flex;flex-direction:column;gap:10px;scroll-margin-top:16px}
+.dv-oid{font:600 10.5px ui-monospace,Menlo,monospace;padding:3px 7px;background:#1C1C2E;color:#A78BFA;border-radius:5px;text-decoration:none}
+.dv-olabel{display:flex;align-items:baseline;gap:8px;font:500 12.5px 'Barlow',sans-serif;color:#8E8EA3}
+.dv-opt:target .dv-oid{background:#8B5CF6;color:#fff}
+</style>
+</helmet>
+
+<section class="dv-turn" id="t0" style="padding-bottom:26px">
+  <div class="dv-thd"><a class="dv-tid" href="#t0">TITAN</a><span class="dv-tname">iOS strength logger — full screen set</span></div>
+  <p class="dv-tdesc">Dark-only, 393×852, iOS conventions. System: near-black <b style="color:#EDEDF4">#0A0A0F</b> field, #131320 cards, #1C1C2E inputs; #8B5CF6 primary with the #C4B5FD glow reserved for PRs, rank-ups and the live rest timer. Type: Barlow Condensed for headings + hero numbers, Barlow for body. Assumptions: units in lb, e1RM via Epley, XP-based rank track (Bronze → Iron → Spartan → Titan, 3 tiers each). Tweaks panel toggles the rest-timer and PR-glow states on <a class="dv-oid" href="#1c">1c</a>.</p>
+</section>
+
+<section class="dv-turn" id="t1">
+  <div class="dv-thd"><a class="dv-tid" href="#t1">1</a><span class="dv-tname">Home &amp; dashboard</span></div>
+  <div class="dv-opts">
+
+  <div class="dv-opt" id="1a" data-screen-label="Home dashboard">
+    <div class="dv-olabel"><a class="dv-oid" href="#1a">1a</a>Home — week at a glance</div>
+    <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" width="{{ 393 }}" height="{{ 852 }}" dark="{{ true }}" hint-size="393px,852px">
+      <div style="width:393px;height:852px;display:flex;flex-direction:column;background:#0A0A0F;color:#EDEDF4;font-family:'Barlow',system-ui,sans-serif;position:relative;overflow:hidden;box-sizing:border-box">
+        <div style="flex:1;overflow:hidden;padding:66px 20px 0;display:flex;flex-direction:column;gap:16px">
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <div style="display:flex;align-items:center;gap:10px">
+              <div style="width:30px;height:30px;border-radius:9px;background:#131320;border:1px solid rgba(139,92,246,0.35);display:flex;align-items:center;justify-content:center;gap:4px;box-shadow:0 0 14px rgba(139,92,246,0.25)">
+                <div style="width:4px;height:12px;border-radius:2px;background:#A78BFA;transform:rotate(10deg);box-shadow:0 0 6px rgba(167,139,250,0.9)"></div>
+                <div style="width:4px;height:12px;border-radius:2px;background:#A78BFA;transform:rotate(-10deg);box-shadow:0 0 6px rgba(167,139,250,0.9)"></div>
+              </div>
+              <span style="font-family:'Barlow Condensed';font-weight:800;font-size:21px;letter-spacing:5px;color:#EDEDF4">TIT&Lambda;N</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;background:#131320;border:1px solid rgba(139,92,246,0.25);border-radius:999px;padding:6px 12px 6px 10px">
+              <svg width="14" height="16" viewBox="0 0 14 16"><path d="M7 0C8.5 3 12 4.5 12 9a5 5 0 01-10 0c0-2 1-3.4 2-4.6C4.4 6 5.6 6.6 5.5 8 6.8 6.8 7.4 3.5 7 0z" fill="#A78BFA"></path></svg>
+              <span style="font-family:'Barlow Condensed';font-weight:700;font-size:16px;color:#EDEDF4">12</span>
+              <span style="font-size:11px;color:#8E8EA3;font-weight:500">day streak</span>
+            </div>
+          </div>
+          <div>
+            <div style="font-size:11px;font-weight:600;letter-spacing:2px;color:#8E8EA3;margin-bottom:10px">THIS WEEK &middot; JUL 20&ndash;26</div>
+            <div style="display:flex;gap:10px">
+              <div style="flex:1;background:#131320;border:1px solid rgba(255,255,255,0.05);border-radius:14px;padding:12px 14px">
+                <div style="font-size:10px;font-weight:600;letter-spacing:1.5px;color:#8E8EA3">WORKOUTS</div>
+                <div style="font-family:'Barlow Condensed';font-weight:700;font-size:32px;line-height:1.15;color:#EDEDF4">3<span style="font-size:19px;color:#8E8EA3">/5</span></div>
+                <div style="display:flex;gap:3px;margin-top:4px">
+                  <div style="width:14px;height:3px;border-radius:2px;background:#8B5CF6"></div><div style="width:14px;height:3px;border-radius:2px;background:#8B5CF6"></div><div style="width:14px;height:3px;border-radius:2px;background:#8B5CF6"></div><div style="width:14px;height:3px;border-radius:2px;background:#1C1C2E"></div><div style="width:14px;height:3px;border-radius:2px;background:#1C1C2E"></div>
+                </div>
+              </div>
+              <div style="flex:1;background:#131320;border:1px solid rgba(255,255,255,0.05);border-radius:14px;padding:12px 14px">
+                <div style="font-size:10px;font-weight:600;letter-spacing:1.5px;color:#8E8EA3">VOLUME</div>
+                <div style="font-family:'Barlow Condensed';font-weight:700;font-size:32px;line-height:1.15;color:#EDEDF4">42.3<span style="font-size:17px;color:#8E8EA3">k lb</span></div>
+                <div style="font-size:11px;color:#34D399;font-weight:600;margin-top:4px">&uarr; 8% vs last week</div>
+              </div>
+              <div style="flex:1;background:#131320;border:1px solid rgba(255,255,255,0.05);border-radius:14px;padding:12px 14px">
+                <div style="font-size:10px;font-weight:600;letter-spacing:1.5px;color:#8E8EA3">PRS HIT</div>
+                <div style="font-family:'Barlow Condensed';font-weight:700;font-size:32px;line-height:1.15;color:#C4B5FD;text-shadow:0 0 14px rgba(196,181,253,0.5)">2</div>
+                <div style="font-size:11px;color:#8E8EA3;font-weight:500;margin-top:4px">this week</div>
+              </div>
+            </div>
+          </div>
+          <div style="border-radius:18px;padding:1px;background:linear-gradient(150deg,rgba(139,92,246,0.7),rgba(139,92,246,0.12) 45%,rgba(91,33,182,0.35));box-shadow:0 0 30px rgba(139,92,246,0.16)">
+            <div style="background:linear-gradient(170deg,#17172A,#131320);border-radius:17px;padding:18px">
+              <div style="display:flex;align-items:flex-start;justify-content:space-between">
+                <div>
+                  <div style="font-size:10px;font-weight:700;letter-spacing:2px;color:#A78BFA">UP NEXT &middot; DAY 4 OF 5</div>
+                  <div style="font-family:'Barlow Condensed';font-weight:800;font-size:32px;letter-spacing:1px;color:#EDEDF4;margin-top:3px">PULL DAY A</div>
+                  <div style="font-size:12.5px;color:#8E8EA3;margin-top:2px">6 exercises &middot; ~55 min &middot; last done Jul 15</div>
+                </div>
+                <div style="display:flex;gap:4px;padding-top:4px">
+                  <div style="width:4px;height:16px;border-radius:2px;background:#A78BFA;transform:rotate(10deg);opacity:0.7"></div>
+                  <div style="width:4px;height:16px;border-radius:2px;background:#A78BFA;transform:rotate(-10deg);opacity:0.7"></div>
+                </div>
+              </div>
+              <div style="display:flex;flex-wrap:wrap;gap:6px;margin:14px 0 16px">
+                <span style="font-size:11.5px;font-weight:500;color:#C7C7D6;background:#1C1C2E;border-radius:8px;padding:4px 9px">Deadlift</span>
+                <span style="font-size:11.5px;font-weight:500;color:#C7C7D6;background:#1C1C2E;border-radius:8px;padding:4px 9px">Weighted Pull-Up</span>
+                <span style="font-size:11.5px;font-weight:500;color:#C7C7D6;background:#1C1C2E;border-radius:8px;padding:4px 9px">Barbell Row</span>
+                <span style="font-size:11.5px;font-weight:500;color:#8E8EA3;background:#1C1C2E;border-radius:8px;padding:4px 9px">+3 more</span>
+              </div>
+              <div style="height:52px;border-radius:14px;background:linear-gradient(175deg,#8B5CF6,#5B21B6);box-shadow:0 0 22px rgba(139,92,246,0.4),inset 0 1px 0 rgba(255,255,255,0.25);display:flex;align-items:center;justify-content:center;gap:10px">
+                <svg width="14" height="16" viewBox="0 0 14 16"><path d="M1.5 1.2v13.6c0 1 1.1 1.6 1.9 1L13 9c.8-.5.8-1.6 0-2.1L3.4.2C2.6-.3 1.5.2 1.5 1.2z" fill="#fff"></path></svg>
+                <span style="font-family:'Barlow Condensed';font-weight:700;font-size:19px;letter-spacing:2.5px;color:#fff">START WORKOUT</span>
+              </div>
+            </div>
+          </div>
+          <div style="flex:1;min-height:0;display:flex;flex-direction:column">
+            <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:10px">
+              <span style="font-size:11px;font-weight:600;letter-spacing:2px;color:#8E8EA3">RECENT PRS</span>
+              <a href="#1h" style="font-size:12px;font-weight:600;color:#A78BFA">See all</a>
+            </div>
+            <div style="background:#131320;border:1px solid rgba(255,255,255,0.05);border-radius:16px;overflow:hidden">
+              <div style="display:flex;align-items:center;gap:12px;padding:13px 16px;border-bottom:1px solid rgba(255,255,255,0.05)">
+                <span style="font-size:9.5px;font-weight:700;letter-spacing:1px;color:#C4B5FD;background:rgba(196,181,253,0.1);border:1px solid rgba(196,181,253,0.35);border-radius:6px;padding:3px 6px;box-shadow:0 0 10px rgba(196,181,253,0.2)">PR</span>
+                <div style="flex:1">
+                  <div style="font-size:14.5px;font-weight:600;color:#EDEDF4">Bench Press</div>
+                  <div style="font-size:11.5px;color:#8E8EA3">e1RM 253 lb &middot; Jul 18</div>
+                </div>
+                <span style="font-family:'Barlow Condensed';font-weight:700;font-size:22px;color:#EDEDF4">225<span style="font-size:14px;color:#8E8EA3"> lb </span>&times;<span style="font-size:14px;color:#8E8EA3"> </span>5</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:12px;padding:13px 16px;border-bottom:1px solid rgba(255,255,255,0.05)">
+                <span style="font-size:9.5px;font-weight:700;letter-spacing:1px;color:#C4B5FD;background:rgba(196,181,253,0.1);border:1px solid rgba(196,181,253,0.35);border-radius:6px;padding:3px 6px">PR</span>
+                <div style="flex:1">
+                  <div style="font-size:14.5px;font-weight:600;color:#EDEDF4">Weighted Pull-Up</div>
+                  <div style="font-size:11.5px;color:#8E8EA3">bodyweight +45 &middot; Jul 15</div>
+                </div>
+                <span style="font-family:'Barlow Condensed';font-weight:700;font-size:22px;color:#EDEDF4">+45<span style="font-size:14px;color:#8E8EA3"> lb </span>&times;<span style="font-size:14px;color:#8E8EA3"> </span>6</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:12px;padding:13px 16px">
+                <span style="font-size:9.5px;font-weight:700;letter-spacing:1px;color:#C4B5FD;background:rgba(196,181,253,0.1);border:1px solid rgba(196,181,253,0.35);border-radius:6px;padding:3px 6px">PR</span>
+                <div style="flex:1">
+                  <div style="font-size:14.5px;font-weight:600;color:#EDEDF4">Front Squat</div>
+                  <div style="font-size:11.5px;color:#8E8EA3">e1RM 224 lb &middot; Jul 12</div>
+                </div>
+                <span style="font-family:'Barlow Condensed';font-weight:700;font-size:22px;color:#EDEDF4">205<span style="font-size:14px;color:#8E8EA3"> lb </span>&times;<span style="font-size:14px;color:#8E8EA3"> </span>3</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style="position:relative;z-index:5;background:rgba(12,12,19,0.96);border-top:1px solid rgba(139,92,246,0.16);display:flex;align-items:flex-start;justify-content:space-between;padding:9px 20px 0;height:84px;box-sizing:border-box">
+          <div style="width:52px;display:flex;flex-direction:column;align-items:center;gap:3px">
+            <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="#A78BFA" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11l8-7 8 7"></path><path d="M6 9.5V20h12V9.5"></path></svg>
+            <span style="font-size:10px;font-weight:600;color:#A78BFA">Home</span>
+          </div>
+          <div style="width:52px;display:flex;flex-direction:column;align-items:center;gap:3px">
+            <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="#62627A" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"></circle><path d="M12 7.5V12l3 2"></path></svg>
+            <span style="font-size:10px;font-weight:500;color:#62627A">History</span>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:3px;margin-top:-26px">
+            <div style="width:56px;height:56px;border-radius:17px;background:linear-gradient(165deg,#8B5CF6,#5B21B6);box-shadow:0 0 26px rgba(139,92,246,0.45),0 10px 22px rgba(0,0,0,0.55),inset 0 1px 0 rgba(255,255,255,0.3);display:flex;align-items:center;justify-content:center">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><path d="M3.5 12h17" stroke="#fff" stroke-width="2" stroke-linecap="round"></path><rect x="5" y="6.5" width="3" height="11" rx="1.2" fill="#fff"></rect><rect x="16" y="6.5" width="3" height="11" rx="1.2" fill="#fff"></rect><rect x="1.5" y="9" width="2" height="6" rx="1" fill="#fff"></rect><rect x="20.5" y="9" width="2" height="6" rx="1" fill="#fff"></rect></svg>
+            </div>
+          </div>
+          <div style="width:52px;display:flex;flex-direction:column;align-items:center;gap:3px">
+            <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="#62627A" stroke-width="2.2" stroke-linecap="round"><path d="M5 20v-6"></path><path d="M12 20V8"></path><path d="M19 20V4"></path></svg>
+            <span style="font-size:10px;font-weight:500;color:#62627A">Progress</span>
+          </div>
+          <div style="width:52px;display:flex;flex-direction:column;align-items:center;gap:3px">
+            <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="#62627A" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="8" r="3.6"></circle><path d="M5 20c1.2-3.4 3.9-5 7-5s5.8 1.6 7 5"></path></svg>
+            <span style="font-size:10px;font-weight:500;color:#62627A">Profile</span>
+          </div>
+        </div>
+      </div>
+    </x-import>
+  </div>
+
+  <div class="dv-opt" id="1b" data-screen-label="Home empty state">
+    <div class="dv-olabel"><a class="dv-oid" href="#1b">1b</a>Empty state — new user</div>
+    <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" width="{{ 393 }}" height="{{ 852 }}" dark="{{ true }}" hint-size="393px,852px">
+      <div style="width:393px;height:852px;display:flex;flex-direction:column;background:#0A0A0F;color:#EDEDF4;font-family:'Barlow',system-ui,sans-serif;position:relative;overflow:hidden;box-sizing:border-box">
+        <div style="position:absolute;top:180px;left:50%;transform:translateX(-50%);width:460px;height:460px;background:radial-gradient(circle,rgba(139,92,246,0.14),transparent 62%);pointer-events:none"></div>
+        <div style="flex:1;overflow:hidden;padding:66px 20px 0;display:flex;flex-direction:column">
+          <div style="display:flex;align-items:center;gap:10px">
+            <div style="width:30px;height:30px;border-radius:9px;background:#131320;border:1px solid rgba(139,92,246,0.35);display:flex;align-items:center;justify-content:center;gap:4px">
+              <div style="width:4px;height:12px;border-radius:2px;background:#A78BFA;transform:rotate(10deg)"></div>
+              <div style="width:4px;height:12px;border-radius:2px;background:#A78BFA;transform:rotate(-10deg)"></div>
+            </div>
+            <span style="font-family:'Barlow Condensed';font-weight:800;font-size:21px;letter-spacing:5px;color:#EDEDF4">TIT&Lambda;N</span>
+          </div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 18px">
+            <div style="width:104px;height:112px;clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%);background:linear-gradient(170deg,#1C1C2E,#131320);display:flex;align-items:center;justify-content:center;gap:10px;position:relative">
+              <div style="position:absolute;inset:2px;clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%);background:#131320"></div>
+              <div style="width:7px;height:26px;border-radius:3px;background:#A78BFA;transform:rotate(10deg);box-shadow:0 0 16px rgba(167,139,250,0.9);position:relative"></div>
+              <div style="width:7px;height:26px;border-radius:3px;background:#A78BFA;transform:rotate(-10deg);box-shadow:0 0 16px rgba(167,139,250,0.9);position:relative"></div>
+            </div>
+            <div style="font-family:'Barlow Condensed';font-weight:800;font-size:30px;letter-spacing:3px;color:#EDEDF4;margin-top:26px">THE FORGE AWAITS</div>
+            <div style="font-size:14px;line-height:1.55;color:#8E8EA3;margin-top:8px;max-width:280px;text-wrap:pretty">No workouts logged yet. Start your first session to begin the climb from Bronze to Titan.</div>
+            <div style="width:100%;max-width:300px;height:52px;border-radius:14px;background:linear-gradient(175deg,#8B5CF6,#5B21B6);box-shadow:0 0 24px rgba(139,92,246,0.4),inset 0 1px 0 rgba(255,255,255,0.25);display:flex;align-items:center;justify-content:center;margin-top:28px">
+              <span style="font-family:'Barlow Condensed';font-weight:700;font-size:19px;letter-spacing:2.5px;color:#fff">START FIRST WORKOUT</span>
+            </div>
+            <div style="width:100%;max-width:300px;height:48px;border-radius:14px;background:#131320;border:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;margin-top:10px">
+              <span style="font-size:14px;font-weight:600;color:#C7C7D6">Browse routine templates</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;margin-top:34px;background:#131320;border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:10px 14px">
+              <div style="width:26px;height:28px;clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%);background:#2A2A3E;display:flex;align-items:center;justify-content:center">
+                <span style="font-family:'Barlow Condensed';font-weight:700;font-size:12px;color:#8E8EA3">I</span>
+              </div>
+              <span style="font-size:12px;color:#8E8EA3">Complete 1 workout to earn <b style="color:#C7C7D6">BRONZE I</b></span>
+            </div>
+          </div>
+        </div>
+        <div style="position:relative;z-index:5;background:rgba(12,12,19,0.96);border-top:1px solid rgba(139,92,246,0.16);display:flex;align-items:flex-start;justify-content:space-between;padding:9px 20px 0;height:84px;box-sizing:border-box">
+          <div style="width:52px;display:flex;flex-direction:column;align-items:center;gap:3px">
+            <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="#A78BFA" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11l8-7 8 7"></path><path d="M6 9.5V20h12V9.5"></path></svg>
+            <span style="font-size:10px;font-weight:600;color:#A78BFA">Home</span>
+          </div>
+          <div style="width:52px;display:flex;flex-direction:column;align-items:center;gap:3px">
+            <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="#62627A" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"></circle><path d="M12 7.5V12l3 2"></path></svg>
+            <span style="font-size:10px;font-weight:500;color:#62627A">History</span>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:3px;margin-top:-26px">
+            <div style="width:56px;height:56px;border-radius:17px;background:linear-gradient(165deg,#8B5CF6,#5B21B6);box-shadow:0 0 26px rgba(139,92,246,0.45),0 10px 22px rgba(0,0,0,0.55),inset 0 1px 0 rgba(255,255,255,0.3);display:flex;align-items:center;justify-content:center">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><path d="M3.5 12h17" stroke="#fff" stroke-width="2" stroke-linecap="round"></path><rect x="5" y="6.5" width="3" height="11" rx="1.2" fill="#fff"></rect><rect x="16" y="6.5" width="3" height="11" rx="1.2" fill="#fff"></rect><rect x="1.5" y="9" width="2" height="6" rx="1" fill="#fff"></rect><rect x="20.5" y="9" width="2" height="6" rx="1" fill="#fff"></rect></svg>
+            </div>
+          </div>
+          <div style="width:52px;display:flex;flex-direction:column;align-items:center;gap:3px">
+            <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="#62627A" stroke-width="2.2" stroke-linecap="round"><path d="M5 20v-6"></path><path d="M12 20V8"></path><path d="M19 20V4"></path></svg>
+            <span style="font-size:10px;font-weight:500;color:#62627A">Progress</span>
+          </div>
+          <div style="width:52px;display:flex;flex-direction:column;align-items:center;gap:3px">
+            <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="#62627A" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="8" r="3.6"></circle><path d="M5 20c1.2-3.4 3.9-5 7-5s5.8 1.6 7 5"></path></svg>
+            <span style="font-size:10px;font-weight:500;color:#62627A">Profile</span>
+          </div>
+        </div>
+      </div>
+    </x-import>
+  </div>
+
+  </div>
+</section>
+
+
+<section class="dv-turn" id="t2">
+  <div class="dv-thd"><a class="dv-tid" href="#t2">2</a><span class="dv-tname">Active workout — the core loop</span></div>
+  <p class="dv-tdesc">One-tap logging: ghost values from the last session pre-fill each set, the check commits it. Set types W / number / F / D. The PR row ignites with the violet glow; the rest timer docks at the bottom after each completed set. Both states are toggleable in Tweaks.</p>
+  <div class="dv-opts">
+
+  <div class="dv-opt" id="1c" data-screen-label="Active workout">
+    <div class="dv-olabel"><a class="dv-oid" href="#1c">1c</a>Active workout — logging</div>
+    <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" width="{{ 393 }}" height="{{ 852 }}" dark="{{ true }}" hint-size="393px,852px">
+      <div style="width:393px;height:852px;display:flex;flex-direction:column;background:#0A0A0F;color:#EDEDF4;font-family:'Barlow',system-ui,sans-serif;position:relative;overflow:hidden;box-sizing:border-box">
+        <div style="padding:62px 16px 12px;background:linear-gradient(180deg,#10101B,#0A0A0F);border-bottom:1px solid rgba(255,255,255,0.05)">
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <div style="width:34px;height:34px;border-radius:999px;background:#1C1C2E;display:flex;align-items:center;justify-content:center">
+              <svg width="14" height="9" viewBox="0 0 14 9" fill="none" stroke="#8E8EA3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 1.5l6 6 6-6"></path></svg>
+            </div>
+            <div style="text-align:center">
+              <div style="font-size:10px;font-weight:700;letter-spacing:2px;color:#8E8EA3">PUSH DAY A</div>
+              <div style="display:flex;align-items:center;justify-content:center;gap:7px">
+                <div style="width:7px;height:7px;border-radius:99px;background:#C4B5FD;box-shadow:0 0 8px rgba(196,181,253,0.9);animation:recPulse 1.6s ease-in-out infinite"></div>
+                <span style="font-family:'Barlow Condensed';font-weight:700;font-size:30px;line-height:1.1;color:#EDEDF4;letter-spacing:1px">32:14</span>
+              </div>
+            </div>
+            <div style="height:34px;padding:0 14px;border-radius:999px;background:linear-gradient(175deg,#8B5CF6,#5B21B6);box-shadow:0 0 16px rgba(139,92,246,0.35);display:flex;align-items:center">
+              <span style="font-family:'Barlow Condensed';font-weight:700;font-size:15px;letter-spacing:1.5px;color:#fff">FINISH</span>
+            </div>
+          </div>
+          <div style="display:flex;justify-content:center;gap:14px;margin-top:8px">
+            <span style="font-size:11.5px;color:#8E8EA3"><b style="color:#C7C7D6;font-weight:600">12,450</b> lb volume</span>
+            <span style="font-size:11.5px;color:#3A3A4E">|</span>
+            <span style="font-size:11.5px;color:#8E8EA3"><b style="color:#C7C7D6;font-weight:600">14</b> sets</span>
+            <span style="font-size:11.5px;color:#3A3A4E">|</span>
+            <span style="font-size:11.5px;color:#C4B5FD;font-weight:600">1 PR</span>
+          </div>
+        </div>
+        <div style="flex:1;overflow:hidden;padding:14px 14px 0;display:flex;flex-direction:column;gap:12px">
+          <div style="background:#131320;border:1px solid rgba(255,255,255,0.05);border-radius:18px;padding:14px 12px 8px">
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;padding:0 4px 10px">
+              <div>
+                <div style="font-family:'Barlow Condensed';font-weight:700;font-size:22px;letter-spacing:0.5px;color:#EDEDF4">Bench Press</div>
+                <div style="font-size:10.5px;font-weight:600;letter-spacing:1.5px;color:#8E8EA3">BARBELL &middot; CHEST</div>
+              </div>
+              <svg width="20" height="6" viewBox="0 0 22 6"><circle cx="3" cy="3" r="2.2" fill="#62627A"></circle><circle cx="11" cy="3" r="2.2" fill="#62627A"></circle><circle cx="19" cy="3" r="2.2" fill="#62627A"></circle></svg>
+            </div>
+            <div style="display:grid;grid-template-columns:34px 1fr 62px 52px 44px;gap:6px;align-items:center;padding:0 4px 6px;font-size:9.5px;font-weight:700;letter-spacing:1.2px;color:#62627A">
+              <span>SET</span><span>PREVIOUS</span><span style="text-align:center">LBS</span><span style="text-align:center">REPS</span><span style="text-align:center">&#10003;</span>
+            </div>
+            <div style="display:grid;grid-template-columns:34px 1fr 62px 52px 44px;gap:6px;align-items:center;padding:7px 4px;border-top:1px solid rgba(255,255,255,0.04)">
+              <span style="width:24px;height:24px;border-radius:8px;background:#1C1C2E;color:#8E8EA3;font-family:'Barlow Condensed';font-weight:700;font-size:14px;display:flex;align-items:center;justify-content:center">W</span>
+              <span style="font-size:12.5px;color:#62627A">135 &times; 12</span>
+              <span style="font-family:'Barlow Condensed';font-weight:600;font-size:19px;color:#EDEDF4;text-align:center">135</span>
+              <span style="font-family:'Barlow Condensed';font-weight:600;font-size:19px;color:#EDEDF4;text-align:center">12</span>
+              <div style="width:28px;height:28px;border-radius:9px;background:rgba(52,211,153,0.14);border:1px solid rgba(52,211,153,0.4);display:flex;align-items:center;justify-content:center;justify-self:center">
+                <svg width="13" height="10" viewBox="0 0 13 10" fill="none" stroke="#34D399" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 5l3.5 3.5L12 1"></path></svg>
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:34px 1fr 62px 52px 44px;gap:6px;align-items:center;padding:7px 4px;border-top:1px solid rgba(255,255,255,0.04)">
+              <span style="width:24px;height:24px;border-radius:8px;background:#1C1C2E;color:#C7C7D6;font-family:'Barlow Condensed';font-weight:700;font-size:14px;display:flex;align-items:center;justify-content:center">1</span>
+              <span style="font-size:12.5px;color:#62627A">205 &times; 8</span>
+              <span style="font-family:'Barlow Condensed';font-weight:600;font-size:19px;color:#EDEDF4;text-align:center">205</span>
+              <span style="font-family:'Barlow Condensed';font-weight:600;font-size:19px;color:#EDEDF4;text-align:center">8</span>
+              <div style="width:28px;height:28px;border-radius:9px;background:rgba(52,211,153,0.14);border:1px solid rgba(52,211,153,0.4);display:flex;align-items:center;justify-content:center;justify-self:center">
+                <svg width="13" height="10" viewBox="0 0 13 10" fill="none" stroke="#34D399" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 5l3.5 3.5L12 1"></path></svg>
+              </div>
+            </div>
+            <sc-if value="{{ prCelebration }}" hint-placeholder-val="{{ true }}">
+              <div style="display:grid;grid-template-columns:34px 1fr 62px 52px 44px;gap:6px;align-items:center;padding:7px 4px;margin:3px 0;border-radius:12px;border:1px solid rgba(196,181,253,0.55);background:linear-gradient(90deg,rgba(139,92,246,0.18),rgba(196,181,253,0.05));animation:prPulse 2.4s ease-in-out infinite;position:relative">
+                <span style="width:24px;height:24px;border-radius:8px;background:rgba(196,181,253,0.18);color:#C4B5FD;font-family:'Barlow Condensed';font-weight:700;font-size:14px;display:flex;align-items:center;justify-content:center">2</span>
+                <div style="display:flex;align-items:center;gap:7px">
+                  <span style="font-size:12.5px;color:#8E8EA3">215 &times; 5</span>
+                  <span style="font-size:9px;font-weight:700;letter-spacing:1px;color:#0A0A0F;background:#C4B5FD;border-radius:5px;padding:2px 5px;box-shadow:0 0 12px rgba(196,181,253,0.8)">&#10022; PR</span>
+                </div>
+                <span style="font-family:'Barlow Condensed';font-weight:700;font-size:19px;color:#C4B5FD;text-align:center;text-shadow:0 0 12px rgba(196,181,253,0.7)">225</span>
+                <span style="font-family:'Barlow Condensed';font-weight:700;font-size:19px;color:#C4B5FD;text-align:center;text-shadow:0 0 12px rgba(196,181,253,0.7)">5</span>
+                <div style="width:28px;height:28px;border-radius:9px;background:rgba(52,211,153,0.14);border:1px solid rgba(52,211,153,0.4);display:flex;align-items:center;justify-content:center;justify-self:center">
+                  <svg width="13" height="10" viewBox="0 0 13 10" fill="none" stroke="#34D399" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 5l3.5 3.5L12 1"></path></svg>
+                </div>
+              </div>
+            </sc-if>
+            <sc-if value="{{ noPr }}" hint-placeholder-val="{{ false }}">
+              <div style="display:grid;grid-template-columns:34px 1fr 62px 52px 44px;gap:6px;align-items:center;padding:7px 4px;border-top:1px solid rgba(255,255,255,0.04)">
+                <span style="width:24px;height:24px;border-radius:8px;background:#1C1C2E;color:#C7C7D6;font-family:'Barlow Condensed';font-weight:700;font-size:14px;display:flex;align-items:center;justify-content:center">2</span>
+                <span style="font-size:12.5px;color:#62627A">215 &times; 5</span>
+                <span style="font-family:'Barlow Condensed';font-weight:600;font-size:19px;color:#EDEDF4;text-align:center">225</span>
+                <span style="font-family:'Barlow Condensed';font-weight:600;font-size:19px;color:#EDEDF4;text-align:center">5</span>
+                <div style="width:28px;height:28px;border-radius:9px;background:rgba(52,211,153,0.14);border:1px solid rgba(52,211,153,0.4);display:flex;align-items:center;justify-content:center;justify-self:center">
+                  <svg width="13" height="10" viewBox="0 0 13 10" fill="none" stroke="#34D399" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 5l3.5 3.5L12 1"></path></svg>
+                </div>
+              </div>
+            </sc-if>
+            <div style="background:#1C1C2E;border:1px solid rgba(139,92,246,0.3);border-radius:14px;padding:10px 12px;margin:4px 0">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+                <div style="display:flex;align-items:center;gap:8px">
+                  <span style="width:24px;height:24px;border-radius:8px;background:#8B5CF6;color:#fff;font-family:'Barlow Condensed';font-weight:700;font-size:14px;display:flex;align-items:center;justify-content:center">3</span>
+                  <span style="font-size:11px;color:#8E8EA3">prev <b style="color:#C7C7D6;font-weight:600">225 &times; 5</b> &middot; tap &#10003; to repeat</span>
+                </div>
+                <div style="display:flex;gap:4px">
+                  <span style="font-size:9px;font-weight:700;letter-spacing:0.8px;color:#fff;background:#8B5CF6;border-radius:5px;padding:3px 6px">WORK</span>
+                  <span style="font-size:9px;font-weight:700;letter-spacing:0.8px;color:#8E8EA3;border:1px solid #2A2A3E;border-radius:5px;padding:3px 6px">FAIL</span>
+                  <span style="font-size:9px;font-weight:700;letter-spacing:0.8px;color:#8E8EA3;border:1px solid #2A2A3E;border-radius:5px;padding:3px 6px">DROP</span>
+                </div>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px">
+                <div style="flex:1;display:flex;align-items:center;justify-content:space-between;background:#131320;border-radius:11px;padding:5px 6px">
+                  <div style="width:34px;height:34px;border-radius:9px;background:#1C1C2E;border:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center"><svg width="12" height="2.5" viewBox="0 0 12 3"><rect width="12" height="2.5" rx="1.2" fill="#C7C7D6"></rect></svg></div>
+                  <div style="text-align:center">
+                    <div style="font-family:'Barlow Condensed';font-weight:700;font-size:27px;line-height:1;color:#8E8EA3">225</div>
+                    <div style="font-size:8.5px;font-weight:600;letter-spacing:1px;color:#62627A">LBS</div>
+                  </div>
+                  <div style="width:34px;height:34px;border-radius:9px;background:#1C1C2E;border:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center"><svg width="12" height="12" viewBox="0 0 12 12"><rect y="4.75" width="12" height="2.5" rx="1.2" fill="#C7C7D6"></rect><rect x="4.75" width="2.5" height="12" rx="1.2" fill="#C7C7D6"></rect></svg></div>
+                </div>
+                <div style="flex:0.72;display:flex;align-items:center;justify-content:space-between;background:#131320;border-radius:11px;padding:5px 6px">
+                  <div style="width:34px;height:34px;border-radius:9px;background:#1C1C2E;border:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center"><svg width="12" height="2.5" viewBox="0 0 12 3"><rect width="12" height="2.5" rx="1.2" fill="#C7C7D6"></rect></svg></div>
+                  <div style="text-align:center">
+                    <div style="font-family:'Barlow Condensed';font-weight:700;font-size:27px;line-height:1;color:#8E8EA3">5</div>
+                    <div style="font-size:8.5px;font-weight:600;letter-spacing:1px;color:#62627A">REPS</div>
+                  </div>
+                  <div style="width:34px;height:34px;border-radius:9px;background:#1C1C2E;border:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center"><svg width="12" height="12" viewBox="0 0 12 12"><rect y="4.75" width="12" height="2.5" rx="1.2" fill="#C7C7D6"></rect><rect x="4.75" width="2.5" height="12" rx="1.2" fill="#C7C7D6"></rect></svg></div>
+                </div>
+                <div style="width:46px;height:46px;border-radius:13px;background:linear-gradient(175deg,#8B5CF6,#5B21B6);box-shadow:0 0 18px rgba(139,92,246,0.4),inset 0 1px 0 rgba(255,255,255,0.25);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                  <svg width="18" height="14" viewBox="0 0 13 10" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 5l3.5 3.5L12 1"></path></svg>
+                </div>
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:34px 1fr 62px 52px 44px;gap:6px;align-items:center;padding:7px 4px;opacity:0.6">
+              <span style="width:24px;height:24px;border-radius:8px;background:rgba(248,113,113,0.12);border:1px solid rgba(248,113,113,0.4);color:#F87171;font-family:'Barlow Condensed';font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center">F</span>
+              <span style="font-size:12.5px;color:#62627A">225 &times; 4</span>
+              <span style="font-family:'Barlow Condensed';font-weight:600;font-size:19px;color:#62627A;text-align:center">225</span>
+              <span style="font-family:'Barlow Condensed';font-weight:600;font-size:19px;color:#62627A;text-align:center">4</span>
+              <div style="width:28px;height:28px;border-radius:9px;border:1px solid #2A2A3E;justify-self:center"></div>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:center;gap:7px;border-top:1px solid rgba(255,255,255,0.05);padding:10px 0 6px;margin-top:2px">
+              <svg width="11" height="11" viewBox="0 0 12 12"><rect y="4.75" width="12" height="2.5" rx="1.2" fill="#A78BFA"></rect><rect x="4.75" width="2.5" height="12" rx="1.2" fill="#A78BFA"></rect></svg>
+              <span style="font-size:12.5px;font-weight:600;color:#A78BFA">Add Set</span>
+            </div>
+          </div>
+          <div style="border:1px solid rgba(139,92,246,0.35);border-radius:18px;padding:10px;position:relative;margin-top:4px">
+            <span style="position:absolute;top:-8px;left:16px;font-size:9.5px;font-weight:700;letter-spacing:2px;color:#A78BFA;background:#0A0A0F;padding:0 8px">SUPERSET A</span>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <div style="background:#131320;border-radius:12px;padding:10px 12px;display:flex;align-items:center;justify-content:space-between">
+                <div>
+                  <div style="font-family:'Barlow Condensed';font-weight:700;font-size:17px;color:#EDEDF4">Overhead Press</div>
+                  <div style="font-size:11px;color:#8E8EA3">2 of 3 sets &middot; next: <b style="color:#C7C7D6;font-weight:600">115 &times; 8</b></div>
+                </div>
+                <svg width="14" height="9" viewBox="0 0 14 9" fill="none" stroke="#62627A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 1.5l6 6 6-6"></path></svg>
+              </div>
+              <div style="background:#131320;border-radius:12px;padding:10px 12px;display:flex;align-items:center;justify-content:space-between">
+                <div>
+                  <div style="font-family:'Barlow Condensed';font-weight:700;font-size:17px;color:#EDEDF4">Lateral Raise</div>
+                  <div style="font-size:11px;color:#8E8EA3">2 of 3 sets &middot; next: <b style="color:#C7C7D6;font-weight:600">25 &times; 12</b></div>
+                </div>
+                <svg width="14" height="9" viewBox="0 0 14 9" fill="none" stroke="#62627A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 1.5l6 6 6-6"></path></svg>
+              </div>
+            </div>
+          </div>
+          <div style="display:flex;gap:10px">
+            <div style="flex:1;height:44px;border-radius:13px;background:#131320;border:1px dashed rgba(139,92,246,0.4);display:flex;align-items:center;justify-content:center;gap:7px">
+              <svg width="11" height="11" viewBox="0 0 12 12"><rect y="4.75" width="12" height="2.5" rx="1.2" fill="#A78BFA"></rect><rect x="4.75" width="2.5" height="12" rx="1.2" fill="#A78BFA"></rect></svg>
+              <span style="font-size:13px;font-weight:600;color:#A78BFA">Add Exercise</span>
+            </div>
+            <div style="flex:1;height:44px;border-radius:13px;background:#131320;border:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;gap:7px">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#C7C7D6" stroke-width="1.8" stroke-linecap="round"><path d="M4 1v12M10 1v12"></path><path d="M4 7h6"></path></svg>
+              <span style="font-size:13px;font-weight:600;color:#C7C7D6">Superset</span>
+            </div>
+          </div>
+        </div>
+        <sc-if value="{{ showRestTimer }}" hint-placeholder-val="{{ true }}">
+          <div style="position:absolute;bottom:0;left:0;right:0;padding:12px 14px 30px;background:linear-gradient(180deg,rgba(10,10,15,0),rgba(10,10,15,0.95) 30%)">
+            <div style="position:relative;height:62px;border-radius:16px;overflow:hidden;background:#131320;border:1px solid rgba(196,181,253,0.45);box-shadow:0 0 26px rgba(139,92,246,0.3)">
+              <div style="position:absolute;top:0;bottom:0;left:0;width:58%;background:linear-gradient(90deg,#5B21B6,#8B5CF6);opacity:0.55"></div>
+              <div style="position:relative;height:100%;display:flex;align-items:center;justify-content:space-between;padding:0 14px">
+                <div style="display:flex;align-items:baseline;gap:10px">
+                  <span style="font-size:10px;font-weight:700;letter-spacing:2px;color:#C4B5FD">REST</span>
+                  <span style="font-family:'Barlow Condensed';font-weight:700;font-size:32px;color:#fff;text-shadow:0 0 14px rgba(196,181,253,0.6)">1:23</span>
+                </div>
+                <div style="display:flex;gap:8px">
+                  <div style="height:34px;padding:0 13px;border-radius:999px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);display:flex;align-items:center">
+                    <span style="font-size:12.5px;font-weight:600;color:#EDEDF4">+30s</span>
+                  </div>
+                  <div style="height:34px;padding:0 13px;border-radius:999px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);display:flex;align-items:center">
+                    <span style="font-size:12.5px;font-weight:600;color:#EDEDF4">Skip</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+      </div>
+    </x-import>
+  </div>
+
+  </div>
+</section>
+
+<section class="dv-turn" id="t3">
+  <div class="dv-thd"><a class="dv-tid" href="#t3">3</a><span class="dv-tname">Exercise picker &amp; workout complete</span></div>
+  <div class="dv-opts">
+
+  <div class="dv-opt" id="1d" data-screen-label="Exercise picker sheet">
+    <div class="dv-olabel"><a class="dv-oid" href="#1d">1d</a>Exercise picker — iOS sheet, multi-select</div>
+    <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" width="{{ 393 }}" height="{{ 852 }}" dark="{{ true }}" hint-size="393px,852px">
+      <div style="width:393px;height:852px;background:#0A0A0F;color:#EDEDF4;font-family:'Barlow',system-ui,sans-serif;position:relative;overflow:hidden;box-sizing:border-box">
+        <div style="padding:62px 16px 12px;opacity:0.45;filter:blur(1px)">
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <div style="width:34px;height:34px;border-radius:999px;background:#1C1C2E"></div>
+            <div style="text-align:center">
+              <div style="font-size:10px;font-weight:700;letter-spacing:2px;color:#8E8EA3">PUSH DAY A</div>
+              <span style="font-family:'Barlow Condensed';font-weight:700;font-size:30px;color:#EDEDF4;letter-spacing:1px">34:02</span>
+            </div>
+            <div style="height:34px;width:74px;border-radius:999px;background:linear-gradient(175deg,#8B5CF6,#5B21B6)"></div>
+          </div>
+        </div>
+        <div style="position:absolute;inset:0;background:rgba(4,4,8,0.6)"></div>
+        <div style="position:absolute;left:0;right:0;bottom:0;height:762px;background:#10101B;border-radius:22px 22px 0 0;border-top:1px solid rgba(139,92,246,0.25);box-shadow:0 -20px 60px rgba(0,0,0,0.75);display:flex;flex-direction:column;overflow:hidden">
+          <div style="display:flex;justify-content:center;padding:8px 0 2px"><div style="width:38px;height:5px;border-radius:99px;background:#2A2A3E"></div></div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 16px 12px">
+            <span style="font-size:14px;font-weight:500;color:#A78BFA;width:60px">Cancel</span>
+            <span style="font-family:'Barlow Condensed';font-weight:700;font-size:19px;letter-spacing:1.5px;color:#EDEDF4">ADD EXERCISE</span>
+            <span style="font-size:14px;font-weight:600;color:#A78BFA;width:60px;text-align:right">New</span>
+          </div>
+          <div style="padding:0 16px 10px">
+            <div style="display:flex;align-items:center;gap:8px;background:#1C1C2E;border-radius:12px;padding:10px 12px">
+              <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="#8E8EA3" stroke-width="1.8" stroke-linecap="round"><circle cx="7" cy="7" r="5.2"></circle><path d="M11 11l3.5 3.5"></path></svg>
+              <span style="font-size:14px;color:#62627A">Search exercises</span>
+            </div>
+          </div>
+          <div style="display:flex;gap:6px;padding:0 16px 8px;overflow:hidden">
+            <span style="flex-shrink:0;font-size:12px;font-weight:600;color:#8E8EA3;background:#1C1C2E;border-radius:999px;padding:7px 13px">All</span>
+            <span style="flex-shrink:0;font-size:12px;font-weight:600;color:#fff;background:linear-gradient(175deg,#8B5CF6,#6D28D9);border-radius:999px;padding:7px 13px;box-shadow:0 0 12px rgba(139,92,246,0.35)">Chest</span>
+            <span style="flex-shrink:0;font-size:12px;font-weight:600;color:#8E8EA3;background:#1C1C2E;border-radius:999px;padding:7px 13px">Back</span>
+            <span style="flex-shrink:0;font-size:12px;font-weight:600;color:#8E8EA3;background:#1C1C2E;border-radius:999px;padding:7px 13px">Shoulders</span>
+            <span style="flex-shrink:0;font-size:12px;font-weight:600;color:#8E8EA3;background:#1C1C2E;border-radius:999px;padding:7px 13px">Legs</span>
+            <span style="flex-shrink:0;font-size:12px;font-weight:600;color:#8E8EA3;background:#1C1C2E;border-radius:999px;padding:7px 13px">Arms</span>
+          </div>
+          <div style="display:flex;gap:6px;padding:0 16px 12px;overflow:hidden">
+            <span style="flex-shrink:0;font-size:11.5px;font-weight:500;color:#C7C7D6;border:1px solid rgba(139,92,246,0.5);background:rgba(139,92,246,0.1);border-radius:999px;padding:5px 11px">Barbell</span>
+            <span style="flex-shrink:0;font-size:11.5px;font-weight:500;color:#8E8EA3;border:1px solid #2A2A3E;border-radius:999px;padding:5px 11px">Dumbbell</span>
+            <span style="flex-shrink:0;font-size:11.5px;font-weight:500;color:#8E8EA3;border:1px solid #2A2A3E;border-radius:999px;padding:5px 11px">Cable</span>
+            <span style="flex-shrink:0;font-size:11.5px;font-weight:500;color:#8E8EA3;border:1px solid #2A2A3E;border-radius:999px;padding:5px 11px">Machine</span>
+            <span style="flex-shrink:0;font-size:11.5px;font-weight:500;color:#8E8EA3;border:1px solid #2A2A3E;border-radius:999px;padding:5px 11px">Bodyweight</span>
+          </div>
+          <div style="flex:1;overflow:hidden;border-top:1px solid rgba(255,255,255,0.05)">
+            <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid rgba(255,255,255,0.04)">
+              <div style="width:38px;height:38px;border-radius:11px;background:#1C1C2E;display:flex;align-items:center;justify-content:center"><span style="font-family:'Barlow Condensed';font-weight:700;font-size:13px;color:#8E8EA3">BB</span></div>
+              <div style="flex:1">
+                <div style="display:flex;align-items:center;gap:7px"><span style="font-size:14.5px;font-weight:600;color:#EDEDF4">Bench Press</span><span style="font-size:8.5px;font-weight:700;letter-spacing:0.8px;color:#C4B5FD;border:1px solid rgba(196,181,253,0.4);border-radius:4px;padding:1.5px 4px">PR 225&times;5</span></div>
+                <div style="font-size:11.5px;color:#8E8EA3">Barbell &middot; Chest &middot; last Jul 18</div>
+              </div>
+              <div style="width:26px;height:26px;border-radius:999px;border:1.5px solid #3A3A4E"></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid rgba(255,255,255,0.04);background:rgba(139,92,246,0.08)">
+              <div style="width:38px;height:38px;border-radius:11px;background:#1C1C2E;display:flex;align-items:center;justify-content:center"><span style="font-family:'Barlow Condensed';font-weight:700;font-size:13px;color:#8E8EA3">CB</span></div>
+              <div style="flex:1">
+                <div style="font-size:14.5px;font-weight:600;color:#EDEDF4">Cable Fly</div>
+                <div style="font-size:11.5px;color:#8E8EA3">Cable &middot; Chest &middot; last Jul 18</div>
+              </div>
+              <div style="width:26px;height:26px;border-radius:999px;background:linear-gradient(175deg,#8B5CF6,#5B21B6);display:flex;align-items:center;justify-content:center;box-shadow:0 0 10px rgba(139,92,246,0.4)"><svg width="11" height="9" viewBox="0 0 13 10" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 5l3.5 3.5L12 1"></path></svg></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid rgba(255,255,255,0.04)">
+              <div style="width:38px;height:38px;border-radius:11px;background:#1C1C2E;display:flex;align-items:center;justify-content:center"><span style="font-family:'Barlow Condensed';font-weight:700;font-size:13px;color:#8E8EA3">BW</span></div>
+              <div style="flex:1">
+                <div style="font-size:14.5px;font-weight:600;color:#EDEDF4">Chest Dip</div>
+                <div style="font-size:11.5px;color:#8E8EA3">Bodyweight &middot; Chest</div>
+              </div>
+              <div style="width:26px;height:26px;border-radius:999px;border:1.5px solid #3A3A4E"></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid rgba(255,255,255,0.04)">
+              <div style="width:38px;height:38px;border-radius:11px;background:#1C1C2E;display:flex;align-items:center;justify-content:center"><span style="font-family:'Barlow Condensed';font-weight:700;font-size:13px;color:#8E8EA3">BB</span></div>
+              <div style="flex:1">
+                <div style="font-size:14.5px;font-weight:600;color:#EDEDF4">Close-Grip Bench Press</div>
+                <div style="font-size:11.5px;color:#8E8EA3">Barbell &middot; Chest, Triceps</div>
+              </div>
+              <div style="width:26px;height:26px;border-radius:999px;border:1.5px solid #3A3A4E"></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid rgba(255,255,255,0.04)">
+              <div style="width:38px;height:38px;border-radius:11px;background:#1C1C2E;display:flex;align-items:center;justify-content:center"><span style="font-family:'Barlow Condensed';font-weight:700;font-size:13px;color:#8E8EA3">DB</span></div>
+              <div style="flex:1">
+                <div style="font-size:14.5px;font-weight:600;color:#EDEDF4">Dumbbell Bench Press</div>
+                <div style="font-size:11.5px;color:#8E8EA3">Dumbbell &middot; Chest &middot; last Jul 11</div>
+              </div>
+              <div style="width:26px;height:26px;border-radius:999px;border:1.5px solid #3A3A4E"></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid rgba(255,255,255,0.04);background:rgba(139,92,246,0.08)">
+              <div style="width:38px;height:38px;border-radius:11px;background:#1C1C2E;display:flex;align-items:center;justify-content:center"><span style="font-family:'Barlow Condensed';font-weight:700;font-size:13px;color:#8E8EA3">BB</span></div>
+              <div style="flex:1">
+                <div style="font-size:14.5px;font-weight:600;color:#EDEDF4">Incline Bench Press</div>
+                <div style="font-size:11.5px;color:#8E8EA3">Barbell &middot; Chest &middot; last Jul 18</div>
+              </div>
+              <div style="width:26px;height:26px;border-radius:999px;background:linear-gradient(175deg,#8B5CF6,#5B21B6);display:flex;align-items:center;justify-content:center;box-shadow:0 0 10px rgba(139,92,246,0.4)"><svg width="11" height="9" viewBox="0 0 13 10" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 5l3.5 3.5L12 1"></path></svg></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;padding:12px 16px">
+              <div style="width:38px;height:38px;border-radius:11px;background:#1C1C2E;display:flex;align-items:center;justify-content:center"><span style="font-family:'Barlow Condensed';font-weight:700;font-size:13px;color:#8E8EA3">MC</span></div>
+              <div style="flex:1">
+                <div style="font-size:14.5px;font-weight:600;color:#EDEDF4">Machine Chest Press</div>
+                <div style="font-size:11.5px;color:#8E8EA3">Machine &middot; Chest</div>
+              </div>
+              <div style="width:26px;height:26px;border-radius:999px;border:1.5px solid #3A3A4E"></div>
+            </div>
+          </div>
+          <div style="padding:12px 16px 30px;background:linear-gradient(180deg,rgba(16,16,27,0),#10101B 40%)">
+            <div style="height:52px;border-radius:14px;background:linear-gradient(175deg,#8B5CF6,#5B21B6);box-shadow:0 0 22px rgba(139,92,246,0.4),inset 0 1px 0 rgba(255,255,255,0.25);display:flex;align-items:center;justify-content:center">
+              <span style="font-family:'Barlow Condensed';font-weight:700;font-size:18px;letter-spacing:2.5px;color:#fff">ADD 2 EXERCISES</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </x-import>
+  </div>
+
+  <div class="dv-opt" id="1e" data-screen-label="Workout complete">
+    <div class="dv-olabel"><a class="dv-oid" href="#1e">1e</a>Workout complete — summary</div>
+    <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" width="{{ 393 }}" height="{{ 852 }}" dark="{{ true }}" hint-size="393px,852px">
+      <div style="width:393px;height:852px;display:flex;flex-direction:column;background:#0A0A0F;color:#EDEDF4;font-family:'Barlow',system-ui,sans-serif;position:relative;overflow:hidden;box-sizing:border-box">
+        <div style="position:absolute;top:-80px;left:50%;transform:translateX(-50%);width:520px;height:420px;background:radial-gradient(circle,rgba(139,92,246,0.2),transparent 62%);pointer-events:none"></div>
+        <div style="flex:1;overflow:hidden;padding:74px 20px 0;display:flex;flex-direction:column;align-items:center">
+          <div style="width:84px;height:92px;clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%);background:linear-gradient(170deg,#2A2A3E,#131320);display:flex;align-items:center;justify-content:center;gap:8px;position:relative">
+            <div style="position:absolute;inset:2px;clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%);background:#131320"></div>
+            <div style="width:6px;height:22px;border-radius:3px;background:#C4B5FD;transform:rotate(10deg);box-shadow:0 0 16px rgba(196,181,253,1);position:relative"></div>
+            <div style="width:6px;height:22px;border-radius:3px;background:#C4B5FD;transform:rotate(-10deg);box-shadow:0 0 16px rgba(196,181,253,1);position:relative"></div>
+          </div>
+          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:32px;letter-spacing:4px;color:#EDEDF4;margin-top:16px;text-shadow:0 0 24px rgba(139,92,246,0.4)">WORKOUT COMPLETE</div>
+          <div style="font-size:13px;color:#8E8EA3;margin-top:2px">Push Day A &middot; Today, 6:42 PM</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;margin-top:22px">
+            <div style="background:#131320;border:1px solid rgba(255,255,255,0.05);border-radius:16px;padding:14px 16px">
+              <div style="font-size:10px;font-weight:600;letter-spacing:1.5px;color:#8E8EA3">DURATION</div>
+              <div style="font-family:'Barlow Condensed';font-weight:700;font-size:34px;line-height:1.15;color:#EDEDF4">58:24</div>
+            </div>
+            <div style="background:#131320;border:1px solid rgba(255,255,255,0.05);border-radius:16px;padding:14px 16px">
+              <div style="font-size:10px;font-weight:600;letter-spacing:1.5px;color:#8E8EA3">VOLUME</div>
+              <div style="font-family:'Barlow Condensed';font-weight:700;font-size:34px;line-height:1.15;color:#EDEDF4">24.2<span style="font-size:18px;color:#8E8EA3">k lb</span></div>
+            </div>
+            <div style="background:#131320;border:1px solid rgba(255,255,255,0.05);border-radius:16px;padding:14px 16px">
+              <div style="font-size:10px;font-weight:600;letter-spacing:1.5px;color:#8E8EA3">SETS DONE</div>
+              <div style="font-family:'Barlow Condensed';font-weight:700;font-size:34px;line-height:1.15;color:#EDEDF4">22</div>
+            </div>
+            <div style="background:#131320;border:1px solid rgba(196,181,253,0.4);border-radius:16px;padding:14px 16px;box-shadow:0 0 20px rgba(139,92,246,0.2)">
+              <div style="font-size:10px;font-weight:600;letter-spacing:1.5px;color:#C4B5FD">PRS HIT</div>
+              <div style="font-family:'Barlow Condensed';font-weight:700;font-size:34px;line-height:1.15;color:#C4B5FD;text-shadow:0 0 16px rgba(196,181,253,0.6)">2</div>
+            </div>
+          </div>
+          <div style="width:100%;background:#131320;border:1px solid rgba(255,255,255,0.05);border-radius:16px;margin-top:10px;overflow:hidden">
+            <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid rgba(255,255,255,0.05)">
+              <span style="font-size:9.5px;font-weight:700;letter-spacing:1px;color:#0A0A0F;background:#C4B5FD;border-radius:6px;padding:3px 6px;box-shadow:0 0 12px rgba(196,181,253,0.6)">&#10022; PR</span>
+              <div style="flex:1">
+                <div style="font-size:14px;font-weight:600;color:#EDEDF4">Bench Press</div>
+                <div style="font-size:11.5px;color:#8E8EA3">+10 lb over previous best</div>
+              </div>
+              <span style="font-family:'Barlow Condensed';font-weight:700;font-size:21px;color:#C4B5FD">225 &times; 5</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;padding:12px 16px">
+              <span style="font-size:9.5px;font-weight:700;letter-spacing:1px;color:#0A0A0F;background:#C4B5FD;border-radius:6px;padding:3px 6px">&#10022; PR</span>
+              <div style="flex:1">
+                <div style="font-size:14px;font-weight:600;color:#EDEDF4">Overhead Press</div>
+                <div style="font-size:11.5px;color:#8E8EA3">+5 lb over previous best</div>
+              </div>
+              <span style="font-family:'Barlow Condensed';font-weight:700;font-size:21px;color:#C4B5FD">135 &times; 6</span>
+            </div>
+          </div>
+          <div style="width:100%;border-radius:16px;padding:1px;background:linear-gradient(150deg,rgba(139,92,246,0.6),rgba(139,92,246,0.1) 50%,rgba(91,33,182,0.3));margin-top:10px;box-sizing:border-box">
+            <div style="background:#131320;border-radius:15px;padding:14px 16px">
+              <div style="display:flex;align-items:center;gap:12px">
+                <div style="width:38px;height:42px;clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%);background:linear-gradient(170deg,#8B5CF6,#5B21B6);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                  <span style="font-family:'Barlow Condensed';font-weight:800;font-size:16px;color:#fff">II</span>
+                </div>
+                <div style="flex:1">
+                  <div style="display:flex;align-items:baseline;justify-content:space-between">
+                    <span style="font-family:'Barlow Condensed';font-weight:700;font-size:17px;letter-spacing:1.5px;color:#EDEDF4">SPARTAN II</span>
+                    <span style="font-size:12px;font-weight:700;color:#A78BFA">+240 XP</span>
+                  </div>
+                  <div style="height:7px;border-radius:99px;background:#1C1C2E;margin-top:7px;overflow:hidden">
+                    <div style="width:62%;height:100%;border-radius:99px;background:linear-gradient(90deg,#5B21B6,#8B5CF6,#A78BFA);box-shadow:0 0 10px rgba(167,139,250,0.6)"></div>
+                  </div>
+                  <div style="font-size:10.5px;color:#8E8EA3;margin-top:5px">8,240 / 10,000 XP &middot; 1,760 to <b style="color:#C7C7D6">SPARTAN III</b></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div style="width:100%;height:52px;border-radius:14px;background:linear-gradient(175deg,#8B5CF6,#5B21B6);box-shadow:0 0 22px rgba(139,92,246,0.4),inset 0 1px 0 rgba(255,255,255,0.25);display:flex;align-items:center;justify-content:center;margin-top:20px">
+            <span style="font-family:'Barlow Condensed';font-weight:700;font-size:19px;letter-spacing:2.5px;color:#fff">DONE</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:7px;margin-top:14px">
+            <svg width="14" height="15" viewBox="0 0 14 16" fill="none" stroke="#A78BFA" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10V1.5"></path><path d="M3.5 4.5L7 1l3.5 3.5"></path><path d="M2 8v5.5a1.5 1.5 0 001.5 1.5h7a1.5 1.5 0 001.5-1.5V8"></path></svg>
+            <span style="font-size:13.5px;font-weight:600;color:#A78BFA">Share summary</span>
+          </div>
+        </div>
+      </div>
+    </x-import>
+  </div>
+
+  </div>
+</section>
+
+<section class="dv-turn" id="t4">
+  <div class="dv-thd"><a class="dv-tid" href="#t4">4</a><span class="dv-tname">Routines — library &amp; builder</span></div>
+  <div class="dv-opts">
+
+  <div class="dv-opt" id="1f" data-screen-label="Routines library">
+    <div class="dv-olabel"><a class="dv-oid" href="#1f">1f</a>Routine library</div>
+    <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" width="{{ 393 }}" height="{{ 852 }}" dark="{{ true }}" hint-size="393px,852px">
+      <div style="width:393px;height:852px;display:flex;flex-direction:column;background:#0A0A0F;color:#EDEDF4;font-family:'Barlow',system-ui,sans-serif;position:relative;overflow:hidden;box-sizing:border-box">
+        <div style="flex:1;overflow:hidden;padding:60px 20px 0;display:flex;flex-direction:column">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0 14px">
+            <div style="display:flex;align-items:center;gap:6px">
+              <svg width="10" height="17" viewBox="0 0 10 17" fill="none" stroke="#A78BFA" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 1.5l-7 7 7 7"></path></svg>
+              <span style="font-size:15px;font-weight:500;color:#A78BFA">Home</span>
+            </div>
+            <div style="width:32px;height:32px;border-radius:999px;background:#1C1C2E;display:flex;align-items:center;justify-content:center">
+              <svg width="13" height="13" viewBox="0 0 12 12"><rect y="4.75" width="12" height="2.5" rx="1.2" fill="#A78BFA"></rect><rect x="4.75" width="2.5" height="12" rx="1.2" fill="#A78BFA"></rect></svg>
+            </div>
+          </div>
+          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:36px;letter-spacing:2px;color:#EDEDF4">ROUTINES</div>
+          <div style="font-size:11px;font-weight:600;letter-spacing:2px;color:#8E8EA3;margin:16px 0 10px">MY TEMPLATES &middot; 4</div>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div style="background:#131320;border:1px solid rgba(139,92,246,0.3);border-radius:16px;padding:15px 16px">
+              <div style="display:flex;align-items:flex-start;justify-content:space-between">
+                <div>
+                  <div style="font-family:'Barlow Condensed';font-weight:700;font-size:22px;letter-spacing:0.5px;color:#EDEDF4">Push Day A</div>
+                  <div style="font-size:11.5px;color:#8E8EA3;margin-top:1px">6 exercises &middot; ~55 min &middot; done today</div>
+                </div>
+                <span style="font-size:9.5px;font-weight:700;letter-spacing:1px;color:#A78BFA;background:rgba(139,92,246,0.12);border:1px solid rgba(139,92,246,0.35);border-radius:6px;padding:3px 7px">NEXT UP</span>
+              </div>
+              <div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:11px">
+                <span style="font-size:11px;font-weight:500;color:#C7C7D6;background:#1C1C2E;border-radius:7px;padding:3px 8px">Bench Press</span>
+                <span style="font-size:11px;font-weight:500;color:#C7C7D6;background:#1C1C2E;border-radius:7px;padding:3px 8px">Overhead Press</span>
+                <span style="font-size:11px;font-weight:500;color:#C7C7D6;background:#1C1C2E;border-radius:7px;padding:3px 8px">Incline DB Press</span>
+                <span style="font-size:11px;font-weight:500;color:#C7C7D6;background:#1C1C2E;border-radius:7px;padding:3px 8px">Lateral Raise</span>
+                <span style="font-size:11px;font-weight:500;color:#8E8EA3;background:#1C1C2E;border-radius:7px;padding:3px 8px">+2</span>
+              </div>
+            </div>
+            <div style="background:#131320;border:1px solid rgba(255,255,255,0.05);border-radius:16px;padding:15px 16px">
+              <div style="display:flex;align-items:flex-start;justify-content:space-between">
+                <div>
+                  <div style="font-family:'Barlow Condensed';font-weight:700;font-size:22px;letter-spacing:0.5px;color:#EDEDF4">Pull Day A</div>
+                  <div style="font-size:11.5px;color:#8E8EA3;margin-top:1px">6 exercises &middot; ~55 min &middot; last Jul 21</div>
+                </div>
+                <svg width="20" height="6" viewBox="0 0 22 6" style="margin-top:6px"><circle cx="3" cy="3" r="2.2" fill="#62627A"></circle><circle cx="11" cy="3" r="2.2" fill="#62627A"></circle><circle cx="19" cy="3" r="2.2" fill="#62627A"></circle></svg>
+              </div>
+              <div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:11px">
+                <span style="font-size:11px;font-weight:500;color:#C7C7D6;background:#1C1C2E;border-radius:7px;padding:3px 8px">Deadlift</span>
+                <span style="font-size:11px;font-weight:500;color:#C7C7D6;background:#1C1C2E;border-radius:7px;padding:3px 8px">Weighted Pull-Up</span>
+                <span style="font-size:11px;font-weight:500;color:#C7C7D6;background:#1C1C2E;border-radius:7px;padding:3px 8px">Barbell Row</span>
+                <span style="font-size:11px;font-weight:500;color:#8E8EA3;background:#1C1C2E;border-radius:7px;padding:3px 8px">+3</span>
+              </div>
+            </div>
+            <div style="background:#131320;border:1px solid rgba(255,255,255,0.05);border-radius:16px;padding:15px 16px">
+              <div style="display:flex;align-items:flex-start;justify-content:space-between">
+                <div>
+                  <div style="font-family:'Barlow Condensed';font-weight:700;font-size:22px;letter-spacing:0.5px;color:#EDEDF4">Leg Day</div>
+                  <div style="font-size:11.5px;color:#8E8EA3;margin-top:1px">7 exercises &middot; ~65 min &middot; last Jul 19</div>
+                </div>
+                <svg width="20" height="6" viewBox="0 0 22 6" style="margin-top:6px"><circle cx="3" cy="3" r="2.2" fill="#62627A"></circle><circle cx="11" cy="3" r="2.2" fill="#62627A"></circle><circle cx="19" cy="3" r="2.2" fill="#62627A"></circle></svg>
+              </div>
+              <div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:11px">
+                <span style="font-size:11px;font-weight:500;color:#C7C7D6;background:#1C1C2E;border-radius:7px;padding:3px 8px">Back Squat</span>
+                <span style="font-size:11px;font-weight:500;color:#C7C7D6;background:#1C1C2E;border-radius:7px;padding:3px 8px">Romanian Deadlift</span>
+                <span style="font-size:11px;font-weight:500;color:#C7C7D6;background:#1C1C2E;border-radius:7px;padding:3px 8px">Leg Press</span>
+                <span style="font-size:11px;font-weight:500;color:#8E8EA3;background:#1C1C2E;border-radius:7px;padding:3px 8px">+4</span>
+              </div>
+            </div>
+            <div style="background:#131320;border:1px solid rgba(255,255,255,0.05);border-radius:16px;padding:15px 16px">
+              <div style="display:flex;align-items:flex-start;justify-content:space-between">
+                <div>
+                  <div style="font-family:'Barlow Condensed';font-weight:700;font-size:22px;letter-spacing:0.5px;color:#EDEDF4">Push Day B</div>
+                  <div style="font-size:11.5px;color:#8E8EA3;margin-top:1px">5 exercises &middot; ~45 min &middot; last Jul 13</div>
+                </div>
+                <svg width="20" height="6" viewBox="0 0 22 6" style="margin-top:6px"><circle cx="3" cy="3" r="2.2" fill="#62627A"></circle><circle cx="11" cy="3" r="2.2" fill="#62627A"></circle><circle cx="19" cy="3" r="2.2" fill="#62627A"></circle></svg>
+              </div>
+            </div>
+            <div style="height:48px;border-radius:14px;border:1px dashed rgba(139,92,246,0.4);display:flex;align-items:center;justify-content:center;gap:7px">
+              <svg width="11" height="11" viewBox="0 0 12 12"><rect y="4.75" width="12" height="2.5" rx="1.2" fill="#A78BFA"></rect><rect x="4.75" width="2.5" height="12" rx="1.2" fill="#A78BFA"></rect></svg>
+              <span style="font-size:13px;font-weight:600;color:#A78BFA">New Routine</span>
+            </div>
+          </div>
+        </div>
+        <div style="position:relative;z-index:5;background:rgba(12,12,19,0.96);border-top:1px solid rgba(139,92,246,0.16);display:flex;align-items:flex-start;justify-content:space-between;padding:9px 20px 0;height:84px;box-sizing:border-box">
+          <div style="width:52px;display:flex;flex-direction:column;align-items:center;gap:3px">
+            <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="#A78BFA" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11l8-7 8 7"></path><path d="M6 9.5V20h12V9.5"></path></svg>
+            <span style="font-size:10px;font-weight:600;color:#A78BFA">Home</span>
+          </div>
+          <div style="width:52px;display:flex;flex-direction:column;align-items:center;gap:3px">
+            <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="#62627A" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"></circle><path d="M12 7.5V12l3 2"></path></svg>
+            <span style="font-size:10px;font-weight:500;color:#62627A">History</span>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:3px;margin-top:-26px">
+            <div style="width:56px;height:56px;border-radius:17px;background:linear-gradient(165deg,#8B5CF6,#5B21B6);box-shadow:0 0 26px rgba(139,92,246,0.45),0 10px 22px rgba(0,0,0,0.55),inset 0 1px 0 rgba(255,255,255,0.3);display:flex;align-items:center;justify-content:center">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><path d="M3.5 12h17" stroke="#fff" stroke-width="2" stroke-linecap="round"></path><rect x="5" y="6.5" width="3" height="11" rx="1.2" fill="#fff"></rect><rect x="16" y="6.5" width="3" height="11" rx="1.2" fill="#fff"></rect><rect x="1.5" y="9" width="2" height="6" rx="1" fill="#fff"></rect><rect x="20.5" y="9" width="2" height="6" rx="1" fill="#fff"></rect></svg>
+            </div>
+          </div>
+          <div style="width:52px;display:flex;flex-direction:column;align-items:center;gap:3px">
+            <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="#62627A" stroke-width="2.2" stroke-linecap="round"><path d="M5 20v-6"></path><path d="M12 20V8"></path><path d="M19 20V4"></path></svg>
+            <span style="font-size:10px;font-weight:500;color:#62627A">Progress</span>
+          </div>
+          <div style="width:52px;display:flex;flex-direction:column;align-items:center;gap:3px">
+            <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="#62627A" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="8" r="3.6"></circle><path d="M5 20c1.2-3.4 3.9-5 7-5s5.8 1.6 7 5"></path></svg>
+            <span style="font-size:10px;font-weight:500;color:#62627A">Profile</span>
+          </div>
+        </div>
+      </div>
+    </x-import>
+  </div>
+
+  <div class="dv-opt" id="1g" data-screen-label="Routine builder">
+    <div class="dv-olabel"><a class="dv-oid" href="#1g">1g</a>Routine builder — reorder &amp; supersets</div>
+    <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" width="{{ 393 }}" height="{{ 852 }}" dark="{{ true }}" hint-size="393px,852px">
+      <div style="width:393px;height:852px;display:flex;flex-direction:column;background:#0A0A0F;color:#EDEDF4;font-family:'Barlow',system-ui,sans-serif;position:relative;overflow:hidden;box-sizing:border-box">
+        <div style="padding:62px 16px 12px;border-bottom:1px solid rgba(255,255,255,0.05);display:flex;align-items:center;justify-content:space-between">
+          <span style="font-size:14px;font-weight:500;color:#A78BFA;width:64px">Cancel</span>
+          <span style="font-family:'Barlow Condensed';font-weight:700;font-size:19px;letter-spacing:1.5px;color:#EDEDF4">EDIT ROUTINE</span>
+          <span style="font-size:14px;font-weight:700;color:#A78BFA;width:64px;text-align:right">Save</span>
+        </div>
+        <div style="flex:1;overflow:hidden;padding:14px 16px 0;display:flex;flex-direction:column;gap:12px">
+          <div style="background:#1C1C2E;border:1px solid rgba(255,255,255,0.08);border-radius:13px;padding:12px 14px">
+            <div style="font-size:9.5px;font-weight:700;letter-spacing:1.5px;color:#62627A;margin-bottom:2px">ROUTINE NAME</div>
+            <div style="font-family:'Barlow Condensed';font-weight:700;font-size:22px;color:#EDEDF4">Push Day A<span style="display:inline-block;width:2px;height:18px;background:#A78BFA;margin-left:2px;vertical-align:-2px"></span></div>
+          </div>
+          <div style="font-size:11px;font-weight:600;letter-spacing:2px;color:#8E8EA3">EXERCISES &middot; 6 &middot; DRAG TO REORDER</div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div style="background:#131320;border:1px solid rgba(255,255,255,0.05);border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:12px">
+              <svg width="16" height="12" viewBox="0 0 16 12"><rect width="16" height="2" rx="1" fill="#3A3A4E"></rect><rect y="5" width="16" height="2" rx="1" fill="#3A3A4E"></rect><rect y="10" width="16" height="2" rx="1" fill="#3A3A4E"></rect></svg>
+              <div style="flex:1">
+                <div style="font-size:14.5px;font-weight:600;color:#EDEDF4">Bench Press</div>
+                <div style="font-size:11.5px;color:#8E8EA3">4 sets &middot; 5&ndash;8 reps &middot; rest 3:00</div>
+              </div>
+              <svg width="8" height="14" viewBox="0 0 8 14" fill="none" stroke="#62627A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 1.5l5 5.5-5 5.5"></path></svg>
+            </div>
+            <div style="background:#131320;border:1px solid rgba(255,255,255,0.05);border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:12px;box-shadow:0 14px 30px rgba(0,0,0,0.6),0 0 0 1px rgba(139,92,246,0.45);transform:scale(1.02)">
+              <svg width="16" height="12" viewBox="0 0 16 12"><rect width="16" height="2" rx="1" fill="#A78BFA"></rect><rect y="5" width="16" height="2" rx="1" fill="#A78BFA"></rect><rect y="10" width="16" height="2" rx="1" fill="#A78BFA"></rect></svg>
+              <div style="flex:1">
+                <div style="font-size:14.5px;font-weight:600;color:#EDEDF4">Incline DB Press</div>
+                <div style="font-size:11.5px;color:#8E8EA3">3 sets &middot; 8&ndash;10 reps &middot; rest 2:00</div>
+              </div>
+              <svg width="8" height="14" viewBox="0 0 8 14" fill="none" stroke="#62627A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 1.5l5 5.5-5 5.5"></path></svg>
+            </div>
+            <div style="border:1px solid rgba(139,92,246,0.35);border-radius:16px;padding:9px;position:relative;margin-top:6px">
+              <span style="position:absolute;top:-8px;left:14px;font-size:9.5px;font-weight:700;letter-spacing:2px;color:#A78BFA;background:#0A0A0F;padding:0 8px">SUPERSET A</span>
+              <div style="display:flex;flex-direction:column;gap:6px">
+                <div style="background:#131320;border-radius:11px;padding:11px 13px;display:flex;align-items:center;gap:12px">
+                  <svg width="16" height="12" viewBox="0 0 16 12"><rect width="16" height="2" rx="1" fill="#3A3A4E"></rect><rect y="5" width="16" height="2" rx="1" fill="#3A3A4E"></rect><rect y="10" width="16" height="2" rx="1" fill="#3A3A4E"></rect></svg>
+                  <div style="flex:1">
+                    <div style="font-size:14.5px;font-weight:600;color:#EDEDF4">Overhead Press</div>
+                    <div style="font-size:11.5px;color:#8E8EA3">3 sets &middot; 6&ndash;8 reps &middot; rest 0:00</div>
+                  </div>
+                  <svg width="8" height="14" viewBox="0 0 8 14" fill="none" stroke="#62627A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 1.5l5 5.5-5 5.5"></path></svg>
+                </div>
+                <div style="background:#131320;border-radius:11px;padding:11px 13px;display:flex;align-items:center;gap:12px">
+                  <svg width="16" height="12" viewBox="0 0 16 12"><rect width="16" height="2" rx="1" fill="#3A3A4E"></rect><rect y="5" width="16" height="2" rx="1" fill="#3A3A4E"></rect><rect y="10" width="16" height="2" rx="1" fill="#3A3A4E"></rect></svg>
+                  <div style="flex:1">
+                    <div style="font-size:14.5px;font-weight:600;color:#EDEDF4">Lateral Raise</div>
+                    <div style="font-size:11.5px;color:#8E8EA3">3 sets &middot; 12&ndash;15 reps &middot; rest 1:30</div>
+                  </div>
+                  <svg width="8" height="14" viewBox="0 0 8 14" fill="none" stroke="#62627A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 1.5l5 5.5-5 5.5"></path></svg>
+                </div>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 0 2px">
+                <span style="font-size:11px;font-weight:600;color:#8E8EA3">Ungroup superset</span>
+              </div>
+            </div>
+            <div style="background:#131320;border:1px solid rgba(255,255,255,0.05);border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:12px">
+              <svg width="16" height="12" viewBox="0 0 16 12"><rect width="16" height="2" rx="1" fill="#3A3A4E"></rect><rect y="5" width="16" height="2" rx="1" fill="#3A3A4E"></rect><rect y="10" width="16" height="2" rx="1" fill="#3A3A4E"></rect></svg>
+              <div style="flex:1">
+                <div style="font-size:14.5px;font-weight:600;color:#EDEDF4">Cable Fly</div>
+                <div style="font-size:11.5px;color:#8E8EA3">3 sets &middot; 12&ndash;15 reps &middot; rest 1:30</div>
+              </div>
+              <svg width="8" height="14" viewBox="0 0 8 14" fill="none" stroke="#62627A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 1.5l5 5.5-5 5.5"></path></svg>
+            </div>
+            <div style="background:#131320;border:1px solid rgba(255,255,255,0.05);border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:12px">
+              <svg width="16" height="12" viewBox="0 0 16 12"><rect width="16" height="2" rx="1" fill="#3A3A4E"></rect><rect y="5" width="16" height="2" rx="1" fill="#3A3A4E"></rect><rect y="10" width="16" height="2" rx="1" fill="#3A3A4E"></rect></svg>
+              <div style="flex:1">
+                <div style="font-size:14.5px;font-weight:600;color:#EDEDF4">Triceps Pushdown</div>
+                <div style="font-size:11.5px;color:#8E8EA3">3 sets &middot; 10&ndash;12 reps &middot; rest 1:30</div>
+              </div>
+              <svg width="8" height="14" viewBox="0 0 8 14" fill="none" stroke="#62627A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 1.5l5 5.5-5 5.5"></path></svg>
+            </div>
+          </div>
+          <div style="display:flex;gap:10px">
+            <div style="flex:1;height:46px;border-radius:13px;background:#131320;border:1px dashed rgba(139,92,246,0.4);display:flex;align-items:center;justify-content:center;gap:7px">
+              <svg width="11" height="11" viewBox="0 0 12 12"><rect y="4.75" width="12" height="2.5" rx="1.2" fill="#A78BFA"></rect><rect x="4.75" width="2.5" height="12" rx="1.2" fill="#A78BFA"></rect></svg>
+              <span style="font-size:13px;font-weight:600;color:#A78BFA">Add Exercise</span>
+            </div>
+            <div style="flex:1;height:46px;border-radius:13px;background:#131320;border:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;gap:7px">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#C7C7D6" stroke-width="1.8" stroke-linecap="round"><path d="M4 1v12M10 1v12"></path><path d="M4 7h6"></path></svg>
+              <span style="font-size:13px;font-weight:600;color:#C7C7D6">Group Superset</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </x-import>
+  </div>
+
+  </div>
+</section>
+
+<section class="dv-turn" id="t5">
+  <div class="dv-thd"><a class="dv-tid" href="#t5">5</a><span class="dv-tname">Exercise detail &amp; history</span></div>
+  <div class="dv-opts">
+
+  <div class="dv-opt" id="1h" data-screen-label="Exercise detail">
+    <div class="dv-olabel"><a class="dv-oid" href="#1h">1h</a>Exercise detail — Bench Press</div>
+    <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" width="{{ 393 }}" height="{{ 852 }}" dark="{{ true }}" hint-size="393px,852px">
+      <div style="width:393px;height:852px;display:flex;flex-direction:column;background:#0A0A0F;color:#EDEDF4;font-family:'Barlow',system-ui,sans-serif;position:relative;overflow:hidden;box-sizing:border-box">
+        <div style="flex:1;overflow:hidden;padding:60px 18px 20px;display:flex;flex-direction:column;gap:12px">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0 0">
+            <svg width="10" height="17" viewBox="0 0 10 17" fill="none" stroke="#A78BFA" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 1.5l-7 7 7 7"></path></svg>
+            <svg width="20" height="6" viewBox="0 0 22 6"><circle cx="3" cy="3" r="2.2" fill="#62627A"></circle><circle cx="11" cy="3" r="2.2" fill="#62627A"></circle><circle cx="19" cy="3" r="2.2" fill="#62627A"></circle></svg>
+          </div>
+          <div>
+            <div style="font-family:'Barlow Condensed';font-weight:800;font-size:34px;letter-spacing:1px;color:#EDEDF4">BENCH PRESS</div>
+            <div style="font-size:10.5px;font-weight:600;letter-spacing:1.5px;color:#8E8EA3">BARBELL &middot; CHEST &middot; 64 SESSIONS</div>
+          </div>
+          <div style="display:flex;gap:10px">
+            <div style="flex:1;background:#131320;border:1px solid rgba(196,181,253,0.35);border-radius:14px;padding:11px 13px;box-shadow:0 0 16px rgba(139,92,246,0.14)">
+              <div style="font-size:9.5px;font-weight:600;letter-spacing:1.5px;color:#C4B5FD">EST. 1RM</div>
+              <div style="font-family:'Barlow Condensed';font-weight:700;font-size:29px;line-height:1.15;color:#C4B5FD;text-shadow:0 0 12px rgba(196,181,253,0.5)">253<span style="font-size:15px;color:#8E8EA3"> lb</span></div>
+            </div>
+            <div style="flex:1;background:#131320;border:1px solid rgba(255,255,255,0.05);border-radius:14px;padding:11px 13px">
+              <div style="font-size:9.5px;font-weight:600;letter-spacing:1.5px;color:#8E8EA3">BEST SET</div>
+              <div style="font-family:'Barlow Condensed';font-weight:700;font-size:29px;line-height:1.15;color:#EDEDF4">225<span style="font-size:15px;color:#8E8EA3">&times;5</span></div>
+            </div>
+            <div style="flex:1;background:#131320;border:1px solid rgba(255,255,255,0.05);border-radius:14px;padding:11px 13px">
+              <div style="font-size:9.5px;font-weight:600;letter-spacing:1.5px;color:#8E8EA3">LIFETIME VOL</div>
+              <div style="font-family:'Barlow Condensed';font-weight:700;font-size:29px;line-height:1.15;color:#EDEDF4">182<span style="font-size:15px;color:#8E8EA3">k lb</span></div>
+            </div>
+          </div>
+          <div style="background:#131320;border:1px solid rgba(255,255,255,0.05);border-radius:16px;padding:14px 14px 10px">
+            <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px">
+              <span style="font-size:10.5px;font-weight:700;letter-spacing:1.5px;color:#8E8EA3">ESTIMATED 1RM</span>
+              <span style="font-size:10.5px;font-weight:600;color:#62627A">12 WEEKS</span>
+            </div>
+            <svg width="100%" height="112" viewBox="0 0 316 112" preserveAspectRatio="none">
+              <defs><linearGradient id="e1rmGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="rgba(139,92,246,0.35)"></stop><stop offset="1" stop-color="rgba(139,92,246,0)"></stop></linearGradient></defs>
+              <line x1="0" y1="28" x2="316" y2="28" stroke="rgba(255,255,255,0.04)" stroke-width="1"></line>
+              <line x1="0" y1="58" x2="316" y2="58" stroke="rgba(255,255,255,0.04)" stroke-width="1"></line>
+              <line x1="0" y1="88" x2="316" y2="88" stroke="rgba(255,255,255,0.04)" stroke-width="1"></line>
+              <path d="M12 84 L55 78 L98 82 L141 66 L184 58 L227 61 L270 42 L302 24 L302 112 L12 112 Z" fill="url(#e1rmGrad)"></path>
+              <path d="M12 84 L55 78 L98 82 L141 66 L184 58 L227 61 L270 42 L302 24" fill="none" stroke="#8B5CF6" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"></path>
+              <circle cx="141" cy="66" r="2.5" fill="#8B5CF6"></circle>
+              <circle cx="227" cy="61" r="2.5" fill="#8B5CF6"></circle>
+              <circle cx="270" cy="42" r="2.5" fill="#8B5CF6"></circle>
+              <circle cx="302" cy="24" r="8" fill="rgba(196,181,253,0.25)"></circle>
+              <circle cx="302" cy="24" r="4" fill="#C4B5FD"></circle>
+            </svg>
+            <div style="display:flex;justify-content:space-between;padding:6px 2px 0">
+              <span style="font-size:9.5px;font-weight:600;color:#62627A">MAY</span>
+              <span style="font-size:9.5px;font-weight:600;color:#62627A">JUN</span>
+              <span style="font-size:9.5px;font-weight:600;color:#62627A">JUL</span>
+              <span style="font-size:10px;font-weight:700;color:#C4B5FD">253 lb &#10022;</span>
+            </div>
+          </div>
+          <div style="background:#131320;border:1px solid rgba(255,255,255,0.05);border-radius:16px;padding:14px 14px 12px">
+            <div style="font-size:10.5px;font-weight:700;letter-spacing:1.5px;color:#8E8EA3;margin-bottom:8px">WEEKLY VOLUME</div>
+            <svg width="100%" height="76" viewBox="0 0 316 76" preserveAspectRatio="none">
+              <rect x="8" y="48" width="26" height="28" rx="3" fill="rgba(139,92,246,0.4)"></rect>
+              <rect x="47" y="40" width="26" height="36" rx="3" fill="rgba(139,92,246,0.4)"></rect>
+              <rect x="86" y="44" width="26" height="32" rx="3" fill="rgba(139,92,246,0.4)"></rect>
+              <rect x="125" y="32" width="26" height="44" rx="3" fill="rgba(139,92,246,0.4)"></rect>
+              <rect x="164" y="38" width="26" height="38" rx="3" fill="rgba(139,92,246,0.4)"></rect>
+              <rect x="203" y="22" width="26" height="54" rx="3" fill="rgba(139,92,246,0.4)"></rect>
+              <rect x="242" y="28" width="26" height="48" rx="3" fill="rgba(139,92,246,0.4)"></rect>
+              <rect x="281" y="10" width="26" height="66" rx="3" fill="#A78BFA"></rect>
+            </svg>
+          </div>
+          <div style="flex:1;min-height:0;background:#131320;border:1px solid rgba(255,255,255,0.05);border-radius:16px;overflow:hidden">
+            <div style="font-size:10.5px;font-weight:700;letter-spacing:1.5px;color:#8E8EA3;padding:13px 16px 9px;border-bottom:1px solid rgba(255,255,255,0.05)">HISTORY</div>
+            <div style="display:flex;align-items:center;gap:12px;padding:11px 16px;border-bottom:1px solid rgba(255,255,255,0.04)">
+              <div style="flex:1">
+                <div style="display:flex;align-items:center;gap:7px"><span style="font-size:13.5px;font-weight:600;color:#EDEDF4">Jul 22 &middot; Push Day A</span><span style="font-size:8.5px;font-weight:700;letter-spacing:0.8px;color:#0A0A0F;background:#C4B5FD;border-radius:4px;padding:1.5px 5px">PR</span></div>
+                <div style="font-size:11.5px;color:#8E8EA3">225&times;5 &middot; 225&times;5 &middot; 215&times;6 &middot; 205&times;8</div>
+              </div>
+              <span style="font-family:'Barlow Condensed';font-weight:700;font-size:18px;color:#C7C7D6">5,240<span style="font-size:12px;color:#62627A"> lb</span></span>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;padding:11px 16px;border-bottom:1px solid rgba(255,255,255,0.04)">
+              <div style="flex:1">
+                <div style="font-size:13.5px;font-weight:600;color:#EDEDF4">Jul 15 &middot; Push Day B</div>
+                <div style="font-size:11.5px;color:#8E8EA3">215&times;5 &middot; 215&times;5 &middot; 205&times;7</div>
+              </div>
+              <span style="font-family:'Barlow Condensed';font-weight:700;font-size:18px;color:#C7C7D6">4,870<span style="font-size:12px;color:#62627A"> lb</span></span>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;padding:11px 16px">
+              <div style="flex:1">
+                <div style="font-size:13.5px;font-weight:600;color:#EDEDF4">Jul 8 &middot; Push Day A</div>
+                <div style="font-size:11.5px;color:#8E8EA3">215&times;4 &middot; 205&times;6 &middot; 205&times;6</div>
+              </div>
+              <span style="font-family:'Barlow Condensed';font-weight:700;font-size:18px;color:#C7C7D6">4,510<span style="font-size:12px;color:#62627A"> lb</span></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </x-import>
+  </div>
+
+  <div class="dv-opt" id="1i" data-screen-label="History calendar">
+    <div class="dv-olabel"><a class="dv-oid" href="#1i">1i</a>History — calendar &amp; day summary</div>
+    <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" width="{{ 393 }}" height="{{ 852 }}" dark="{{ true }}" hint-size="393px,852px">
+      <div style="width:393px;height:852px;display:flex;flex-direction:column;background:#0A0A0F;color:#EDEDF4;font-family:'Barlow',system-ui,sans-serif;position:relative;overflow:hidden;box-sizing:border-box">
+        <div style="flex:1;overflow:hidden;padding:60px 20px 0;display:flex;flex-direction:column;gap:14px">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding-top:6px">
+            <div style="font-family:'Barlow Condensed';font-weight:800;font-size:36px;letter-spacing:2px;color:#EDEDF4">HISTORY</div>
+            <div style="display:flex;align-items:center;gap:6px;background:#131320;border:1px solid rgba(139,92,246,0.25);border-radius:999px;padding:6px 12px 6px 10px">
+              <svg width="12" height="14" viewBox="0 0 14 16"><path d="M7 0C8.5 3 12 4.5 12 9a5 5 0 01-10 0c0-2 1-3.4 2-4.6C4.4 6 5.6 6.6 5.5 8 6.8 6.8 7.4 3.5 7 0z" fill="#A78BFA"></path></svg>
+              <span style="font-family:'Barlow Condensed';font-weight:700;font-size:15px;color:#EDEDF4">12</span>
+            </div>
+          </div>
+          <div style="background:#131320;border:1px solid rgba(255,255,255,0.05);border-radius:18px;padding:14px 14px 12px">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+              <svg width="9" height="15" viewBox="0 0 10 17" fill="none" stroke="#8E8EA3" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 1.5l-7 7 7 7"></path></svg>
+              <span style="font-family:'Barlow Condensed';font-weight:700;font-size:19px;letter-spacing:2px;color:#EDEDF4">JULY 2026</span>
+              <svg width="9" height="15" viewBox="0 0 10 17" fill="none" stroke="#62627A" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 1.5l7 7-7 7"></path></svg>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-bottom:6px">
+              <span style="text-align:center;font-size:9.5px;font-weight:700;color:#62627A">S</span><span style="text-align:center;font-size:9.5px;font-weight:700;color:#62627A">M</span><span style="text-align:center;font-size:9.5px;font-weight:700;color:#62627A">T</span><span style="text-align:center;font-size:9.5px;font-weight:700;color:#62627A">W</span><span style="text-align:center;font-size:9.5px;font-weight:700;color:#62627A">T</span><span style="text-align:center;font-size:9.5px;font-weight:700;color:#62627A">F</span><span style="text-align:center;font-size:9.5px;font-weight:700;color:#62627A">S</span>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:5px">
+              <span></span><span></span><span></span>
+              <span style="height:38px;border-radius:11px;background:rgba(139,92,246,0.2);border:1px solid rgba(139,92,246,0.4);display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed';font-weight:600;font-size:15px;color:#EDEDF4;box-sizing:border-box">1</span>
+              <span style="height:38px;display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed';font-weight:500;font-size:15px;color:#62627A">2</span>
+              <span style="height:38px;border-radius:11px;background:rgba(139,92,246,0.2);border:1px solid rgba(139,92,246,0.4);display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed';font-weight:600;font-size:15px;color:#EDEDF4;box-sizing:border-box">3</span>
+              <span style="height:38px;display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed';font-weight:500;font-size:15px;color:#62627A">4</span>
+              <span style="height:38px;border-radius:11px;background:rgba(139,92,246,0.2);border:1px solid rgba(139,92,246,0.4);display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed';font-weight:600;font-size:15px;color:#EDEDF4;box-sizing:border-box">5</span>
+              <span style="height:38px;display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed';font-weight:500;font-size:15px;color:#62627A">6</span>
+              <span style="height:38px;border-radius:11px;background:rgba(139,92,246,0.2);border:1px solid rgba(139,92,246,0.4);display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed';font-weight:600;font-size:15px;color:#EDEDF4;box-sizing:border-box">7</span>
+              <span style="height:38px;border-radius:11px;background:rgba(139,92,246,0.2);border:1px solid rgba(139,92,246,0.4);display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed';font-weight:600;font-size:15px;color:#EDEDF4;box-sizing:border-box">8</span>
+              <span style="height:38px;display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed';font-weight:500;font-size:15px;color:#62627A">9</span>
+              <span style="height:38px;border-radius:11px;background:rgba(139,92,246,0.2);border:1px solid rgba(139,92,246,0.4);display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed';font-weight:600;font-size:15px;color:#EDEDF4;box-sizing:border-box">10</span>
+              <span style="height:38px;border-radius:11px;background:rgba(139,92,246,0.35);border:1px solid rgba(139,92,246,0.55);display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed';font-weight:600;font-size:15px;color:#EDEDF4;box-sizing:border-box">11</span>
+              <span style="height:38px;border-radius:11px;background:rgba(139,92,246,0.35);border:1px solid rgba(139,92,246,0.55);display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed';font-weight:600;font-size:15px;color:#EDEDF4;box-sizing:border-box">12</span>
+              <span style="height:38px;border-radius:11px;background:rgba(139,92,246,0.35);border:1px solid rgba(139,92,246,0.55);display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed';font-weight:600;font-size:15px;color:#EDEDF4;box-sizing:border-box">13</span>
+              <span style="height:38px;border-radius:11px;background:rgba(139,92,246,0.35);border:1px solid rgba(139,92,246,0.55);display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed';font-weight:600;font-size:15px;color:#EDEDF4;box-sizing:border-box">14</span>
+              <span style="height:38px;border-radius:11px;background:rgba(139,92,246,0.35);border:1px solid rgba(139,92,246,0.55);display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed';font-weight:600;font-size:15px;color:#EDEDF4;box-sizing:border-box">15</span>
+              <span style="height:38px;border-radius:11px;background:rgba(139,92,246,0.35);border:1px solid rgba(139,92,246,0.55);display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed';font-weight:600;font-size:15px;color:#EDEDF4;box-sizing:border-box">16</span>
+              <span style="height:38px;border-radius:11px;background:rgba(139,92,246,0.35);border:1px solid rgba(139,92,246,0.55);display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed';font-weight:600;font-size:15px;color:#EDEDF4;box-sizing:border-box">17</span>
+              <span style="height:38px;border-radius:11px;background:linear-gradient(175deg,#8B5CF6,#5B21B6);box-shadow:0 0 16px rgba(139,92,246,0.55);display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed';font-weight:700;font-size:15px;color:#fff">18</span>
+              <span style="height:38px;border-radius:11px;background:rgba(139,92,246,0.35);border:1px solid rgba(139,92,246,0.55);display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed';font-weight:600;font-size:15px;color:#EDEDF4;box-sizing:border-box">19</span>
+              <span style="height:38px;border-radius:11px;background:rgba(139,92,246,0.35);border:1px solid rgba(139,92,246,0.55);display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed';font-weight:600;font-size:15px;color:#EDEDF4;box-sizing:border-box">20</span>
+              <span style="height:38px;border-radius:11px;background:rgba(139,92,246,0.35);border:1px solid rgba(139,92,246,0.55);display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed';font-weight:600;font-size:15px;color:#EDEDF4;box-sizing:border-box">21</span>
+              <span style="height:38px;border-radius:11px;border:1.5px solid #A78BFA;display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed';font-weight:700;font-size:15px;color:#A78BFA;box-sizing:border-box">22</span>
+              <span style="height:38px;display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed';font-weight:500;font-size:15px;color:#62627A">23</span>
+              <span style="height:38px;display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed';font-weight:500;font-size:15px;color:#62627A">24</span>
+              <span style="height:38px;display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed';font-weight:500;font-size:15px;color:#62627A">25</span>
+              <span style="height:38px;display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed';font-weight:500;font-size:15px;color:#62627A">26</span>
+              <span style="height:38px;display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed';font-weight:500;font-size:15px;color:#62627A">27</span>
+              <span style="height:38px;display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed';font-weight:500;font-size:15px;color:#62627A">28</span>
+              <span style="height:38px;display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed';font-weight:500;font-size:15px;color:#62627A">29</span>
+              <span style="height:38px;display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed';font-weight:500;font-size:15px;color:#62627A">30</span>
+              <span style="height:38px;display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed';font-weight:500;font-size:15px;color:#62627A">31</span>
+              <span></span><span></span>
+            </div>
+            <div style="display:flex;align-items:center;gap:14px;margin-top:10px;padding:0 2px">
+              <span style="display:flex;align-items:center;gap:5px;font-size:10px;color:#8E8EA3"><span style="width:10px;height:10px;border-radius:3px;background:rgba(139,92,246,0.35);border:1px solid rgba(139,92,246,0.55);display:inline-block"></span>Trained</span>
+              <span style="display:flex;align-items:center;gap:5px;font-size:10px;color:#8E8EA3"><span style="width:10px;height:10px;border-radius:3px;background:linear-gradient(175deg,#8B5CF6,#5B21B6);display:inline-block"></span>Selected</span>
+              <span style="display:flex;align-items:center;gap:5px;font-size:10px;color:#8E8EA3"><span style="width:10px;height:10px;border-radius:3px;border:1.5px solid #A78BFA;display:inline-block;box-sizing:border-box"></span>Today</span>
+            </div>
+          </div>
+          <div style="flex:1;min-height:0;background:#131320;border:1px solid rgba(255,255,255,0.05);border-radius:18px;overflow:hidden">
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;padding:14px 16px 10px;border-bottom:1px solid rgba(255,255,255,0.05)">
+              <div>
+                <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:#A78BFA">SAT JUL 18</div>
+                <div style="font-family:'Barlow Condensed';font-weight:700;font-size:22px;color:#EDEDF4">Push Day A</div>
+              </div>
+              <div style="display:flex;gap:12px;text-align:right">
+                <div><div style="font-family:'Barlow Condensed';font-weight:700;font-size:19px;color:#EDEDF4">58:24</div><div style="font-size:9px;font-weight:600;letter-spacing:1px;color:#62627A">TIME</div></div>
+                <div><div style="font-family:'Barlow Condensed';font-weight:700;font-size:19px;color:#EDEDF4">24.2k</div><div style="font-size:9px;font-weight:600;letter-spacing:1px;color:#62627A">LB VOL</div></div>
+                <div><div style="font-family:'Barlow Condensed';font-weight:700;font-size:19px;color:#C4B5FD;text-shadow:0 0 10px rgba(196,181,253,0.5)">2</div><div style="font-size:9px;font-weight:600;letter-spacing:1px;color:#62627A">PRS</div></div>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid rgba(255,255,255,0.04)">
+              <div style="display:flex;align-items:center;gap:8px"><span style="font-size:13.5px;font-weight:600;color:#EDEDF4">Bench Press</span><span style="font-size:8.5px;font-weight:700;color:#0A0A0F;background:#C4B5FD;border-radius:4px;padding:1.5px 5px">PR</span></div>
+              <span style="font-size:12px;color:#8E8EA3">4 sets &middot; top <b style="color:#C7C7D6;font-weight:600">225 &times; 5</b></span>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid rgba(255,255,255,0.04)">
+              <span style="font-size:13.5px;font-weight:600;color:#EDEDF4">Overhead Press</span>
+              <span style="font-size:12px;color:#8E8EA3">3 sets &middot; top <b style="color:#C7C7D6;font-weight:600">135 &times; 6</b></span>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px">
+              <span style="font-size:13.5px;font-weight:600;color:#EDEDF4">Incline DB Press</span>
+              <span style="font-size:12px;color:#8E8EA3">3 sets &middot; top <b style="color:#C7C7D6;font-weight:600">80 &times; 9</b></span>
+            </div>
+          </div>
+        </div>
+        <div style="position:relative;z-index:5;background:rgba(12,12,19,0.96);border-top:1px solid rgba(139,92,246,0.16);display:flex;align-items:flex-start;justify-content:space-between;padding:9px 20px 0;height:84px;box-sizing:border-box">
+          <div style="width:52px;display:flex;flex-direction:column;align-items:center;gap:3px">
+            <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="#62627A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11l8-7 8 7"></path><path d="M6 9.5V20h12V9.5"></path></svg>
+            <span style="font-size:10px;font-weight:500;color:#62627A">Home</span>
+          </div>
+          <div style="width:52px;display:flex;flex-direction:column;align-items:center;gap:3px">
+            <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="#A78BFA" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"></circle><path d="M12 7.5V12l3 2"></path></svg>
+            <span style="font-size:10px;font-weight:600;color:#A78BFA">History</span>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:3px;margin-top:-26px">
+            <div style="width:56px;height:56px;border-radius:17px;background:linear-gradient(165deg,#8B5CF6,#5B21B6);box-shadow:0 0 26px rgba(139,92,246,0.45),0 10px 22px rgba(0,0,0,0.55),inset 0 1px 0 rgba(255,255,255,0.3);display:flex;align-items:center;justify-content:center">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><path d="M3.5 12h17" stroke="#fff" stroke-width="2" stroke-linecap="round"></path><rect x="5" y="6.5" width="3" height="11" rx="1.2" fill="#fff"></rect><rect x="16" y="6.5" width="3" height="11" rx="1.2" fill="#fff"></rect><rect x="1.5" y="9" width="2" height="6" rx="1" fill="#fff"></rect><rect x="20.5" y="9" width="2" height="6" rx="1" fill="#fff"></rect></svg>
+            </div>
+          </div>
+          <div style="width:52px;display:flex;flex-direction:column;align-items:center;gap:3px">
+            <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="#62627A" stroke-width="2.2" stroke-linecap="round"><path d="M5 20v-6"></path><path d="M12 20V8"></path><path d="M19 20V4"></path></svg>
+            <span style="font-size:10px;font-weight:500;color:#62627A">Progress</span>
+          </div>
+          <div style="width:52px;display:flex;flex-direction:column;align-items:center;gap:3px">
+            <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="#62627A" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="8" r="3.6"></circle><path d="M5 20c1.2-3.4 3.9-5 7-5s5.8 1.6 7 5"></path></svg>
+            <span style="font-size:10px;font-weight:500;color:#62627A">Profile</span>
+          </div>
+        </div>
+      </div>
+    </x-import>
+  </div>
+
+  </div>
+</section>
+
+<section class="dv-turn" id="t6">
+  <div class="dv-thd"><a class="dv-tid" href="#t6">6</a><span class="dv-tname">Progress, Titan Ranks &amp; plate calculator</span></div>
+  <div class="dv-opts">
+
+  <div class="dv-opt" id="1j" data-screen-label="Progress heatmap">
+    <div class="dv-olabel"><a class="dv-oid" href="#1j">1j</a>Progress — muscle heat map</div>
+    <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" width="{{ 393 }}" height="{{ 852 }}" dark="{{ true }}" hint-size="393px,852px">
+      <div style="width:393px;height:852px;display:flex;flex-direction:column;background:#0A0A0F;color:#EDEDF4;font-family:'Barlow',system-ui,sans-serif;position:relative;overflow:hidden;box-sizing:border-box">
+        <div style="flex:1;overflow:hidden;padding:60px 20px 0;display:flex;flex-direction:column;gap:12px">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding-top:6px">
+            <div style="font-family:'Barlow Condensed';font-weight:800;font-size:36px;letter-spacing:2px;color:#EDEDF4">PROGRESS</div>
+            <div style="display:flex;background:#131320;border:1px solid rgba(255,255,255,0.06);border-radius:999px;padding:3px">
+              <span style="font-size:11.5px;font-weight:600;color:#fff;background:#8B5CF6;border-radius:999px;padding:5px 12px">Week</span>
+              <span style="font-size:11.5px;font-weight:500;color:#8E8EA3;padding:5px 12px">Month</span>
+              <span style="font-size:11.5px;font-weight:500;color:#8E8EA3;padding:5px 12px">Year</span>
+            </div>
+          </div>
+          <div style="background:#131320;border:1px solid rgba(255,255,255,0.05);border-radius:18px;padding:16px">
+            <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px">
+              <span style="font-size:10.5px;font-weight:700;letter-spacing:1.5px;color:#8E8EA3">TRAINING VOLUME &middot; JUL 20&ndash;26</span>
+            </div>
+            <div style="display:flex;justify-content:center;gap:34px">
+              <div style="text-align:center">
+                <svg width="126" height="188" viewBox="0 0 140 190">
+                  <circle cx="70" cy="15" r="11" fill="#1C1C2E"></circle>
+                  <rect x="64" y="24" width="12" height="8" rx="3" fill="#1C1C2E"></rect>
+                  <circle cx="46" cy="41" r="10" fill="rgba(139,92,246,0.6)"></circle>
+                  <circle cx="94" cy="41" r="10" fill="rgba(139,92,246,0.6)"></circle>
+                  <rect x="50" y="34" width="19" height="20" rx="7" fill="rgba(139,92,246,0.95)"></rect>
+                  <rect x="71" y="34" width="19" height="20" rx="7" fill="rgba(139,92,246,0.95)"></rect>
+                  <rect x="31" y="50" width="11" height="24" rx="5" fill="rgba(139,92,246,0.4)"></rect>
+                  <rect x="98" y="50" width="11" height="24" rx="5" fill="rgba(139,92,246,0.4)"></rect>
+                  <rect x="29" y="77" width="9" height="26" rx="4" fill="rgba(139,92,246,0.14)"></rect>
+                  <rect x="102" y="77" width="9" height="26" rx="4" fill="rgba(139,92,246,0.14)"></rect>
+                  <rect x="56" y="57" width="28" height="34" rx="9" fill="rgba(139,92,246,0.3)"></rect>
+                  <rect x="51" y="95" width="17" height="46" rx="7" fill="rgba(139,92,246,0.55)"></rect>
+                  <rect x="72" y="95" width="17" height="46" rx="7" fill="rgba(139,92,246,0.55)"></rect>
+                  <rect x="53" y="146" width="13" height="34" rx="6" fill="rgba(139,92,246,0.12)"></rect>
+                  <rect x="74" y="146" width="13" height="34" rx="6" fill="rgba(139,92,246,0.12)"></rect>
+                </svg>
+                <div style="font-size:9.5px;font-weight:700;letter-spacing:1.5px;color:#62627A;margin-top:4px">FRONT</div>
+              </div>
+              <div style="text-align:center">
+                <svg width="126" height="188" viewBox="0 0 140 190">
+                  <circle cx="70" cy="15" r="11" fill="#1C1C2E"></circle>
+                  <rect x="64" y="24" width="12" height="8" rx="3" fill="#1C1C2E"></rect>
+                  <rect x="54" y="28" width="32" height="10" rx="5" fill="rgba(139,92,246,0.5)"></rect>
+                  <circle cx="46" cy="41" r="10" fill="rgba(139,92,246,0.45)"></circle>
+                  <circle cx="94" cy="41" r="10" fill="rgba(139,92,246,0.45)"></circle>
+                  <rect x="50" y="38" width="19" height="30" rx="7" fill="rgba(139,92,246,0.85)"></rect>
+                  <rect x="71" y="38" width="19" height="30" rx="7" fill="rgba(139,92,246,0.85)"></rect>
+                  <rect x="31" y="50" width="11" height="24" rx="5" fill="rgba(139,92,246,0.7)"></rect>
+                  <rect x="98" y="50" width="11" height="24" rx="5" fill="rgba(139,92,246,0.7)"></rect>
+                  <rect x="29" y="77" width="9" height="26" rx="4" fill="rgba(139,92,246,0.14)"></rect>
+                  <rect x="102" y="77" width="9" height="26" rx="4" fill="rgba(139,92,246,0.14)"></rect>
+                  <rect x="58" y="71" width="24" height="18" rx="7" fill="rgba(139,92,246,0.3)"></rect>
+                  <rect x="52" y="92" width="17" height="16" rx="7" fill="rgba(139,92,246,0.5)"></rect>
+                  <rect x="71" y="92" width="17" height="16" rx="7" fill="rgba(139,92,246,0.5)"></rect>
+                  <rect x="51" y="111" width="17" height="36" rx="7" fill="rgba(139,92,246,0.6)"></rect>
+                  <rect x="72" y="111" width="17" height="36" rx="7" fill="rgba(139,92,246,0.6)"></rect>
+                  <rect x="53" y="151" width="13" height="30" rx="6" fill="rgba(139,92,246,0.35)"></rect>
+                  <rect x="74" y="151" width="13" height="30" rx="6" fill="rgba(139,92,246,0.35)"></rect>
+                </svg>
+                <div style="font-size:9.5px;font-weight:700;letter-spacing:1.5px;color:#62627A;margin-top:4px">BACK</div>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;margin-top:12px">
+              <span style="font-size:9px;font-weight:600;letter-spacing:1px;color:#62627A">LOW</span>
+              <div style="flex:1;height:6px;border-radius:99px;background:linear-gradient(90deg,#1C1C2E,#8B5CF6,#C4B5FD)"></div>
+              <span style="font-size:9px;font-weight:600;letter-spacing:1px;color:#62627A">HIGH</span>
+            </div>
+          </div>
+          <div style="flex:1;min-height:0;background:#131320;border:1px solid rgba(255,255,255,0.05);border-radius:18px;padding:14px 16px">
+            <div style="font-size:10.5px;font-weight:700;letter-spacing:1.5px;color:#8E8EA3;margin-bottom:12px">VOLUME BY MUSCLE &middot; LB</div>
+            <div style="display:flex;flex-direction:column;gap:11px">
+              <div style="display:flex;align-items:center;gap:10px">
+                <span style="width:76px;font-size:12.5px;font-weight:600;color:#EDEDF4">Chest</span>
+                <div style="flex:1;height:9px;border-radius:99px;background:#1C1C2E;overflow:hidden"><div style="width:100%;height:100%;border-radius:99px;background:linear-gradient(90deg,#5B21B6,#8B5CF6,#A78BFA)"></div></div>
+                <span style="width:44px;text-align:right;font-family:'Barlow Condensed';font-weight:700;font-size:16px;color:#EDEDF4">12.4k</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px">
+                <span style="width:76px;font-size:12.5px;font-weight:600;color:#EDEDF4">Back</span>
+                <div style="flex:1;height:9px;border-radius:99px;background:#1C1C2E;overflow:hidden"><div style="width:87%;height:100%;border-radius:99px;background:linear-gradient(90deg,#5B21B6,#8B5CF6)"></div></div>
+                <span style="width:44px;text-align:right;font-family:'Barlow Condensed';font-weight:700;font-size:16px;color:#EDEDF4">10.9k</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px">
+                <span style="width:76px;font-size:12.5px;font-weight:600;color:#EDEDF4">Quads</span>
+                <div style="flex:1;height:9px;border-radius:99px;background:#1C1C2E;overflow:hidden"><div style="width:67%;height:100%;border-radius:99px;background:linear-gradient(90deg,#5B21B6,#8B5CF6)"></div></div>
+                <span style="width:44px;text-align:right;font-family:'Barlow Condensed';font-weight:700;font-size:16px;color:#EDEDF4">8.3k</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px">
+                <span style="width:76px;font-size:12.5px;font-weight:600;color:#EDEDF4">Shoulders</span>
+                <div style="flex:1;height:9px;border-radius:99px;background:#1C1C2E;overflow:hidden"><div style="width:52%;height:100%;border-radius:99px;background:linear-gradient(90deg,#5B21B6,#8B5CF6)"></div></div>
+                <span style="width:44px;text-align:right;font-family:'Barlow Condensed';font-weight:700;font-size:16px;color:#EDEDF4">6.4k</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px">
+                <span style="width:76px;font-size:12.5px;font-weight:600;color:#EDEDF4">Hamstrings</span>
+                <div style="flex:1;height:9px;border-radius:99px;background:#1C1C2E;overflow:hidden"><div style="width:41%;height:100%;border-radius:99px;background:linear-gradient(90deg,#5B21B6,#8B5CF6)"></div></div>
+                <span style="width:44px;text-align:right;font-family:'Barlow Condensed';font-weight:700;font-size:16px;color:#EDEDF4">5.1k</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px">
+                <span style="width:76px;font-size:12.5px;font-weight:600;color:#EDEDF4">Arms</span>
+                <div style="flex:1;height:9px;border-radius:99px;background:#1C1C2E;overflow:hidden"><div style="width:33%;height:100%;border-radius:99px;background:#5B21B6"></div></div>
+                <span style="width:44px;text-align:right;font-family:'Barlow Condensed';font-weight:700;font-size:16px;color:#EDEDF4">4.2k</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style="position:relative;z-index:5;background:rgba(12,12,19,0.96);border-top:1px solid rgba(139,92,246,0.16);display:flex;align-items:flex-start;justify-content:space-between;padding:9px 20px 0;height:84px;box-sizing:border-box">
+          <div style="width:52px;display:flex;flex-direction:column;align-items:center;gap:3px">
+            <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="#62627A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11l8-7 8 7"></path><path d="M6 9.5V20h12V9.5"></path></svg>
+            <span style="font-size:10px;font-weight:500;color:#62627A">Home</span>
+          </div>
+          <div style="width:52px;display:flex;flex-direction:column;align-items:center;gap:3px">
+            <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="#62627A" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"></circle><path d="M12 7.5V12l3 2"></path></svg>
+            <span style="font-size:10px;font-weight:500;color:#62627A">History</span>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:3px;margin-top:-26px">
+            <div style="width:56px;height:56px;border-radius:17px;background:linear-gradient(165deg,#8B5CF6,#5B21B6);box-shadow:0 0 26px rgba(139,92,246,0.45),0 10px 22px rgba(0,0,0,0.55),inset 0 1px 0 rgba(255,255,255,0.3);display:flex;align-items:center;justify-content:center">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><path d="M3.5 12h17" stroke="#fff" stroke-width="2" stroke-linecap="round"></path><rect x="5" y="6.5" width="3" height="11" rx="1.2" fill="#fff"></rect><rect x="16" y="6.5" width="3" height="11" rx="1.2" fill="#fff"></rect><rect x="1.5" y="9" width="2" height="6" rx="1" fill="#fff"></rect><rect x="20.5" y="9" width="2" height="6" rx="1" fill="#fff"></rect></svg>
+            </div>
+          </div>
+          <div style="width:52px;display:flex;flex-direction:column;align-items:center;gap:3px">
+            <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="#A78BFA" stroke-width="2.2" stroke-linecap="round"><path d="M5 20v-6"></path><path d="M12 20V8"></path><path d="M19 20V4"></path></svg>
+            <span style="font-size:10px;font-weight:600;color:#A78BFA">Progress</span>
+          </div>
+          <div style="width:52px;display:flex;flex-direction:column;align-items:center;gap:3px">
+            <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="#62627A" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="8" r="3.6"></circle><path d="M5 20c1.2-3.4 3.9-5 7-5s5.8 1.6 7 5"></path></svg>
+            <span style="font-size:10px;font-weight:500;color:#62627A">Profile</span>
+          </div>
+        </div>
+      </div>
+    </x-import>
+  </div>
+
+  <div class="dv-opt" id="1k" data-screen-label="Profile Titan Ranks">
+    <div class="dv-olabel"><a class="dv-oid" href="#1k">1k</a>Profile — Titan Ranks &amp; body metrics</div>
+    <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" width="{{ 393 }}" height="{{ 852 }}" dark="{{ true }}" hint-size="393px,852px">
+      <div style="width:393px;height:852px;display:flex;flex-direction:column;background:#0A0A0F;color:#EDEDF4;font-family:'Barlow',system-ui,sans-serif;position:relative;overflow:hidden;box-sizing:border-box">
+        <div style="flex:1;overflow:hidden;padding:60px 20px 0;display:flex;flex-direction:column;gap:12px">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding-top:6px">
+            <div>
+              <div style="font-family:'Barlow Condensed';font-weight:800;font-size:32px;letter-spacing:1.5px;color:#EDEDF4">ALEXANDER</div>
+              <div style="font-size:11.5px;color:#8E8EA3">148 workouts &middot; since Mar 2025</div>
+            </div>
+            <div style="width:34px;height:34px;border-radius:999px;background:#1C1C2E;display:flex;align-items:center;justify-content:center">
+              <svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="#8E8EA3" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="2.6"></circle><path d="M16.2 12.5a1.4 1.4 0 00.3 1.5l.05.05a1.7 1.7 0 11-2.4 2.4l-.05-.05a1.4 1.4 0 00-1.5-.3 1.4 1.4 0 00-.85 1.3v.15a1.7 1.7 0 11-3.4 0v-.08a1.4 1.4 0 00-.9-1.3 1.4 1.4 0 00-1.5.3l-.05.05a1.7 1.7 0 11-2.4-2.4l.05-.05a1.4 1.4 0 00.3-1.5 1.4 1.4 0 00-1.3-.85h-.15a1.7 1.7 0 110-3.4h.08a1.4 1.4 0 001.3-.9 1.4 1.4 0 00-.3-1.5l-.05-.05a1.7 1.7 0 112.4-2.4l.05.05a1.4 1.4 0 001.5.3 1.4 1.4 0 00.85-1.3v-.15a1.7 1.7 0 113.4 0v.08a1.4 1.4 0 00.85 1.3 1.4 1.4 0 001.5-.3l.05-.05a1.7 1.7 0 112.4 2.4l-.05.05a1.4 1.4 0 00-.3 1.5 1.4 1.4 0 001.3.85h.15a1.7 1.7 0 110 3.4h-.08a1.4 1.4 0 00-1.3.85z"></path></svg>
+            </div>
+          </div>
+          <div style="border-radius:18px;padding:1px;background:linear-gradient(150deg,rgba(196,181,253,0.6),rgba(139,92,246,0.15) 45%,rgba(91,33,182,0.4));box-shadow:0 0 26px rgba(139,92,246,0.18)">
+            <div style="background:linear-gradient(170deg,#17172A,#131320);border-radius:17px;padding:16px;display:flex;align-items:center;gap:16px">
+              <div style="width:72px;height:80px;clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%);background:linear-gradient(170deg,#8B5CF6,#5B21B6);display:flex;align-items:center;justify-content:center;position:relative;flex-shrink:0">
+                <div style="position:absolute;inset:3px;clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%);background:linear-gradient(170deg,#1C1C2E,#131320)"></div>
+                <div style="position:relative;display:flex;flex-direction:column;align-items:center;gap:3px">
+                  <div style="display:flex;gap:5px">
+                    <div style="width:4px;height:15px;border-radius:2px;background:#C4B5FD;transform:rotate(10deg);box-shadow:0 0 10px rgba(196,181,253,0.9)"></div>
+                    <div style="width:4px;height:15px;border-radius:2px;background:#C4B5FD;transform:rotate(-10deg);box-shadow:0 0 10px rgba(196,181,253,0.9)"></div>
+                  </div>
+                  <span style="font-family:'Barlow Condensed';font-weight:800;font-size:14px;letter-spacing:1px;color:#C4B5FD">II</span>
+                </div>
+              </div>
+              <div style="flex:1">
+                <div style="font-size:9.5px;font-weight:700;letter-spacing:2px;color:#A78BFA">CURRENT RANK</div>
+                <div style="font-family:'Barlow Condensed';font-weight:800;font-size:28px;letter-spacing:2px;color:#EDEDF4;text-shadow:0 0 18px rgba(139,92,246,0.5)">SPARTAN II</div>
+                <div style="height:7px;border-radius:99px;background:#1C1C2E;margin-top:7px;overflow:hidden">
+                  <div style="width:62%;height:100%;border-radius:99px;background:linear-gradient(90deg,#5B21B6,#8B5CF6,#A78BFA);box-shadow:0 0 10px rgba(167,139,250,0.6)"></div>
+                </div>
+                <div style="font-size:10.5px;color:#8E8EA3;margin-top:5px">8,240 / 10,000 XP &middot; 1,760 to SPARTAN III</div>
+              </div>
+            </div>
+          </div>
+          <div style="background:#131320;border:1px solid rgba(255,255,255,0.05);border-radius:16px;padding:14px 16px">
+            <div style="font-size:10.5px;font-weight:700;letter-spacing:1.5px;color:#8E8EA3;margin-bottom:12px">THE CLIMB</div>
+            <div style="display:flex;justify-content:space-between;padding:0 6px">
+              <div style="display:flex;flex-direction:column;align-items:center;gap:6px">
+                <div style="width:46px;height:51px;clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%);background:linear-gradient(170deg,#3A2E22,#241D15);display:flex;align-items:center;justify-content:center;border:none">
+                  <span style="font-family:'Barlow Condensed';font-weight:800;font-size:13px;color:#C9A97E">III</span>
+                </div>
+                <span style="font-size:9.5px;font-weight:700;letter-spacing:1px;color:#8E8EA3">BRONZE</span>
+              </div>
+              <div style="display:flex;flex-direction:column;align-items:center;gap:6px">
+                <div style="width:46px;height:51px;clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%);background:linear-gradient(170deg,#3A3A4E,#23232E);display:flex;align-items:center;justify-content:center">
+                  <span style="font-family:'Barlow Condensed';font-weight:800;font-size:13px;color:#B9B9C8">III</span>
+                </div>
+                <span style="font-size:9.5px;font-weight:700;letter-spacing:1px;color:#8E8EA3">IRON</span>
+              </div>
+              <div style="display:flex;flex-direction:column;align-items:center;gap:6px">
+                <div style="width:46px;height:51px;clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%);background:linear-gradient(170deg,#8B5CF6,#5B21B6);display:flex;align-items:center;justify-content:center;box-shadow:0 0 18px rgba(139,92,246,0.55)">
+                  <span style="font-family:'Barlow Condensed';font-weight:800;font-size:13px;color:#fff">II</span>
+                </div>
+                <span style="font-size:9.5px;font-weight:700;letter-spacing:1px;color:#C4B5FD">SPARTAN</span>
+              </div>
+              <div style="display:flex;flex-direction:column;align-items:center;gap:6px">
+                <div style="width:46px;height:51px;clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%);background:#15151F;display:flex;align-items:center;justify-content:center">
+                  <svg width="13" height="15" viewBox="0 0 12 14" fill="none" stroke="#3A3A4E" stroke-width="1.6" stroke-linecap="round"><rect x="1" y="6" width="10" height="7" rx="2"></rect><path d="M3.5 6V4.5a2.5 2.5 0 015 0V6"></path></svg>
+                </div>
+                <span style="font-size:9.5px;font-weight:700;letter-spacing:1px;color:#3A3A4E">TITAN</span>
+              </div>
+            </div>
+          </div>
+          <div style="background:#131320;border:1px solid rgba(255,255,255,0.05);border-radius:16px;padding:14px 16px">
+            <div style="display:flex;align-items:baseline;justify-content:space-between">
+              <span style="font-size:10.5px;font-weight:700;letter-spacing:1.5px;color:#8E8EA3">BODYWEIGHT</span>
+              <span style="font-size:11px;font-weight:600;color:#34D399">&darr; 1.8 lb this month</span>
+            </div>
+            <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:14px;margin-top:6px">
+              <span style="font-family:'Barlow Condensed';font-weight:700;font-size:38px;line-height:1;color:#EDEDF4">184.2<span style="font-size:18px;color:#8E8EA3"> lb</span></span>
+              <svg width="150" height="42" viewBox="0 0 150 42" preserveAspectRatio="none">
+                <path d="M2 12 L23 15 L44 13 L65 20 L86 24 L107 22 L128 30 L148 34" fill="none" stroke="#8B5CF6" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"></path>
+                <circle cx="148" cy="34" r="3" fill="#A78BFA"></circle>
+              </svg>
+            </div>
+          </div>
+          <div style="flex:1;min-height:0;background:#131320;border:1px solid rgba(255,255,255,0.05);border-radius:16px;overflow:hidden">
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:13px 16px 9px;border-bottom:1px solid rgba(255,255,255,0.05)">
+              <span style="font-size:10.5px;font-weight:700;letter-spacing:1.5px;color:#8E8EA3">MEASUREMENTS</span>
+              <span style="font-size:11.5px;font-weight:600;color:#A78BFA">Log</span>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid rgba(255,255,255,0.04)">
+              <span style="font-size:13.5px;font-weight:500;color:#EDEDF4">Chest</span>
+              <span style="font-family:'Barlow Condensed';font-weight:700;font-size:18px;color:#EDEDF4">42.5<span style="font-size:12px;color:#8E8EA3"> in</span> <span style="font-size:11px;color:#34D399;font-family:'Barlow';font-weight:600">+0.5</span></span>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid rgba(255,255,255,0.04)">
+              <span style="font-size:13.5px;font-weight:500;color:#EDEDF4">Arm</span>
+              <span style="font-family:'Barlow Condensed';font-weight:700;font-size:18px;color:#EDEDF4">15.8<span style="font-size:12px;color:#8E8EA3"> in</span> <span style="font-size:11px;color:#34D399;font-family:'Barlow';font-weight:600">+0.3</span></span>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px">
+              <span style="font-size:13.5px;font-weight:500;color:#EDEDF4">Waist</span>
+              <span style="font-family:'Barlow Condensed';font-weight:700;font-size:18px;color:#EDEDF4">33.0<span style="font-size:12px;color:#8E8EA3"> in</span> <span style="font-size:11px;color:#34D399;font-family:'Barlow';font-weight:600">&minus;0.7</span></span>
+            </div>
+          </div>
+        </div>
+        <div style="position:relative;z-index:5;background:rgba(12,12,19,0.96);border-top:1px solid rgba(139,92,246,0.16);display:flex;align-items:flex-start;justify-content:space-between;padding:9px 20px 0;height:84px;box-sizing:border-box">
+          <div style="width:52px;display:flex;flex-direction:column;align-items:center;gap:3px">
+            <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="#62627A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11l8-7 8 7"></path><path d="M6 9.5V20h12V9.5"></path></svg>
+            <span style="font-size:10px;font-weight:500;color:#62627A">Home</span>
+          </div>
+          <div style="width:52px;display:flex;flex-direction:column;align-items:center;gap:3px">
+            <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="#62627A" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"></circle><path d="M12 7.5V12l3 2"></path></svg>
+            <span style="font-size:10px;font-weight:500;color:#62627A">History</span>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:3px;margin-top:-26px">
+            <div style="width:56px;height:56px;border-radius:17px;background:linear-gradient(165deg,#8B5CF6,#5B21B6);box-shadow:0 0 26px rgba(139,92,246,0.45),0 10px 22px rgba(0,0,0,0.55),inset 0 1px 0 rgba(255,255,255,0.3);display:flex;align-items:center;justify-content:center">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><path d="M3.5 12h17" stroke="#fff" stroke-width="2" stroke-linecap="round"></path><rect x="5" y="6.5" width="3" height="11" rx="1.2" fill="#fff"></rect><rect x="16" y="6.5" width="3" height="11" rx="1.2" fill="#fff"></rect><rect x="1.5" y="9" width="2" height="6" rx="1" fill="#fff"></rect><rect x="20.5" y="9" width="2" height="6" rx="1" fill="#fff"></rect></svg>
+            </div>
+          </div>
+          <div style="width:52px;display:flex;flex-direction:column;align-items:center;gap:3px">
+            <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="#62627A" stroke-width="2.2" stroke-linecap="round"><path d="M5 20v-6"></path><path d="M12 20V8"></path><path d="M19 20V4"></path></svg>
+            <span style="font-size:10px;font-weight:500;color:#62627A">Progress</span>
+          </div>
+          <div style="width:52px;display:flex;flex-direction:column;align-items:center;gap:3px">
+            <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="#A78BFA" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="8" r="3.6"></circle><path d="M5 20c1.2-3.4 3.9-5 7-5s5.8 1.6 7 5"></path></svg>
+            <span style="font-size:10px;font-weight:600;color:#A78BFA">Profile</span>
+          </div>
+        </div>
+      </div>
+    </x-import>
+  </div>
+
+  <div class="dv-opt" id="1l" data-screen-label="Plate calculator">
+    <div class="dv-olabel"><a class="dv-oid" href="#1l">1l</a>Plate calculator — sheet</div>
+    <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" width="{{ 393 }}" height="{{ 852 }}" dark="{{ true }}" hint-size="393px,852px">
+      <div style="width:393px;height:852px;background:#0A0A0F;color:#EDEDF4;font-family:'Barlow',system-ui,sans-serif;position:relative;overflow:hidden;box-sizing:border-box">
+        <div style="padding:62px 16px 12px;opacity:0.45;filter:blur(1px)">
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <div style="width:34px;height:34px;border-radius:999px;background:#1C1C2E"></div>
+            <div style="text-align:center">
+              <div style="font-size:10px;font-weight:700;letter-spacing:2px;color:#8E8EA3">PUSH DAY A</div>
+              <span style="font-family:'Barlow Condensed';font-weight:700;font-size:30px;color:#EDEDF4;letter-spacing:1px">36:48</span>
+            </div>
+            <div style="height:34px;width:74px;border-radius:999px;background:linear-gradient(175deg,#8B5CF6,#5B21B6)"></div>
+          </div>
+        </div>
+        <div style="position:absolute;inset:0;background:rgba(4,4,8,0.6)"></div>
+        <div style="position:absolute;left:0;right:0;bottom:0;height:648px;background:#10101B;border-radius:22px 22px 0 0;border-top:1px solid rgba(139,92,246,0.25);box-shadow:0 -20px 60px rgba(0,0,0,0.75);display:flex;flex-direction:column;overflow:hidden">
+          <div style="display:flex;justify-content:center;padding:8px 0 2px"><div style="width:38px;height:5px;border-radius:99px;background:#2A2A3E"></div></div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 16px 4px">
+            <span style="width:60px"></span>
+            <span style="font-family:'Barlow Condensed';font-weight:700;font-size:19px;letter-spacing:1.5px;color:#EDEDF4">PLATE CALCULATOR</span>
+            <span style="font-size:14px;font-weight:600;color:#A78BFA;width:60px;text-align:right">Done</span>
+          </div>
+          <div style="padding:10px 20px 0;display:flex;flex-direction:column;gap:14px">
+            <div style="display:flex;align-items:center;justify-content:center;gap:18px">
+              <div style="width:52px;height:52px;border-radius:16px;background:#1C1C2E;border:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center"><svg width="16" height="4" viewBox="0 0 16 4"><rect width="16" height="3.5" rx="1.6" fill="#C7C7D6"></rect></svg></div>
+              <div style="text-align:center;min-width:130px">
+                <div style="font-family:'Barlow Condensed';font-weight:800;font-size:62px;line-height:1;color:#EDEDF4">225</div>
+                <div style="font-size:10px;font-weight:700;letter-spacing:2px;color:#8E8EA3;margin-top:2px">TARGET &middot; LB</div>
+              </div>
+              <div style="width:52px;height:52px;border-radius:16px;background:#1C1C2E;border:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center"><svg width="16" height="16" viewBox="0 0 16 16"><rect y="6.25" width="16" height="3.5" rx="1.6" fill="#C7C7D6"></rect><rect x="6.25" width="3.5" height="16" rx="1.6" fill="#C7C7D6"></rect></svg></div>
+            </div>
+            <div style="display:flex;justify-content:center;gap:7px">
+              <span style="font-family:'Barlow Condensed';font-weight:600;font-size:15px;color:#8E8EA3;background:#1C1C2E;border-radius:999px;padding:6px 14px">135</span>
+              <span style="font-family:'Barlow Condensed';font-weight:600;font-size:15px;color:#8E8EA3;background:#1C1C2E;border-radius:999px;padding:6px 14px">185</span>
+              <span style="font-family:'Barlow Condensed';font-weight:700;font-size:15px;color:#fff;background:linear-gradient(175deg,#8B5CF6,#5B21B6);border-radius:999px;padding:6px 14px;box-shadow:0 0 12px rgba(139,92,246,0.4)">225</span>
+              <span style="font-family:'Barlow Condensed';font-weight:600;font-size:15px;color:#8E8EA3;background:#1C1C2E;border-radius:999px;padding:6px 14px">275</span>
+              <span style="font-family:'Barlow Condensed';font-weight:600;font-size:15px;color:#8E8EA3;background:#1C1C2E;border-radius:999px;padding:6px 14px">315</span>
+            </div>
+            <div style="background:#131320;border:1px solid rgba(255,255,255,0.05);border-radius:18px;padding:18px 14px 12px">
+              <div style="display:flex;align-items:center;justify-content:center;height:118px;gap:3px">
+                <div style="width:26px;height:8px;border-radius:4px 0 0 4px;background:#4A4A5E"></div>
+                <div style="width:14px;height:108px;border-radius:4px;background:#8B5CF6;box-shadow:0 0 14px rgba(139,92,246,0.35)"></div>
+                <div style="width:12px;height:82px;border-radius:4px;background:#A78BFA"></div>
+                <div style="width:10px;height:58px;border-radius:3px;background:#6D28D9"></div>
+                <div style="width:10px;height:58px;border-radius:3px;background:#6D28D9"></div>
+                <div style="width:6px;height:22px;border-radius:2px;background:#62627A"></div>
+                <div style="flex:1;max-width:86px;height:8px;background:#4A4A5E"></div>
+                <div style="width:6px;height:22px;border-radius:2px;background:#62627A"></div>
+                <div style="width:10px;height:58px;border-radius:3px;background:#6D28D9"></div>
+                <div style="width:10px;height:58px;border-radius:3px;background:#6D28D9"></div>
+                <div style="width:12px;height:82px;border-radius:4px;background:#A78BFA"></div>
+                <div style="width:14px;height:108px;border-radius:4px;background:#8B5CF6;box-shadow:0 0 14px rgba(139,92,246,0.35)"></div>
+                <div style="width:26px;height:8px;border-radius:0 4px 4px 0;background:#4A4A5E"></div>
+              </div>
+              <div style="text-align:center;font-size:11px;color:#8E8EA3;margin-top:8px">45 lb bar &middot; <b style="color:#C7C7D6;font-weight:600">90 lb per side</b></div>
+            </div>
+            <div style="background:#131320;border:1px solid rgba(255,255,255,0.05);border-radius:16px;overflow:hidden">
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:11px 16px;border-bottom:1px solid rgba(255,255,255,0.04)">
+                <div style="display:flex;align-items:center;gap:10px"><span style="width:12px;height:22px;border-radius:3px;background:#8B5CF6;display:inline-block"></span><span style="font-family:'Barlow Condensed';font-weight:700;font-size:19px;color:#EDEDF4">45 lb</span></div>
+                <span style="font-family:'Barlow Condensed';font-weight:700;font-size:19px;color:#C7C7D6">&times; 1 <span style="font-size:12px;color:#62627A;font-family:'Barlow';font-weight:500">per side</span></span>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:11px 16px;border-bottom:1px solid rgba(255,255,255,0.04)">
+                <div style="display:flex;align-items:center;gap:10px"><span style="width:12px;height:18px;border-radius:3px;background:#A78BFA;display:inline-block"></span><span style="font-family:'Barlow Condensed';font-weight:700;font-size:19px;color:#EDEDF4">25 lb</span></div>
+                <span style="font-family:'Barlow Condensed';font-weight:700;font-size:19px;color:#C7C7D6">&times; 1 <span style="font-size:12px;color:#62627A;font-family:'Barlow';font-weight:500">per side</span></span>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:11px 16px">
+                <div style="display:flex;align-items:center;gap:10px"><span style="width:12px;height:14px;border-radius:3px;background:#6D28D9;display:inline-block"></span><span style="font-family:'Barlow Condensed';font-weight:700;font-size:19px;color:#EDEDF4">10 lb</span></div>
+                <span style="font-family:'Barlow Condensed';font-weight:700;font-size:19px;color:#C7C7D6">&times; 2 <span style="font-size:12px;color:#62627A;font-family:'Barlow';font-weight:500">per side</span></span>
+              </div>
+            </div>
+            <div style="display:flex;justify-content:center;gap:7px">
+              <span style="font-size:11.5px;font-weight:500;color:#C7C7D6;border:1px solid rgba(139,92,246,0.5);background:rgba(139,92,246,0.1);border-radius:999px;padding:5px 12px">45 lb bar</span>
+              <span style="font-size:11.5px;font-weight:500;color:#8E8EA3;border:1px solid #2A2A3E;border-radius:999px;padding:5px 12px">35 lb bar</span>
+              <span style="font-size:11.5px;font-weight:500;color:#8E8EA3;border:1px solid #2A2A3E;border-radius:999px;padding:5px 12px">60 lb trap bar</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </x-import>
+  </div>
+
+  </div>
+</section></x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;showRestTimer&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Active workout (1c)&quot;},&quot;prCelebration&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Active workout (1c)&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const rest = this.props.showRestTimer ?? true;
+    const pr = this.props.prCelebration ?? true;
+    return { showRestTimer: rest, hideRestTimer: !rest, prCelebration: pr, noPr: !pr };
+  }
+}
+</script>
+</body>
+</html>
