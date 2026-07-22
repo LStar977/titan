@@ -66,6 +66,8 @@ element — used sparingly for emphasis (PRs, active timer, rank-ups).
 
 ## Platform
 
-Mobile-first web app (PWA), single-user, offline-capable, data stored locally.
-Design at 390×844 (iPhone-ish). Bottom tab navigation: Home, History, **Start Workout
-(center, prominent)**, Progress, Profile.
+Native iOS app (SwiftUI, iOS 17+), single-user, fully offline — data stored on-device
+with SwiftData. Design at 393×852 (iPhone 15/16). Follows iOS conventions: SF Symbols
+iconography, bottom tab bar, sheets for pickers/editors, large-title navigation where
+it fits the brand. Tabs: Home, History, **Start Workout (center, prominent)**,
+Progress, Profile. Haptics on set completion and PRs.
