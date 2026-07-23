@@ -136,12 +136,12 @@ struct ResumeBar: View {
                     .fill(Color.glow)
                     .frame(width: 7, height: 7)
                     .shadow(color: Color.glow.opacity(0.9), radius: 4)
-                Text("RESUME WORKOUT")
+                Text(app.activeWorkout?.hasBegun == false ? "FINISH SETUP" : "RESUME WORKOUT")
                     .font(.condensed(15, weight: .bold))
                     .kerning(2)
                     .foregroundStyle(.white)
                 Spacer()
-                if let w = app.activeWorkout {
+                if let w = app.activeWorkout, w.hasBegun {
                     Text(w.startedAt, style: .timer)
                         .font(.condensed(17, weight: .bold))
                         .foregroundStyle(.white)

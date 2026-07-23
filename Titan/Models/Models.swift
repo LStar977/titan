@@ -154,6 +154,9 @@ final class Workout {
     var title: String = ""
     var startedAt: Date = Date()
     var endedAt: Date?
+    /// False while the athlete is still building the workout (setup mode);
+    /// the clock starts when this flips to true.
+    var hasBegun: Bool = true
     @Relationship(deleteRule: .cascade, inverse: \WorkoutEntry.workout)
     var entries: [WorkoutEntry] = []
 

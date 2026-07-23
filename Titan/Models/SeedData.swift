@@ -171,7 +171,9 @@ enum WorkoutBuilder {
     /// Create a workout (optionally from a routine), pre-filling each set with
     /// ghost values from the athlete's last session of that exercise.
     static func start(routine: Routine?, context: ModelContext, history: [Workout]) -> Workout {
-        let workout = Workout(title: routine?.name ?? "Freestyle Workout")
+        let workout = Workout(title: routine?.name ?? "My Workout")
+        // Custom workouts open in setup mode — the clock waits for START.
+        workout.hasBegun = routine != nil
         context.insert(workout)
 
         if let routine {

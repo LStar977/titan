@@ -61,7 +61,9 @@ struct ActiveWorkoutView: View {
             if workout.entries.isEmpty { showPicker = true }
         }
         .overlay(alignment: .bottom) {
-            if app.restEndsAt != nil {
+            if !workout.hasBegun {
+                startOverlay
+            } else if app.restEndsAt != nil {
                 RestTimerBar()
             }
         }
@@ -113,41 +115,61 @@ struct ActiveWorkoutView: View {
                         .font(.barlow(10, weight: .bold))
                         .kerning(2)
                         .foregroundStyle(Color.textDim)
-                    HStack(spacing: 7) {
-                        Circle()
-                            .fill(Color.glow)
-                            .frame(width: 7, height: 7)
-                            .shadow(color: Color.glow.opacity(0.9), radius: 4)
-                            .opacity(pulse ? 0.35 : 1)
-                            .animation(.easeInOut(duration: 0.8).repeatForever(autoreverses: true), value: pulse)
-                        Text(workout.startedAt, style: .timer)
+                    if workout.hasBegun {
+                        HStack(spacing: 7) {
+                            Circle()
+                                .fill(Color.glow)
+                                .frame(width: 7, height: 7)
+                                .shadow(color: Color.glow.opacity(0.9), radius: 4)
+                                .opacity(pulse ? 0.35 : 1)
+                                .animation(.easeInOut(duration: 0.8).repeatForever(autoreverses: true), value: pulse)
+                            Text(workout.startedAt, style: .timer)
+                                .font(.condensed(30, weight: .bold))
+                                .kerning(1)
+                                .foregroundStyle(Color.textMain)
+                        }
+                    } else {
+                        Text("SETUP")
                             .font(.condensed(30, weight: .bold))
-                            .kerning(1)
-                            .foregroundStyle(Color.textMain)
+                            .kerning(3)
+                            .foregroundStyle(Color.textFaint)
                     }
                 }
 
                 Spacer()
 
-                Button {
-                    if Stats.completedSetCount(workout) == 0 {
-                        showDiscardConfirm = true
-                    } else {
-                        showFinishConfirm = true
+                if workout.hasBegun {
+                    Button {
+                        if Stats.completedSetCount(workout) == 0 {
+                            showDiscardConfirm = true
+                        } else {
+                            showFinishConfirm = true
+                        }
+                    } label: {
+                        Text("FINISH")
+                            .font(.condensed(15, weight: .bold))
+                            .kerning(1.5)
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 14)
+                            .frame(height: 34)
+                            .background(
+                                Capsule().fill(LinearGradient(colors: [.purplePrimary, .purpleDeep], startPoint: .top, endPoint: .bottom))
+                            )
+                            .shadow(color: Color.purplePrimary.opacity(0.35), radius: 8)
                     }
-                } label: {
-                    Text("FINISH")
-                        .font(.condensed(15, weight: .bold))
-                        .kerning(1.5)
-                        .foregroundStyle(.white)
-                        .padding(.horizontal, 14)
-                        .frame(height: 34)
-                        .background(
-                            Capsule().fill(LinearGradient(colors: [.purplePrimary, .purpleDeep], startPoint: .top, endPoint: .bottom))
-                        )
-                        .shadow(color: Color.purplePrimary.opacity(0.35), radius: 8)
+                    .buttonStyle(.plain)
+                } else {
+                    Button {
+                        showDiscardConfirm = true
+                    } label: {
+                        Image(systemName: "xmark")
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundStyle(Color.textDim)
+                            .frame(width: 34, height: 34)
+                            .background(Circle().fill(Color.surface2))
+                    }
+                    .buttonStyle(.plain)
                 }
-                .buttonStyle(.plain)
             }
             .padding(.horizontal, 16)
 
@@ -368,9 +390,36 @@ struct ActiveWorkoutView: View {
         Haptics.tap()
     }
 
+    // MARK: Begin (setup → live)
+
+    private var startOverlay: some View {
+        VStack {
+            GradientCTA("START WORKOUT", systemIcon: "play.fill") {
+                begin()
+            }
+            .opacity(workout.entries.isEmpty ? 0.4 : 1)
+            .disabled(workout.entries.isEmpty)
+        }
+        .padding(.horizontal, 14)
+        .padding(.bottom, 12)
+        .background(
+            LinearGradient(colors: [Color.bg.opacity(0), Color.bg.opacity(0.95)], startPoint: .top, endPoint: .bottom)
+                .ignoresSafeArea(edges: .bottom)
+        )
+    }
+
+    private func begin() {
+        workout.startedAt = Date()
+        workout.hasBegun = true
+        Haptics.success()
+    }
+
     // MARK: Set completion / PR detection
 
     private func completeSet(_ set: SetEntry, in entry: WorkoutEntry) {
+        if !workout.hasBegun {
+            begin()
+        }
         if set.isCompleted {
             set.isCompleted = false
             set.isPR = false
