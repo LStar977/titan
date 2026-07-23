@@ -36,6 +36,11 @@ enum Muscle: String, Codable, CaseIterable {
     case hamstrings = "Hamstrings"
     case glutes = "Glutes"
     case calves = "Calves"
+    case cardio = "Cardio"
+    case mobility = "Stretching"
+
+    /// Cardio and stretching log time, not weight × reps.
+    var isDuration: Bool { self == .cardio || self == .mobility }
 }
 
 /// Coarse filter categories used by the exercise picker chips.
@@ -47,6 +52,8 @@ enum MuscleCategory: String, CaseIterable {
     case legs = "Legs"
     case arms = "Arms"
     case core = "Core"
+    case cardio = "Cardio"
+    case stretch = "Stretching"
 
     func contains(_ m: Muscle) -> Bool {
         switch self {
@@ -57,6 +64,8 @@ enum MuscleCategory: String, CaseIterable {
         case .legs: return m == .quads || m == .hamstrings || m == .glutes || m == .calves
         case .arms: return m == .biceps || m == .triceps || m == .forearms
         case .core: return m == .core
+        case .cardio: return m == .cardio
+        case .stretch: return m == .mobility
         }
     }
 }
@@ -288,6 +297,13 @@ final class Profile {
     var weeklyGoal: Int = 5
     var defaultRestSeconds: Int = 120
     var createdAt: Date = Date()
+    /// "male" or "female" — which silhouette the heat map shows.
+    var bodyTypeRaw: String = "male"
+
+    var isFemale: Bool {
+        get { bodyTypeRaw == "female" }
+        set { bodyTypeRaw = newValue ? "female" : "male" }
+    }
 
     init(name: String = "ATHLETE", weeklyGoal: Int = 5, defaultRestSeconds: Int = 120) {
         self.name = name

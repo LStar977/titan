@@ -3,6 +3,7 @@ import SwiftData
 
 struct ProgressTabView: View {
     @Query(sort: \Workout.startedAt, order: .reverse) private var workouts: [Workout]
+    @Query private var profiles: [Profile]
 
     enum Period: String, CaseIterable {
         case week = "Week"
@@ -11,6 +12,7 @@ struct ProgressTabView: View {
     }
 
     @State private var period: Period = .week
+    @State private var showBack = false
 
     private var finished: [Workout] { workouts.filter { $0.endedAt != nil } }
 
@@ -103,31 +105,56 @@ struct ProgressTabView: View {
         .overlay(Capsule().stroke(Color.white.opacity(0.06), lineWidth: 1))
     }
 
+    private var isFemale: Bool { profiles.first?.isFemale ?? false }
+
     private var heatMapCard: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text("TRAINING VOLUME · \(periodLabel)")
-                .font(.barlow(10.5, weight: .bold))
-                .kerning(1.5)
-                .foregroundStyle(Color.textDim)
-
-            HStack(spacing: 34) {
+            HStack {
+                Text("TRAINING VOLUME · \(periodLabel)")
+                    .font(.barlow(10.5, weight: .bold))
+                    .kerning(1.5)
+                    .foregroundStyle(Color.textDim)
                 Spacer()
-                VStack(spacing: 4) {
-                    BodyHeatMap(front: true, intensity: intensity)
-                    Text("FRONT")
-                        .font(.barlow(9.5, weight: .bold))
-                        .kerning(1.5)
-                        .foregroundStyle(Color.textFaint)
-                }
-                VStack(spacing: 4) {
-                    BodyHeatMap(front: false, intensity: intensity)
-                    Text("BACK")
-                        .font(.barlow(9.5, weight: .bold))
-                        .kerning(1.5)
-                        .foregroundStyle(Color.textFaint)
-                }
-                Spacer()
+                bodyTypeToggle
             }
+
+            ZStack {
+                if showBack {
+                    heatBody(front: false)
+                        .transition(.asymmetric(
+                            insertion: .opacity.combined(with: .scale(scale: 0.92)),
+                            removal: .opacity
+                        ))
+                } else {
+                    heatBody(front: true)
+                        .transition(.asymmetric(
+                            insertion: .opacity.combined(with: .scale(scale: 0.92)),
+                            removal: .opacity
+                        ))
+                }
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.top, 4)
+
+            Button {
+                withAnimation(.snappy) { showBack.toggle() }
+                Haptics.tap()
+            } label: {
+                HStack(spacing: 6) {
+                    Image(systemName: "arrow.triangle.2.circlepath")
+                        .font(.system(size: 11, weight: .bold))
+                    Text(showBack ? "Rotate to front" : "Rotate to back")
+                        .font(.barlow(12.5, weight: .semibold))
+                }
+                .foregroundStyle(Color.purpleBright)
+                .padding(.horizontal, 14)
+                .padding(.vertical, 8)
+                .background(Capsule().fill(Color.purplePrimary.opacity(0.12)))
+                .overlay(Capsule().stroke(Color.purplePrimary.opacity(0.35), lineWidth: 1))
+            }
+            .buttonStyle(.plain)
+            .frame(maxWidth: .infinity)
+            .padding(.top, 8)
 
             HStack(spacing: 8) {
                 Text("LOW")
@@ -146,6 +173,43 @@ struct ProgressTabView: View {
         }
         .padding(16)
         .card(18)
+    }
+
+    private func heatBody(front: Bool) -> some View {
+        VStack(spacing: 5) {
+            BodyHeatMap(front: front, female: isFemale, width: 156, height: 232, intensity: intensity)
+            Text(front ? "FRONT" : "BACK")
+                .font(.barlow(9.5, weight: .bold))
+                .kerning(1.5)
+                .foregroundStyle(Color.textFaint)
+        }
+    }
+
+    private var bodyTypeToggle: some View {
+        HStack(spacing: 0) {
+            genderButton("M", female: false)
+            genderButton("F", female: true)
+        }
+        .padding(2)
+        .background(Capsule().fill(Color.surface2))
+        .overlay(Capsule().stroke(Color.white.opacity(0.06), lineWidth: 1))
+    }
+
+    private func genderButton(_ label: String, female: Bool) -> some View {
+        let selected = isFemale == female
+        return Button {
+            withAnimation(.snappy) {
+                profiles.first?.isFemale = female
+            }
+            Haptics.tap()
+        } label: {
+            Text(label)
+                .font(.barlow(11.5, weight: .bold))
+                .foregroundStyle(selected ? .white : Color.textDim)
+                .frame(width: 28, height: 22)
+                .background(Capsule().fill(selected ? Color.purplePrimary : Color.clear))
+        }
+        .buttonStyle(.plain)
     }
 
     private var muscleListCard: some View {

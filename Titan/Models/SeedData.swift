@@ -112,7 +112,32 @@ enum SeedData {
         ("Cable Crunch", .cable, .core, []),
         ("Ab Wheel Rollout", .bodyweight, .core, []),
         ("Russian Twist", .dumbbell, .core, []),
-        ("Sit-Up", .bodyweight, .core, [])
+        ("Sit-Up", .bodyweight, .core, []),
+        // Cardio (logged in minutes)
+        ("Treadmill Run", .machine, .cardio, []),
+        ("Incline Treadmill Walk", .machine, .cardio, []),
+        ("Stationary Bike", .machine, .cardio, []),
+        ("Stair Climber", .machine, .cardio, []),
+        ("Rowing Machine", .machine, .cardio, []),
+        ("Elliptical", .machine, .cardio, []),
+        ("Assault Bike", .machine, .cardio, []),
+        ("Jump Rope", .bodyweight, .cardio, []),
+        ("Sled Push", .other, .cardio, []),
+        ("Outdoor Run", .bodyweight, .cardio, []),
+        // Stretching & warm-up (logged in minutes)
+        ("Hamstring Stretch", .bodyweight, .mobility, []),
+        ("Quad Stretch", .bodyweight, .mobility, []),
+        ("Hip Flexor Stretch", .bodyweight, .mobility, []),
+        ("Couch Stretch", .bodyweight, .mobility, []),
+        ("Shoulder Stretch", .bodyweight, .mobility, []),
+        ("Chest Doorway Stretch", .bodyweight, .mobility, []),
+        ("Cat-Cow", .bodyweight, .mobility, []),
+        ("Downward Dog", .bodyweight, .mobility, []),
+        ("Child's Pose", .bodyweight, .mobility, []),
+        ("Arm Circles", .bodyweight, .mobility, []),
+        ("Leg Swings", .bodyweight, .mobility, []),
+        ("World's Greatest Stretch", .bodyweight, .mobility, []),
+        ("Foam Rolling", .other, .mobility, [])
     ]
 
 }

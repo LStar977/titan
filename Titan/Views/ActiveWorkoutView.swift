@@ -367,6 +367,11 @@ struct ExerciseCard: View {
         Stats.lastSets(exerciseName: entry.displayName, workouts: allWorkouts, excluding: workout)
     }
 
+    /// Cardio and stretching log minutes instead of lbs × reps.
+    private var isDuration: Bool {
+        entry.exercise?.muscle.isDuration ?? false
+    }
+
     private var activeSet: SetEntry? {
         entry.sortedSets.first { !$0.isCompleted }
     }
@@ -383,6 +388,7 @@ struct ExerciseCard: View {
                         set: set,
                         label: setLabel(set),
                         prev: prevString(set),
+                        isDuration: isDuration,
                         onCheck: { onCompleteSet(set, entry) }
                     )
                     .contextMenu { setMenu(set) }
@@ -490,8 +496,8 @@ struct ExerciseCard: View {
         HStack(spacing: 6) {
             Text("SET").frame(width: 34, alignment: .leading)
             Text("PREVIOUS").frame(maxWidth: .infinity, alignment: .leading)
-            Text("LBS").frame(width: 62)
-            Text("REPS").frame(width: 52)
+            Text(isDuration ? "" : "LBS").frame(width: 62)
+            Text(isDuration ? "MIN" : "REPS").frame(width: 52)
             Text("✓").frame(width: 44)
         }
         .font(.barlow(9.5, weight: .bold))
@@ -514,6 +520,9 @@ struct ExerciseCard: View {
     private func prevString(_ set: SetEntry) -> String {
         let idx = entry.sortedSets.filter { $0.type != .warmup }.firstIndex { $0 === set } ?? 0
         if let p = prevSets[safe: idx] ?? prevSets.last {
+            if isDuration {
+                return "\(p.reps) min"
+            }
             return "\(Fmt.weight(p.weight)) × \(p.reps)"
         }
         return "—"
@@ -532,7 +541,7 @@ struct ExerciseCard: View {
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-            Text(set.weight > 0 ? Fmt.weight(set.weight) : "—")
+            Text(isDuration ? "" : (set.weight > 0 ? Fmt.weight(set.weight) : "—"))
                 .font(.condensed(19, weight: pr ? .bold : .semibold))
                 .foregroundStyle(valueColor(set, pr: pr))
                 .shadow(color: pr ? Color.glow.opacity(0.7) : .clear, radius: 6)
@@ -698,6 +707,7 @@ struct ActiveSetEditor: View {
     let set: SetEntry
     let label: String
     let prev: String
+    var isDuration = false
     let onCheck: () -> Void
 
     var body: some View {
@@ -726,15 +736,17 @@ struct ActiveSetEditor: View {
             }
 
             HStack(spacing: 8) {
-                valueBox(unit: "LBS", minus: { set.weight = max(0, set.weight - 5); Haptics.tap() },
-                         plus: { set.weight += 5; Haptics.tap() }) {
-                    TextField("0", value: Binding(
-                        get: { set.weight },
-                        set: { set.weight = max(0, min(2000, $0)) }
-                    ), format: .number)
-                    .keyboardType(.decimalPad)
+                if !isDuration {
+                    valueBox(unit: "LBS", minus: { set.weight = max(0, set.weight - 5); Haptics.tap() },
+                             plus: { set.weight += 5; Haptics.tap() }) {
+                        TextField("0", value: Binding(
+                            get: { set.weight },
+                            set: { set.weight = max(0, min(2000, $0)) }
+                        ), format: .number)
+                        .keyboardType(.decimalPad)
+                    }
                 }
-                valueBox(unit: "REPS", minus: { set.reps = max(0, set.reps - 1); Haptics.tap() },
+                valueBox(unit: isDuration ? "MIN" : "REPS", minus: { set.reps = max(0, set.reps - 1); Haptics.tap() },
                          plus: { set.reps += 1; Haptics.tap() }) {
                     TextField("0", value: Binding(
                         get: { set.reps },

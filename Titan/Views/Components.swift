@@ -215,6 +215,9 @@ struct Sparkline: View {
 
 struct BodyHeatMap: View {
     let front: Bool
+    var female = false
+    var width: CGFloat = 126
+    var height: CGFloat = 188
     /// 0...1 intensity per muscle
     let intensity: (Muscle) -> Double
 
@@ -241,7 +244,41 @@ struct BodyHeatMap: View {
             circle(70, 15, 11, .surface2)
             rect(64, 24, 12, 8, 3, .surface2)
 
-            if front {
+            if female {
+                if front {
+                    circle(50, 40, 8, fill(.shoulders))
+                    circle(90, 40, 8, fill(.shoulders))
+                    rect(53, 34, 16, 17, 6, fill(.chest))
+                    rect(71, 34, 16, 17, 6, fill(.chest))
+                    rect(37, 47, 10, 22, 5, fill(.biceps))
+                    rect(93, 47, 10, 22, 5, fill(.biceps))
+                    rect(35, 72, 8, 24, 4, fill(.forearms))
+                    rect(97, 72, 8, 24, 4, fill(.forearms))
+                    rect(58, 53, 24, 30, 8, fill(.core))
+                    rect(50, 86, 40, 12, 6, fill(.glutes, 0.5))
+                    rect(51, 100, 17, 42, 7, fill(.quads))
+                    rect(72, 100, 17, 42, 7, fill(.quads))
+                    rect(54, 147, 12, 32, 6, fill(.calves, 0.6))
+                    rect(74, 147, 12, 32, 6, fill(.calves, 0.6))
+                } else {
+                    rect(57, 27, 26, 9, 5, fill(.traps))
+                    circle(50, 40, 8, fill(.shoulders, 0.7))
+                    circle(90, 40, 8, fill(.shoulders, 0.7))
+                    rect(54, 36, 16, 26, 6, fill(.back))
+                    rect(70, 36, 16, 26, 6, fill(.back))
+                    rect(37, 47, 10, 22, 5, fill(.triceps))
+                    rect(93, 47, 10, 22, 5, fill(.triceps))
+                    rect(35, 72, 8, 24, 4, fill(.forearms))
+                    rect(97, 72, 8, 24, 4, fill(.forearms))
+                    rect(60, 65, 20, 16, 7, fill(.core, 0.5))
+                    rect(49, 84, 20, 18, 8, fill(.glutes))
+                    rect(71, 84, 20, 18, 8, fill(.glutes))
+                    rect(52, 105, 16, 38, 7, fill(.hamstrings))
+                    rect(72, 105, 16, 38, 7, fill(.hamstrings))
+                    rect(54, 148, 12, 31, 6, fill(.calves))
+                    rect(74, 148, 12, 31, 6, fill(.calves))
+                }
+            } else if front {
                 circle(46, 41, 10, fill(.shoulders))
                 circle(94, 41, 10, fill(.shoulders))
                 rect(50, 34, 19, 20, 7, fill(.chest))
@@ -274,7 +311,7 @@ struct BodyHeatMap: View {
                 rect(74, 151, 13, 30, 6, fill(.calves))
             }
         }
-        .frame(width: 126, height: 188)
+        .frame(width: width, height: height)
     }
 }
 
