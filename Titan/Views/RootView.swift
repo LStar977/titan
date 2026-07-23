@@ -192,7 +192,19 @@ struct StartWorkoutSheet: View {
             .padding(.bottom, 12)
 
             ScrollView {
-                VStack(spacing: 10) {
+                VStack(alignment: .leading, spacing: 10) {
+                    GradientCTA("CREATE YOUR OWN", systemIcon: "plus") {
+                        start(nil)
+                    }
+                    Text("Build it as you go — pick your exercises, log your sets.")
+                        .font(.barlow(12))
+                        .foregroundStyle(Color.textDim)
+                        .frame(maxWidth: .infinity)
+                        .multilineTextAlignment(.center)
+
+                    SectionLabel("Or use a template")
+                        .padding(.top, 12)
+
                     ForEach(routines) { routine in
                         Button {
                             start(routine)
@@ -201,25 +213,6 @@ struct StartWorkoutSheet: View {
                         }
                         .buttonStyle(.plain)
                     }
-
-                    Button {
-                        start(nil)
-                    } label: {
-                        HStack(spacing: 7) {
-                            Image(systemName: "plus")
-                                .font(.system(size: 12, weight: .bold))
-                            Text("Empty Workout")
-                                .font(.barlow(13, weight: .semibold))
-                        }
-                        .foregroundStyle(Color.purpleBright)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 48)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 14)
-                                .strokeBorder(Color.purplePrimary.opacity(0.4), style: StrokeStyle(lineWidth: 1, dash: [4, 4]))
-                        )
-                    }
-                    .buttonStyle(.plain)
                 }
                 .padding(.horizontal, 16)
                 .padding(.bottom, 30)

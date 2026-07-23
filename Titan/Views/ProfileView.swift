@@ -13,24 +13,51 @@ struct ProfileView: View {
     private var finished: [Workout] { workouts.filter { $0.endedAt != nil } }
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 12) {
-                header
-                rankCard
-                climbCard
-                bodyweightCard
-                measurementsCard
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 12) {
+                    header
+                    rankCard
+                    climbCard
+                    supplementsLink
+                    bodyweightCard
+                    measurementsCard
+                }
+                .padding(.horizontal, 20)
+                .padding(.bottom, 130)
             }
-            .padding(.horizontal, 20)
-            .padding(.bottom, 130)
+            .background(Color.bg.ignoresSafeArea())
+            .toolbar(.hidden, for: .navigationBar)
         }
-        .background(Color.bg.ignoresSafeArea())
         .sheet(isPresented: $showSettings) {
             SettingsSheet()
         }
         .sheet(isPresented: $showLogMetrics) {
             LogMetricsSheet()
         }
+    }
+
+    private var supplementsLink: some View {
+        NavigationLink {
+            SupplementsView()
+        } label: {
+            HStack {
+                Image(systemName: "pills")
+                    .font(.system(size: 15))
+                    .foregroundStyle(Color.purpleBright)
+                Text("Supplements")
+                    .font(.barlow(13.5, weight: .semibold))
+                    .foregroundStyle(Color.textMain)
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(Color.textFaint)
+            }
+            .padding(.horizontal, 16)
+            .frame(height: 48)
+            .card(14)
+        }
+        .buttonStyle(.plain)
     }
 
     // MARK: Header

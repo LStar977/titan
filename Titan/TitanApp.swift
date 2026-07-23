@@ -24,7 +24,9 @@ struct TitanApp: App {
             WorkoutEntry.self,
             SetEntry.self,
             BodyMetric.self,
-            Profile.self
+            Profile.self,
+            Supplement.self,
+            SupplementLog.self
         ])
     }
 }

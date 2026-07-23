@@ -3,8 +3,17 @@ import SwiftData
 
 enum SeedData {
     static func seedIfNeeded(_ context: ModelContext) {
+        let supCount = (try? context.fetchCount(FetchDescriptor<Supplement>())) ?? 0
+        if supCount == 0 {
+            context.insert(Supplement(name: "Creatine", serving: 5, unit: "g", orderIndex: 0))
+            context.insert(Supplement(name: "Whey Protein", serving: 25, unit: "g", orderIndex: 1))
+        }
+
         let count = (try? context.fetchCount(FetchDescriptor<Exercise>())) ?? 0
-        guard count == 0 else { return }
+        guard count == 0 else {
+            try? context.save()
+            return
+        }
 
         var byName: [String: Exercise] = [:]
         for spec in library {

@@ -21,6 +21,19 @@ struct ActiveWorkoutView: View {
             header
             ScrollView {
                 VStack(spacing: 12) {
+                    if workout.entries.isEmpty {
+                        VStack(spacing: 8) {
+                            Text("YOUR WORKOUT, YOUR RULES")
+                                .font(.condensed(22, weight: .bold))
+                                .kerning(2)
+                                .foregroundStyle(Color.textMain)
+                            Text("Add your first exercise to start logging sets.")
+                                .font(.barlow(13))
+                                .foregroundStyle(Color.textDim)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 40)
+                    }
                     ForEach(blocks) { block in
                         switch block {
                         case .single(let entry):
@@ -41,8 +54,12 @@ struct ActiveWorkoutView: View {
                 .padding(.top, 14)
                 .padding(.bottom, 120)
             }
+            .scrollDismissesKeyboard(.immediately)
         }
         .background(Color.bg.ignoresSafeArea())
+        .onAppear {
+            if workout.entries.isEmpty { showPicker = true }
+        }
         .overlay(alignment: .bottom) {
             if app.restEndsAt != nil {
                 RestTimerBar()
@@ -649,10 +666,10 @@ struct ExerciseCard: View {
     @ViewBuilder
     private func setMenu(_ set: SetEntry) -> some View {
         Menu("Set Type") {
-            Button("Warm-Up") { set.type = .warmup }
-            Button("Working") { set.type = .working }
-            Button("Failure") { set.type = .failure }
-            Button("Drop Set") { set.type = .drop }
+            Button("Working Set — a normal set") { set.type = .working }
+            Button("Warm-Up — light prep, no PR check") { set.type = .warmup }
+            Button("To Failure — went to max effort") { set.type = .failure }
+            Button("Drop Set — stripped weight, kept going") { set.type = .drop }
         }
         Button(role: .destructive) {
             entry.sets.removeAll { $0 === set }
@@ -730,36 +747,37 @@ struct ActiveSetEditor: View {
                         + Text(prev)
                             .font(.barlow(11, weight: .semibold))
                             .foregroundStyle(Color.textSoft)
-                        + Text(" · tap ✓ to repeat")
+                        + Text(" · tap ✓ to log")
                             .foregroundStyle(Color.textDim)
                     }
                     .font(.barlow(11))
                     .lineLimit(1)
                 }
                 Spacer()
-                HStack(spacing: 4) {
-                    typeChip("WORK", .working)
-                    typeChip("FAIL", .failure)
-                    typeChip("DROP", .drop)
-                }
+                typeMenu
             }
 
             HStack(spacing: 8) {
-                stepperBox(
-                    value: Fmt.weight(set.weight),
-                    unit: "LBS",
-                    flex: 1.0,
-                    minus: { set.weight = max(0, set.weight - 5); Haptics.tap() },
-                    plus: { set.weight += 5; Haptics.tap() }
-                )
-                stepperBox(
-                    value: "\(set.reps)",
-                    unit: "REPS",
-                    flex: 0.72,
-                    minus: { set.reps = max(0, set.reps - 1); Haptics.tap() },
-                    plus: { set.reps += 1; Haptics.tap() }
-                )
-                Button(action: onCheck) {
+                valueBox(unit: "LBS", minus: { set.weight = max(0, set.weight - 5); Haptics.tap() },
+                         plus: { set.weight += 5; Haptics.tap() }) {
+                    TextField("0", value: Binding(
+                        get: { set.weight },
+                        set: { set.weight = max(0, min(2000, $0)) }
+                    ), format: .number)
+                    .keyboardType(.decimalPad)
+                }
+                valueBox(unit: "REPS", minus: { set.reps = max(0, set.reps - 1); Haptics.tap() },
+                         plus: { set.reps += 1; Haptics.tap() }) {
+                    TextField("0", value: Binding(
+                        get: { set.reps },
+                        set: { set.reps = max(0, min(200, $0)) }
+                    ), format: .number)
+                    .keyboardType(.numberPad)
+                }
+                Button {
+                    hideKeyboard()
+                    onCheck()
+                } label: {
                     RoundedRectangle(cornerRadius: 13)
                         .fill(LinearGradient(colors: [.purplePrimary, .purpleDeep], startPoint: .top, endPoint: .bottom))
                         .frame(width: 46, height: 46)
@@ -780,50 +798,85 @@ struct ActiveSetEditor: View {
         .padding(.vertical, 4)
     }
 
-    private func typeChip(_ title: String, _ type: SetType) -> some View {
-        let selected = set.type == type
-        return Button {
-            set.type = (selected && type != .working) ? .working : type
-            Haptics.tap()
-        } label: {
-            Text(title)
-                .font(.barlow(9, weight: .bold))
-                .kerning(0.8)
-                .foregroundStyle(selected ? .white : Color.textDim)
-                .padding(.horizontal, 6)
-                .padding(.vertical, 3)
-                .background(
-                    RoundedRectangle(cornerRadius: 5)
-                        .fill(selected ? Color.purplePrimary : Color.clear)
-                )
-                .overlay(
-                    RoundedRectangle(cornerRadius: 5)
-                        .stroke(selected ? Color.clear : Color.surface3, lineWidth: 1)
-                )
+    private var typeTitle: String {
+        switch set.type {
+        case .working: return "WORKING"
+        case .warmup: return "WARM-UP"
+        case .failure: return "FAILURE"
+        case .drop: return "DROP SET"
         }
-        .buttonStyle(.plain)
     }
 
-    private func stepperBox(value: String, unit: String, flex: CGFloat, minus: @escaping () -> Void, plus: @escaping () -> Void) -> some View {
-        HStack {
+    /// Optional set tag with plain-English explanations. Most sets stay "Working".
+    private var typeMenu: some View {
+        Menu {
+            Button {
+                set.type = .working
+            } label: {
+                Label("Working Set — a normal set", systemImage: "dumbbell")
+            }
+            Button {
+                set.type = .warmup
+            } label: {
+                Label("Warm-Up — light prep, no PR check", systemImage: "thermometer.low")
+            }
+            Button {
+                set.type = .failure
+            } label: {
+                Label("To Failure — went to max effort", systemImage: "flame")
+            }
+            Button {
+                set.type = .drop
+            } label: {
+                Label("Drop Set — stripped weight, kept going", systemImage: "arrow.down.right")
+            }
+        } label: {
+            HStack(spacing: 4) {
+                Text(typeTitle)
+                    .font(.barlow(9, weight: .bold))
+                    .kerning(0.8)
+                Image(systemName: "chevron.down")
+                    .font(.system(size: 7, weight: .bold))
+            }
+            .foregroundStyle(set.type == .working ? Color.textDim : .white)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 4)
+            .background(
+                RoundedRectangle(cornerRadius: 6)
+                    .fill(set.type == .working ? Color.clear : Color.purplePrimary)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 6)
+                    .stroke(set.type == .working ? Color.surface3 : Color.clear, lineWidth: 1)
+            )
+        }
+    }
+
+    private func valueBox<Content: View>(
+        unit: String,
+        minus: @escaping () -> Void,
+        plus: @escaping () -> Void,
+        @ViewBuilder field: () -> Content
+    ) -> some View {
+        HStack(spacing: 4) {
             stepButton("minus", action: minus)
-            Spacer()
             VStack(spacing: 0) {
-                Text(value)
-                    .font(.condensed(27, weight: .bold))
+                field()
+                    .font(.condensed(26, weight: .bold))
                     .foregroundStyle(Color.textMain)
+                    .multilineTextAlignment(.center)
+                    .frame(height: 28)
                 Text(unit)
                     .font(.barlow(8.5, weight: .semibold))
                     .kerning(1)
                     .foregroundStyle(Color.textFaint)
             }
-            Spacer()
+            .frame(maxWidth: .infinity)
             stepButton("plus", action: plus)
         }
         .padding(6)
         .background(RoundedRectangle(cornerRadius: 11).fill(Color.surface))
         .frame(maxWidth: .infinity)
-        .layoutPriority(flex)
     }
 
     private func stepButton(_ icon: String, action: @escaping () -> Void) -> some View {

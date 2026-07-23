@@ -243,6 +243,40 @@ final class BodyMetric {
 }
 
 @Model
+final class Supplement {
+    var name: String = ""
+    var serving: Double = 1
+    var unit: String = "g"
+    var orderIndex: Int = 0
+    var createdAt: Date = Date()
+
+    init(name: String, serving: Double, unit: String, orderIndex: Int = 0) {
+        self.name = name
+        self.serving = serving
+        self.unit = unit
+        self.orderIndex = orderIndex
+        self.createdAt = Date()
+    }
+}
+
+@Model
+final class SupplementLog {
+    var name: String = ""
+    var amount: Double = 0
+    var unit: String = "g"
+    var date: Date = Date()
+    var supplement: Supplement?
+
+    init(supplement: Supplement, date: Date = Date()) {
+        self.name = supplement.name
+        self.amount = supplement.serving
+        self.unit = supplement.unit
+        self.date = date
+        self.supplement = supplement
+    }
+}
+
+@Model
 final class Profile {
     var name: String = "ATHLETE"
     var xp: Int = 0

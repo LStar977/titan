@@ -7,6 +7,8 @@ struct HomeView: View {
     @Query(sort: \Workout.startedAt, order: .reverse) private var workouts: [Workout]
     @Query(sort: \Routine.orderIndex) private var routines: [Routine]
     @Query private var profiles: [Profile]
+    @Query(sort: \Supplement.orderIndex) private var supplements: [Supplement]
+    @Query(sort: \SupplementLog.date, order: .reverse) private var supLogs: [SupplementLog]
 
     private var finished: [Workout] { workouts.filter { $0.endedAt != nil } }
 
@@ -58,6 +60,8 @@ struct HomeView: View {
                     .card(13)
                 }
                 .buttonStyle(.plain)
+
+                supplementsCard
 
                 recentPRs
             }
@@ -202,6 +206,76 @@ struct HomeView: View {
         Haptics.medium()
     }
 
+    // MARK: Supplements
+
+    @ViewBuilder
+    private var supplementsCard: some View {
+        if !supplements.isEmpty {
+            VStack(alignment: .leading, spacing: 10) {
+                HStack {
+                    SectionLabel("Supplements Today")
+                    Spacer()
+                    NavigationLink {
+                        SupplementsView()
+                    } label: {
+                        Text("See all")
+                            .font(.barlow(12, weight: .semibold))
+                            .foregroundStyle(Color.purpleBright)
+                    }
+                    .buttonStyle(.plain)
+                }
+                VStack(spacing: 0) {
+                    ForEach(Array(supplements.prefix(4).enumerated()), id: \.offset) { i, supplement in
+                        supplementRow(supplement)
+                        if i < min(supplements.count, 4) - 1 {
+                            Divider().overlay(Color.white.opacity(0.04)).padding(.leading, 16)
+                        }
+                    }
+                }
+                .card()
+            }
+        }
+    }
+
+    private func supplementRow(_ supplement: Supplement) -> some View {
+        let total = supLogs
+            .filter { $0.name == supplement.name && Calendar.current.isDateInToday($0.date) }
+            .reduce(0.0) { $0 + $1.amount }
+        return HStack(spacing: 12) {
+            VStack(alignment: .leading, spacing: 1) {
+                Text(supplement.name)
+                    .font(.barlow(14, weight: .semibold))
+                    .foregroundStyle(Color.textMain)
+                Text(total > 0 ? "\(Fmt.weight(total)) \(supplement.unit) today" : "Not yet today")
+                    .font(.barlow(11.5))
+                    .foregroundStyle(total > 0 ? Color.purpleBright : Color.textDim)
+            }
+            Spacer()
+            Button {
+                context.insert(SupplementLog(supplement: supplement))
+                try? context.save()
+                Haptics.medium()
+            } label: {
+                HStack(spacing: 5) {
+                    Image(systemName: "plus")
+                        .font(.system(size: 10, weight: .bold))
+                    Text("\(Fmt.weight(supplement.serving)) \(supplement.unit)")
+                        .font(.barlow(12, weight: .semibold))
+                }
+                .foregroundStyle(.white)
+                .padding(.horizontal, 11)
+                .padding(.vertical, 7)
+                .background(
+                    Capsule().fill(LinearGradient(colors: [.purplePrimary, .purpleDeep], startPoint: .top, endPoint: .bottom))
+                )
+                .shadow(color: Color.purplePrimary.opacity(0.3), radius: 6)
+            }
+            .buttonStyle(.plain)
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 11)
+    }
+
     // MARK: Recent PRs
 
     private var allPRs: [(name: String, set: SetEntry, date: Date)] {
@@ -340,6 +414,8 @@ struct UpNextCard: View {
 
 struct EmptyHomeView: View {
     @Environment(AppState.self) private var app
+    @Environment(\.modelContext) private var context
+    @Query(sort: \Workout.startedAt, order: .reverse) private var workouts: [Workout]
 
     var body: some View {
         ZStack {
@@ -392,8 +468,12 @@ struct EmptyHomeView: View {
                         .frame(maxWidth: 280)
                         .padding(.top, 8)
 
-                    GradientCTA("START FIRST WORKOUT") {
-                        app.showStartSheet = true
+                    GradientCTA("CREATE YOUR WORKOUT") {
+                        let w = WorkoutBuilder.start(routine: nil, context: context, history: workouts)
+                        app.activeWorkout = w
+                        app.showSummary = false
+                        app.workoutPresented = true
+                        Haptics.medium()
                     }
                     .frame(maxWidth: 300)
                     .padding(.top, 28)

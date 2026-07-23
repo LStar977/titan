@@ -23,6 +23,8 @@ Claude Design handoff (`DESIGN_BRIEF.md` has the full feature scope).
   Spartan → Titan (3 tiers each).
 - **Plate calculator** — target weight → plates per side, with bar options.
 - **Body metrics** — bodyweight sparkline + chest/arm/waist measurements.
+- **Supplements** — one-tap serving logging (creatine, protein, custom), daily
+  totals and a 7-day history. Quick-log card on Home, full page from Profile.
 
 Everything is stored on-device with SwiftData. No account, no network.
 

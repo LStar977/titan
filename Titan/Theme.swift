@@ -186,6 +186,12 @@ struct TagChip: View {
     }
 }
 
+// MARK: - Keyboard
+
+func hideKeyboard() {
+    UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+}
+
 // MARK: - Haptics
 
 enum Haptics {
