@@ -223,92 +223,153 @@ struct BodyHeatMap: View {
 
     private func fill(_ m: Muscle, _ weight: Double = 1.0) -> Color {
         let t = min(1, max(0, intensity(m) * weight))
-        return Color.purplePrimary.opacity(0.10 + 0.85 * t)
+        return Color.purplePrimary.opacity(0.16 + 0.78 * t)
     }
+
+    private let bodyColor = Color(hex: 0x1B1B29)
 
     var body: some View {
         Canvas { ctx, size in
             let sx = size.width / 140
             let sy = size.height / 190
 
-            func rect(_ x: CGFloat, _ y: CGFloat, _ w: CGFloat, _ h: CGFloat, _ r: CGFloat, _ color: Color) {
+            func P(_ x: CGFloat, _ y: CGFloat) -> CGPoint {
+                CGPoint(x: x * sx, y: y * sy)
+            }
+            /// Ellipse "blob" centered at (cx, cy), optionally rotated (degrees).
+            func blob(_ cx: CGFloat, _ cy: CGFloat, _ rx: CGFloat, _ ry: CGFloat, rot: CGFloat = 0, _ color: Color) {
+                let base = Path(ellipseIn: CGRect(x: -rx * sx, y: -ry * sy, width: 2 * rx * sx, height: 2 * ry * sy))
+                let t = CGAffineTransform(translationX: cx * sx, y: cy * sy).rotated(by: rot * .pi / 180)
+                ctx.fill(base.applying(t), with: .color(color))
+            }
+            func rrect(_ x: CGFloat, _ y: CGFloat, _ w: CGFloat, _ h: CGFloat, _ r: CGFloat, _ color: Color) {
                 let rr = CGRect(x: x * sx, y: y * sy, width: w * sx, height: h * sy)
                 ctx.fill(Path(roundedRect: rr, cornerRadius: r * sx), with: .color(color))
             }
-            func circle(_ cx: CGFloat, _ cy: CGFloat, _ radius: CGFloat, _ color: Color) {
-                let rr = CGRect(x: (cx - radius) * sx, y: (cy - radius) * sy, width: radius * 2 * sx, height: radius * 2 * sy)
-                ctx.fill(Path(ellipseIn: rr), with: .color(color))
+            /// Thick round-capped polyline — used for limbs and limb muscles.
+            func limb(_ pts: [(CGFloat, CGFloat)], _ lineWidth: CGFloat, _ color: Color) {
+                guard pts.count > 1 else { return }
+                var p = Path()
+                p.move(to: P(pts[0].0, pts[0].1))
+                for pt in pts.dropFirst() { p.addLine(to: P(pt.0, pt.1)) }
+                ctx.stroke(p, with: .color(color), style: StrokeStyle(lineWidth: lineWidth * sx, lineCap: .round, lineJoin: .round))
             }
 
-            // Head + neck (neutral)
-            circle(70, 15, 11, .surface2)
-            rect(64, 24, 12, 8, 3, .surface2)
+            // ---------- Neutral silhouette ----------
 
-            if female {
-                if front {
-                    circle(50, 40, 8, fill(.shoulders))
-                    circle(90, 40, 8, fill(.shoulders))
-                    rect(53, 34, 16, 17, 6, fill(.chest))
-                    rect(71, 34, 16, 17, 6, fill(.chest))
-                    rect(37, 47, 10, 22, 5, fill(.biceps))
-                    rect(93, 47, 10, 22, 5, fill(.biceps))
-                    rect(35, 72, 8, 24, 4, fill(.forearms))
-                    rect(97, 72, 8, 24, 4, fill(.forearms))
-                    rect(58, 53, 24, 30, 8, fill(.core))
-                    rect(50, 86, 40, 12, 6, fill(.glutes, 0.5))
-                    rect(51, 100, 17, 42, 7, fill(.quads))
-                    rect(72, 100, 17, 42, 7, fill(.quads))
-                    rect(54, 147, 12, 32, 6, fill(.calves, 0.6))
-                    rect(74, 147, 12, 32, 6, fill(.calves, 0.6))
+            // Head + neck
+            blob(70, 14, 10.5, 12, bodyColor)
+            rrect(64, 23, 12, 9, 4, bodyColor)
+
+            // Torso outline
+            let shoulderX: CGFloat = female ? 47 : 43
+            let waistX: CGFloat = female ? 58 : 54
+            let hipX: CGFloat = female ? 47 : 50
+            var torso = Path()
+            torso.move(to: P(shoulderX, 37))
+            torso.addQuadCurve(to: P(140 - shoulderX, 37), control: P(70, 27))
+            torso.addQuadCurve(to: P(140 - waistX, 90), control: P(142 - shoulderX, 66))
+            torso.addQuadCurve(to: P(140 - hipX, 106), control: P(140 - waistX + 5, 100))
+            torso.addQuadCurve(to: P(70, 114), control: P(85, 113))
+            torso.addQuadCurve(to: P(hipX, 106), control: P(55, 113))
+            torso.addQuadCurve(to: P(waistX, 90), control: P(hipX - 5, 100))
+            torso.addQuadCurve(to: P(shoulderX, 37), control: P(shoulderX - 2, 66))
+            torso.closeSubpath()
+            ctx.fill(torso, with: .color(bodyColor))
+
+            // Arms + legs
+            let armTopX: CGFloat = female ? 45 : 42
+            let elbowX: CGFloat = female ? 37 : 33
+            let wristX: CGFloat = female ? 33 : 29
+            let armW: CGFloat = female ? 8.5 : 10.5
+            limb([(armTopX, 40), (elbowX, 72), (wristX, 102)], armW, bodyColor)
+            limb([(140 - armTopX, 40), (140 - elbowX, 72), (140 - wristX, 102)], armW, bodyColor)
+            let legTopX: CGFloat = female ? 60 : 60
+            let legW: CGFloat = female ? 12.5 : 13.5
+            limb([(legTopX, 104), (58, 146), (59, 180)], legW, bodyColor)
+            limb([(140 - legTopX, 104), (82, 146), (81, 180)], legW, bodyColor)
+
+            // ---------- Muscles ----------
+
+            if front {
+                if female {
+                    blob(49, 40, 6.5, 5.5, fill(.shoulders))
+                    blob(91, 40, 6.5, 5.5, fill(.shoulders))
+                    blob(60, 45, 9, 7, rot: -6, fill(.chest))
+                    blob(80, 45, 9, 7, rot: 6, fill(.chest))
+                    limb([(44, 50), (40, 66)], 8, fill(.biceps))
+                    limb([(96, 50), (100, 66)], 8, fill(.biceps))
+                    limb([(37, 76), (35, 96)], 6, fill(.forearms))
+                    limb([(103, 76), (105, 96)], 6, fill(.forearms))
+                    rrect(63, 55, 14, 28, 6, fill(.core))
+                    blob(57, 66, 3, 11, fill(.core, 0.6))
+                    blob(83, 66, 3, 11, fill(.core, 0.6))
+                    blob(62, 122, 7.5, 22, fill(.quads))
+                    blob(78, 122, 7.5, 22, fill(.quads))
+                    blob(60, 162, 5, 13, fill(.calves, 0.6))
+                    blob(80, 162, 5, 13, fill(.calves, 0.6))
                 } else {
-                    rect(57, 27, 26, 9, 5, fill(.traps))
-                    circle(50, 40, 8, fill(.shoulders, 0.7))
-                    circle(90, 40, 8, fill(.shoulders, 0.7))
-                    rect(54, 36, 16, 26, 6, fill(.back))
-                    rect(70, 36, 16, 26, 6, fill(.back))
-                    rect(37, 47, 10, 22, 5, fill(.triceps))
-                    rect(93, 47, 10, 22, 5, fill(.triceps))
-                    rect(35, 72, 8, 24, 4, fill(.forearms))
-                    rect(97, 72, 8, 24, 4, fill(.forearms))
-                    rect(60, 65, 20, 16, 7, fill(.core, 0.5))
-                    rect(49, 84, 20, 18, 8, fill(.glutes))
-                    rect(71, 84, 20, 18, 8, fill(.glutes))
-                    rect(52, 105, 16, 38, 7, fill(.hamstrings))
-                    rect(72, 105, 16, 38, 7, fill(.hamstrings))
-                    rect(54, 148, 12, 31, 6, fill(.calves))
-                    rect(74, 148, 12, 31, 6, fill(.calves))
+                    blob(45, 40, 7.5, 6.5, fill(.shoulders))
+                    blob(95, 40, 7.5, 6.5, fill(.shoulders))
+                    blob(59, 46, 11, 9, rot: -6, fill(.chest))
+                    blob(81, 46, 11, 9, rot: 6, fill(.chest))
+                    limb([(40, 51), (36, 68)], 9, fill(.biceps))
+                    limb([(100, 51), (104, 68)], 9, fill(.biceps))
+                    limb([(33, 78), (31, 98)], 7, fill(.forearms))
+                    limb([(107, 78), (109, 98)], 7, fill(.forearms))
+                    rrect(62, 57, 16, 30, 7, fill(.core))
+                    blob(55.5, 69, 3.5, 12, fill(.core, 0.6))
+                    blob(84.5, 69, 3.5, 12, fill(.core, 0.6))
+                    blob(61, 120, 8, 23, fill(.quads))
+                    blob(79, 120, 8, 23, fill(.quads))
+                    blob(59.5, 161, 5.5, 14, fill(.calves, 0.6))
+                    blob(80.5, 161, 5.5, 14, fill(.calves, 0.6))
                 }
-            } else if front {
-                circle(46, 41, 10, fill(.shoulders))
-                circle(94, 41, 10, fill(.shoulders))
-                rect(50, 34, 19, 20, 7, fill(.chest))
-                rect(71, 34, 19, 20, 7, fill(.chest))
-                rect(31, 50, 11, 24, 5, fill(.biceps))
-                rect(98, 50, 11, 24, 5, fill(.biceps))
-                rect(29, 77, 9, 26, 4, fill(.forearms))
-                rect(102, 77, 9, 26, 4, fill(.forearms))
-                rect(56, 57, 28, 34, 9, fill(.core))
-                rect(51, 95, 17, 46, 7, fill(.quads))
-                rect(72, 95, 17, 46, 7, fill(.quads))
-                rect(53, 146, 13, 34, 6, fill(.calves, 0.6))
-                rect(74, 146, 13, 34, 6, fill(.calves, 0.6))
             } else {
-                rect(54, 28, 32, 10, 5, fill(.traps))
-                circle(46, 41, 10, fill(.shoulders, 0.7))
-                circle(94, 41, 10, fill(.shoulders, 0.7))
-                rect(50, 38, 19, 30, 7, fill(.back))
-                rect(71, 38, 19, 30, 7, fill(.back))
-                rect(31, 50, 11, 24, 5, fill(.triceps))
-                rect(98, 50, 11, 24, 5, fill(.triceps))
-                rect(29, 77, 9, 26, 4, fill(.forearms))
-                rect(102, 77, 9, 26, 4, fill(.forearms))
-                rect(58, 71, 24, 18, 7, fill(.core, 0.5))
-                rect(52, 92, 17, 16, 7, fill(.glutes))
-                rect(71, 92, 17, 16, 7, fill(.glutes))
-                rect(51, 111, 17, 36, 7, fill(.hamstrings))
-                rect(72, 111, 17, 36, 7, fill(.hamstrings))
-                rect(53, 151, 13, 30, 6, fill(.calves))
-                rect(74, 151, 13, 30, 6, fill(.calves))
+                // Traps kite
+                var traps = Path()
+                let trapW: CGFloat = female ? 52 : 50
+                traps.move(to: P(70, 26))
+                traps.addQuadCurve(to: P(trapW, 37), control: P(58, 28))
+                traps.addQuadCurve(to: P(70, 56), control: P(66, 46))
+                traps.addQuadCurve(to: P(140 - trapW, 37), control: P(74, 46))
+                traps.addQuadCurve(to: P(70, 26), control: P(82, 28))
+                traps.closeSubpath()
+                ctx.fill(traps, with: .color(fill(.traps)))
+
+                if female {
+                    blob(49, 40, 6, 5.5, fill(.shoulders, 0.7))
+                    blob(91, 40, 6, 5.5, fill(.shoulders, 0.7))
+                    blob(60, 61, 9, 17, rot: 8, fill(.back))
+                    blob(80, 61, 9, 17, rot: -8, fill(.back))
+                    limb([(44, 50), (40, 66)], 8, fill(.triceps))
+                    limb([(96, 50), (100, 66)], 8, fill(.triceps))
+                    limb([(37, 76), (35, 96)], 6, fill(.forearms))
+                    limb([(103, 76), (105, 96)], 6, fill(.forearms))
+                    rrect(65, 79, 10, 12, 5, fill(.core, 0.5))
+                    blob(60, 100, 10, 11, fill(.glutes))
+                    blob(80, 100, 10, 11, fill(.glutes))
+                    blob(61, 128, 7, 20, fill(.hamstrings))
+                    blob(79, 128, 7, 20, fill(.hamstrings))
+                    blob(60, 162, 5.5, 14, fill(.calves))
+                    blob(80, 162, 5.5, 14, fill(.calves))
+                } else {
+                    blob(45, 40, 7, 6, fill(.shoulders, 0.7))
+                    blob(95, 40, 7, 6, fill(.shoulders, 0.7))
+                    blob(58, 62, 10, 19, rot: 8, fill(.back))
+                    blob(82, 62, 10, 19, rot: -8, fill(.back))
+                    limb([(40, 51), (36, 68)], 9, fill(.triceps))
+                    limb([(100, 51), (104, 68)], 9, fill(.triceps))
+                    limb([(33, 78), (31, 98)], 7, fill(.forearms))
+                    limb([(107, 78), (109, 98)], 7, fill(.forearms))
+                    rrect(64, 80, 12, 13, 5, fill(.core, 0.5))
+                    blob(61, 98, 9.5, 10, fill(.glutes))
+                    blob(79, 98, 9.5, 10, fill(.glutes))
+                    blob(61, 126, 7.5, 21, fill(.hamstrings))
+                    blob(79, 126, 7.5, 21, fill(.hamstrings))
+                    blob(60, 160, 6, 15, fill(.calves))
+                    blob(80, 160, 6, 15, fill(.calves))
+                }
             }
         }
         .frame(width: width, height: height)
