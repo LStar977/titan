@@ -429,6 +429,15 @@ struct ActiveWorkoutView: View {
         set.isCompleted = true
         set.completedAt = Date()
 
+        // Carry this weight forward into the remaining empty sets of the same
+        // exercise, so the athlete never re-enters the same number.
+        if set.weight > 0 {
+            for later in entry.sortedSets where later.orderIndex > set.orderIndex && !later.isCompleted && later.weight == 0 {
+                later.weight = set.weight
+                if later.reps == 0 { later.reps = set.reps }
+            }
+        }
+
         if set.type != .warmup, set.weight > 0, set.reps > 0 {
             let best = Stats.bestE1RM(exerciseName: entry.displayName, workouts: allWorkouts, excluding: set)
             if best > 0, Stats.e1RM(set.weight, set.reps) > best {
