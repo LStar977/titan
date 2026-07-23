@@ -36,9 +36,14 @@ struct HomeView: View {
                 weekSection
 
                 if let next = upNextRoutine {
-                    UpNextCard(routine: next, dayIndex: workoutsThisWeek.count + 1, goal: profile?.weeklyGoal ?? 5, lastDone: lastDone(next)) {
-                        startRoutine(next)
-                    }
+                    UpNextCard(
+                        routine: next,
+                        dayIndex: workoutsThisWeek.count + 1,
+                        goal: profile?.weeklyGoal ?? 5,
+                        lastDone: lastDone(next),
+                        onStart: { startRoutine(next) },
+                        onSwitch: { app.showStartSheet = true }
+                    )
                 }
 
                 NavigationLink {
@@ -348,12 +353,13 @@ struct UpNextCard: View {
     let goal: Int
     let lastDone: Date?
     let onStart: () -> Void
+    let onSwitch: () -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(alignment: .top) {
                 VStack(alignment: .leading, spacing: 3) {
-                    Text("UP NEXT · DAY \(min(dayIndex, goal)) OF \(goal)")
+                    Text("SUGGESTED · DAY \(min(dayIndex, goal)) OF \(goal)")
                         .font(.barlow(10, weight: .bold))
                         .kerning(2)
                         .foregroundStyle(Color.purpleBright)
@@ -366,9 +372,21 @@ struct UpNextCard: View {
                         .foregroundStyle(Color.textDim)
                 }
                 Spacer()
-                LogoBars(barWidth: 4, barHeight: 16, glowRadius: 0)
-                    .opacity(0.7)
-                    .padding(.top, 4)
+                Button(action: onSwitch) {
+                    HStack(spacing: 5) {
+                        Image(systemName: "arrow.triangle.2.circlepath")
+                            .font(.system(size: 10, weight: .bold))
+                        Text("Switch")
+                            .font(.barlow(12, weight: .semibold))
+                    }
+                    .foregroundStyle(Color.purpleBright)
+                    .padding(.horizontal, 11)
+                    .padding(.vertical, 7)
+                    .background(Capsule().fill(Color.purplePrimary.opacity(0.12)))
+                    .overlay(Capsule().stroke(Color.purplePrimary.opacity(0.35), lineWidth: 1))
+                }
+                .buttonStyle(.plain)
+                .padding(.top, 2)
             }
 
             let names = routine.sortedItems.prefix(3).map { $0.displayName }

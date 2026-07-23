@@ -104,24 +104,41 @@ struct RoutinesView: View {
             VStack(alignment: .leading, spacing: 11) {
                 HStack(alignment: .top) {
                     VStack(alignment: .leading, spacing: 1) {
-                        Text(routine.name)
-                            .font(.condensed(22, weight: .bold))
-                            .foregroundStyle(Color.textMain)
+                        HStack(spacing: 7) {
+                            Text(routine.name)
+                                .font(.condensed(22, weight: .bold))
+                                .foregroundStyle(Color.textMain)
+                            if isNext {
+                                Text("SUGGESTED")
+                                    .font(.barlow(9, weight: .bold))
+                                    .kerning(1)
+                                    .foregroundStyle(Color.purpleBright)
+                                    .padding(.horizontal, 6)
+                                    .padding(.vertical, 2.5)
+                                    .background(RoundedRectangle(cornerRadius: 5).fill(Color.purplePrimary.opacity(0.12)))
+                                    .overlay(RoundedRectangle(cornerRadius: 5).stroke(Color.purplePrimary.opacity(0.35), lineWidth: 1))
+                            }
+                        }
                         Text(subtitle(routine))
                             .font(.barlow(11.5))
                             .foregroundStyle(Color.textDim)
                     }
                     Spacer()
-                    if isNext {
-                        Text("NEXT UP")
-                            .font(.barlow(9.5, weight: .bold))
-                            .kerning(1)
-                            .foregroundStyle(Color.purpleBright)
-                            .padding(.horizontal, 7)
-                            .padding(.vertical, 3)
-                            .background(RoundedRectangle(cornerRadius: 6).fill(Color.purplePrimary.opacity(0.12)))
-                            .overlay(RoundedRectangle(cornerRadius: 6).stroke(Color.purplePrimary.opacity(0.35), lineWidth: 1))
-                    } else {
+                    HStack(spacing: 8) {
+                        Button {
+                            startRoutine(routine)
+                        } label: {
+                            Image(systemName: "play.fill")
+                                .font(.system(size: 13))
+                                .foregroundStyle(.white)
+                                .frame(width: 34, height: 34)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 11)
+                                        .fill(LinearGradient(colors: [.purplePrimary, .purpleDeep], startPoint: .top, endPoint: .bottom))
+                                )
+                                .shadow(color: Color.purplePrimary.opacity(0.35), radius: 6)
+                        }
+                        .buttonStyle(.plain)
                         menuButton(routine)
                     }
                 }
