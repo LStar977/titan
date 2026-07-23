@@ -13,7 +13,7 @@ struct ActiveWorkoutView: View {
     @State private var plateWeight: Double = 135
     @State private var showFinishConfirm = false
     @State private var showDiscardConfirm = false
-    @State private var expanded: Set<ObjectIdentifier> = []
+    @State private var showSupersetSheet = false
     @State private var pulse = false
 
     var body: some View {
@@ -34,19 +34,14 @@ struct ActiveWorkoutView: View {
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 40)
                     }
-                    ForEach(blocks) { block in
-                        switch block {
-                        case .single(let entry):
-                            ExerciseCard(
-                                entry: entry,
-                                workout: workout,
-                                allWorkouts: allWorkouts,
-                                onCompleteSet: completeSet,
-                                onPlates: { w in plateWeight = max(w, 45); showPlates = true }
-                            )
-                        case .superset(let group, let entries):
-                            supersetBlock(group: group, entries: entries)
-                        }
+                    ForEach(workout.sortedEntries) { entry in
+                        ExerciseCard(
+                            entry: entry,
+                            workout: workout,
+                            allWorkouts: allWorkouts,
+                            onCompleteSet: completeSet,
+                            onPlates: { w in plateWeight = max(w, 45); showPlates = true }
+                        )
                     }
                     footerButtons
                 }
@@ -211,132 +206,6 @@ struct ActiveWorkoutView: View {
         }
     }
 
-    // MARK: Blocks (superset grouping)
-
-    private enum Block: Identifiable {
-        case single(WorkoutEntry)
-        case superset(Int, [WorkoutEntry])
-
-        var id: String {
-            switch self {
-            case .single(let e): return "e-\(ObjectIdentifier(e).hashValue)"
-            case .superset(let g, _): return "ss-\(g)"
-            }
-        }
-    }
-
-    private var blocks: [Block] {
-        var out: [Block] = []
-        var currentGroup: Int?
-        var groupEntries: [WorkoutEntry] = []
-
-        func flush() {
-            if let g = currentGroup, !groupEntries.isEmpty {
-                if groupEntries.count > 1 {
-                    out.append(.superset(g, groupEntries))
-                } else {
-                    out.append(.single(groupEntries[0]))
-                }
-            }
-            currentGroup = nil
-            groupEntries = []
-        }
-
-        for entry in workout.sortedEntries {
-            if let g = entry.supersetGroup {
-                if g == currentGroup {
-                    groupEntries.append(entry)
-                } else {
-                    flush()
-                    currentGroup = g
-                    groupEntries = [entry]
-                }
-            } else {
-                flush()
-                out.append(.single(entry))
-            }
-        }
-        flush()
-        return out
-    }
-
-    private func supersetBlock(group: Int, entries: [WorkoutEntry]) -> some View {
-        VStack(spacing: 8) {
-            ForEach(entries) { entry in
-                let isOpen = expanded.contains(ObjectIdentifier(entry))
-                VStack(spacing: 0) {
-                    Button {
-                        withAnimation(.snappy) {
-                            if isOpen { expanded.remove(ObjectIdentifier(entry)) }
-                            else { expanded.insert(ObjectIdentifier(entry)) }
-                        }
-                    } label: {
-                        HStack {
-                            VStack(alignment: .leading, spacing: 1) {
-                                Text(entry.displayName)
-                                    .font(.condensed(17, weight: .bold))
-                                    .foregroundStyle(Color.textMain)
-                                Text(supersetSubtitle(entry))
-                                    .font(.barlow(11))
-                                    .foregroundStyle(Color.textDim)
-                            }
-                            Spacer()
-                            Image(systemName: isOpen ? "chevron.up" : "chevron.down")
-                                .font(.system(size: 12, weight: .semibold))
-                                .foregroundStyle(Color.textFaint)
-                        }
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 10)
-                    }
-                    .buttonStyle(.plain)
-
-                    if isOpen {
-                        ExerciseCard(
-                            entry: entry,
-                            workout: workout,
-                            allWorkouts: allWorkouts,
-                            embedded: true,
-                            onCompleteSet: completeSet,
-                            onPlates: { w in plateWeight = max(w, 45); showPlates = true }
-                        )
-                    }
-                }
-                .background(RoundedRectangle(cornerRadius: 12).fill(Color.surface))
-            }
-        }
-        .padding(10)
-        .overlay(
-            RoundedRectangle(cornerRadius: 18)
-                .stroke(Color.purplePrimary.opacity(0.35), lineWidth: 1)
-        )
-        .overlay(alignment: .topLeading) {
-            Text("SUPERSET \(supersetLetter(group))")
-                .font(.barlow(9.5, weight: .bold))
-                .kerning(2)
-                .foregroundStyle(Color.purpleBright)
-                .padding(.horizontal, 8)
-                .background(Color.bg)
-                .offset(x: 16, y: -7)
-        }
-        .padding(.top, 4)
-    }
-
-    private func supersetLetter(_ group: Int) -> String {
-        let letters = ["A", "B", "C", "D", "E", "F"]
-        let groups = Array(Set(workout.entries.compactMap { $0.supersetGroup })).sorted()
-        if let idx = groups.firstIndex(of: group), idx < letters.count { return letters[idx] }
-        return "A"
-    }
-
-    private func supersetSubtitle(_ entry: WorkoutEntry) -> String {
-        let done = entry.completedSets.count
-        let total = entry.sets.count
-        if let next = entry.sortedSets.first(where: { !$0.isCompleted }) {
-            return "\(done) of \(total) sets · next: \(Fmt.weight(next.weight)) × \(next.reps)"
-        }
-        return "\(done) of \(total) sets · complete"
-    }
-
     // MARK: Footer buttons
 
     private var footerButtons: some View {
@@ -362,7 +231,7 @@ struct ActiveWorkoutView: View {
             .buttonStyle(.plain)
 
             Button {
-                groupLastTwo()
+                showSupersetSheet = true
             } label: {
                 HStack(spacing: 7) {
                     Image(systemName: "arrow.triangle.swap")
@@ -377,17 +246,10 @@ struct ActiveWorkoutView: View {
                 .overlay(RoundedRectangle(cornerRadius: 13).stroke(Color.white.opacity(0.08), lineWidth: 1))
             }
             .buttonStyle(.plain)
+            .sheet(isPresented: $showSupersetSheet) {
+                SupersetSheet(workout: workout)
+            }
         }
-    }
-
-    /// Groups the last two ungrouped exercises into a new superset.
-    private func groupLastTwo() {
-        let ungrouped = workout.sortedEntries.filter { $0.supersetGroup == nil }
-        guard ungrouped.count >= 2 else { return }
-        let nextGroup = (workout.entries.compactMap { $0.supersetGroup }.max() ?? 0) + 1
-        let pair = ungrouped.suffix(2)
-        for e in pair { e.supersetGroup = nextGroup }
-        Haptics.tap()
     }
 
     // MARK: Begin (setup → live)
@@ -448,6 +310,16 @@ struct ActiveWorkoutView: View {
             }
         } else {
             Haptics.medium()
+        }
+
+        // Superset flow: if a linked exercise is a set behind, skip the rest
+        // timer — the athlete goes straight to it and rests after the round.
+        if let g = entry.supersetGroup {
+            let myDone = entry.completedSets.count
+            let partnerBehind = workout.entries.contains {
+                $0.supersetGroup == g && $0 !== entry && $0.completedSets.count < myDone && $0.sets.contains { !$0.isCompleted }
+            }
+            if partnerBehind { return }
         }
 
         if entry.restSeconds > 0 {
@@ -534,13 +406,44 @@ struct ExerciseCard: View {
         )
     }
 
+    private var supersetPartners: [String] {
+        guard let g = entry.supersetGroup else { return [] }
+        return workout.sortedEntries
+            .filter { $0.supersetGroup == g && $0 !== entry }
+            .map { $0.displayName }
+    }
+
     private var cardHeader: some View {
         HStack(alignment: .top) {
             VStack(alignment: .leading, spacing: 1) {
-                Text(entry.displayName)
-                    .font(.condensed(22, weight: .bold))
-                    .foregroundStyle(Color.textMain)
-                if let ex = entry.exercise {
+                HStack(spacing: 8) {
+                    Text(entry.displayName)
+                        .font(.condensed(22, weight: .bold))
+                        .foregroundStyle(Color.textMain)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.7)
+                    if entry.supersetGroup != nil {
+                        HStack(spacing: 3) {
+                            Image(systemName: "arrow.triangle.swap")
+                                .font(.system(size: 8, weight: .bold))
+                            Text("SUPERSET")
+                                .font(.barlow(8.5, weight: .bold))
+                                .kerning(1)
+                        }
+                        .foregroundStyle(Color.purpleBright)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 3)
+                        .background(RoundedRectangle(cornerRadius: 5).fill(Color.purplePrimary.opacity(0.12)))
+                        .overlay(RoundedRectangle(cornerRadius: 5).stroke(Color.purplePrimary.opacity(0.4), lineWidth: 1))
+                    }
+                }
+                if !supersetPartners.isEmpty {
+                    Text("alternate with \(supersetPartners.joined(separator: " + ")) · rest after the round")
+                        .font(.barlow(10.5, weight: .medium))
+                        .foregroundStyle(Color.purpleBright.opacity(0.85))
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.8)
+                } else if let ex = entry.exercise {
                     Text("\(ex.equipment.rawValue.uppercased()) · \(ex.muscle.rawValue.uppercased())")
                         .font(.barlow(10.5, weight: .semibold))
                         .kerning(1.5)
@@ -558,6 +461,13 @@ struct ExerciseCard: View {
                     onPlates(activeSet?.weight ?? entry.sortedSets.last?.weight ?? 135)
                 } label: {
                     Label("Plate Calculator", systemImage: "circle.circle")
+                }
+                if entry.supersetGroup != nil {
+                    Button {
+                        entry.supersetGroup = nil
+                    } label: {
+                        Label("Remove from Superset", systemImage: "arrow.triangle.swap")
+                    }
                 }
                 Button(role: .destructive) {
                     removeExercise()
@@ -1025,5 +935,122 @@ struct RestTimerBar: View {
                 .overlay(Capsule().stroke(Color.white.opacity(0.15), lineWidth: 1))
         }
         .buttonStyle(.plain)
+    }
+}
+
+// MARK: - Superset sheet
+
+struct SupersetSheet: View {
+    let workout: Workout
+    @Environment(\.dismiss) private var dismiss
+    @State private var selected: Set<ObjectIdentifier> = []
+
+    var body: some View {
+        VStack(spacing: 0) {
+            HStack {
+                Button("Cancel") { dismiss() }
+                    .font(.barlow(14, weight: .medium))
+                    .foregroundStyle(Color.purpleBright)
+                    .frame(width: 60, alignment: .leading)
+                Spacer()
+                Text("SUPERSET")
+                    .font(.condensed(19, weight: .bold))
+                    .kerning(1.5)
+                    .foregroundStyle(Color.textMain)
+                Spacer()
+                Color.clear.frame(width: 60, height: 1)
+            }
+            .padding(.horizontal, 16)
+            .padding(.top, 16)
+            .padding(.bottom, 10)
+
+            Text("Pick 2 or more exercises to link. You'll alternate between them — do a set of one, go straight to the next, and the rest timer only starts after you finish the round.")
+                .font(.barlow(13))
+                .lineSpacing(4)
+                .foregroundStyle(Color.textDim)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, 16)
+                .padding(.bottom, 12)
+
+            ScrollView {
+                VStack(spacing: 0) {
+                    ForEach(workout.sortedEntries) { entry in
+                        entryRow(entry)
+                        Divider().overlay(Color.white.opacity(0.04)).padding(.leading, 16)
+                    }
+                }
+                .padding(.bottom, 90)
+            }
+            .overlay(alignment: .bottom) {
+                VStack(spacing: 6) {
+                    GradientCTA("LINK \(selected.count) EXERCISES", fontSize: 18) {
+                        link()
+                    }
+                    .opacity(selected.count >= 2 ? 1 : 0.4)
+                    .disabled(selected.count < 2)
+                }
+                .padding(.horizontal, 16)
+                .padding(.bottom, 14)
+                .background(
+                    LinearGradient(colors: [Color(hex: 0x10101B).opacity(0), Color(hex: 0x10101B)], startPoint: .top, endPoint: .bottom)
+                )
+            }
+        }
+        .background(Color(hex: 0x10101B).ignoresSafeArea())
+        .presentationDetents([.medium, .large])
+        .presentationDragIndicator(.visible)
+    }
+
+    private func entryRow(_ entry: WorkoutEntry) -> some View {
+        let isSelected = selected.contains(ObjectIdentifier(entry))
+        return Button {
+            if isSelected {
+                selected.remove(ObjectIdentifier(entry))
+            } else {
+                selected.insert(ObjectIdentifier(entry))
+            }
+            Haptics.tap()
+        } label: {
+            HStack(spacing: 12) {
+                VStack(alignment: .leading, spacing: 1) {
+                    Text(entry.displayName)
+                        .font(.barlow(14.5, weight: .semibold))
+                        .foregroundStyle(Color.textMain)
+                    if entry.supersetGroup != nil {
+                        Text("Already in a superset — selecting moves it to the new one")
+                            .font(.barlow(10.5))
+                            .foregroundStyle(Color.purpleBright.opacity(0.8))
+                    }
+                }
+                Spacer()
+                if isSelected {
+                    Circle()
+                        .fill(LinearGradient(colors: [.purplePrimary, .purpleDeep], startPoint: .top, endPoint: .bottom))
+                        .frame(width: 26, height: 26)
+                        .overlay(
+                            Image(systemName: "checkmark")
+                                .font(.system(size: 11, weight: .bold))
+                                .foregroundStyle(.white)
+                        )
+                } else {
+                    Circle()
+                        .stroke(Color(hex: 0x3A3A4E), lineWidth: 1.5)
+                        .frame(width: 26, height: 26)
+                }
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+            .background(isSelected ? Color.purplePrimary.opacity(0.08) : Color.clear)
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func link() {
+        let group = (workout.entries.compactMap { $0.supersetGroup }.max() ?? 0) + 1
+        for entry in workout.sortedEntries where selected.contains(ObjectIdentifier(entry)) {
+            entry.supersetGroup = group
+        }
+        Haptics.success()
+        dismiss()
     }
 }

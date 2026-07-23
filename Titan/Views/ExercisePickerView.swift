@@ -14,6 +14,7 @@ struct ExercisePickerView: View {
     @State private var equipmentFilter: Set<Equipment> = []
     @State private var selected: Set<ObjectIdentifier> = []
     @State private var showNewExercise = false
+    @State private var newExercisePrefill = ""
 
     private var filtered: [Exercise] {
         exercises.filter { ex in
@@ -37,10 +38,19 @@ struct ExercisePickerView: View {
                     .kerning(1.5)
                     .foregroundStyle(Color.textMain)
                 Spacer()
-                Button("New") { showNewExercise = true }
-                    .font(.barlow(14, weight: .semibold))
+                Button {
+                    newExercisePrefill = search
+                    showNewExercise = true
+                } label: {
+                    HStack(spacing: 3) {
+                        Image(systemName: "plus")
+                            .font(.system(size: 11, weight: .bold))
+                        Text("New")
+                            .font(.barlow(14, weight: .semibold))
+                    }
                     .foregroundStyle(Color.purpleBright)
-                    .frame(width: 60, alignment: .trailing)
+                }
+                .frame(width: 60, alignment: .trailing)
             }
             .padding(.horizontal, 16)
             .padding(.top, 16)
@@ -123,6 +133,10 @@ struct ExercisePickerView: View {
             // List
             ScrollView {
                 LazyVStack(spacing: 0) {
+                    if showCreateRow {
+                        createRow
+                        Divider().overlay(Color.white.opacity(0.04)).padding(.leading, 16)
+                    }
                     ForEach(filtered) { ex in
                         exerciseRow(ex)
                         Divider().overlay(Color.white.opacity(0.04)).padding(.leading, 16)
@@ -150,8 +164,48 @@ struct ExercisePickerView: View {
         .presentationDetents([.large])
         .presentationDragIndicator(.visible)
         .sheet(isPresented: $showNewExercise) {
-            NewExerciseSheet()
+            NewExerciseSheet(initialName: newExercisePrefill) { created in
+                selected.insert(ObjectIdentifier(created))
+            }
         }
+    }
+
+    /// Offer to create exactly what the athlete typed when nothing matches it.
+    private var showCreateRow: Bool {
+        let query = search.trimmingCharacters(in: .whitespaces)
+        guard !query.isEmpty else { return false }
+        return !exercises.contains { $0.name.localizedCaseInsensitiveCompare(query) == .orderedSame }
+    }
+
+    private var createRow: some View {
+        Button {
+            newExercisePrefill = search.trimmingCharacters(in: .whitespaces)
+            showNewExercise = true
+        } label: {
+            HStack(spacing: 12) {
+                RoundedRectangle(cornerRadius: 11)
+                    .fill(Color.purplePrimary.opacity(0.15))
+                    .frame(width: 38, height: 38)
+                    .overlay(
+                        Image(systemName: "plus")
+                            .font(.system(size: 15, weight: .bold))
+                            .foregroundStyle(Color.purpleBright)
+                    )
+                VStack(alignment: .leading, spacing: 1) {
+                    Text("Create \"\(search.trimmingCharacters(in: .whitespaces))\"")
+                        .font(.barlow(14.5, weight: .semibold))
+                        .foregroundStyle(Color.purpleBright)
+                        .lineLimit(1)
+                    Text("Add it as your own exercise")
+                        .font(.barlow(11.5))
+                        .foregroundStyle(Color.textDim)
+                }
+                Spacer()
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+        }
+        .buttonStyle(.plain)
     }
 
     private func exerciseRow(_ ex: Exercise) -> some View {
@@ -227,6 +281,9 @@ struct ExercisePickerView: View {
 // MARK: - New custom exercise
 
 struct NewExerciseSheet: View {
+    var initialName: String = ""
+    var onCreated: ((Exercise) -> Void)?
+
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var context
 
@@ -250,6 +307,8 @@ struct NewExerciseSheet: View {
                     let ex = Exercise(name: name.trimmingCharacters(in: .whitespaces), equipment: equipment, muscle: muscle, isCustom: true)
                     context.insert(ex)
                     try? context.save()
+                    onCreated?(ex)
+                    Haptics.success()
                     dismiss()
                 }
                 .font(.barlow(14, weight: .bold))
@@ -295,6 +354,9 @@ struct NewExerciseSheet: View {
         .background(Color(hex: 0x10101B).ignoresSafeArea())
         .presentationDetents([.medium, .large])
         .presentationDragIndicator(.visible)
+        .onAppear {
+            if name.isEmpty { name = initialName }
+        }
     }
 }
 

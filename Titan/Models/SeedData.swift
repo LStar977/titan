@@ -11,18 +11,20 @@ enum SeedData {
 
         removeLegacySeedRoutines(context)
 
-        let count = (try? context.fetchCount(FetchDescriptor<Exercise>())) ?? 0
-        guard count == 0 else {
-            try? context.save()
-            return
-        }
-
-        for spec in library {
+        // Sync the built-in library: insert any exercise not already present,
+        // so updates that add exercises reach existing installs too.
+        let existing = (try? context.fetch(FetchDescriptor<Exercise>())) ?? []
+        var names = Set(existing.map { $0.name })
+        for spec in library where !names.contains(spec.0) {
             let ex = Exercise(name: spec.0, equipment: spec.1, muscle: spec.2, secondary: spec.3)
             context.insert(ex)
+            names.insert(spec.0)
         }
 
-        context.insert(Profile())
+        let profCount = (try? context.fetchCount(FetchDescriptor<Profile>())) ?? 0
+        if profCount == 0 {
+            context.insert(Profile())
+        }
 
         try? context.save()
     }
@@ -50,6 +52,8 @@ enum SeedData {
         ("Dumbbell Bench Press", .dumbbell, .chest, [.triceps]),
         ("Incline DB Press", .dumbbell, .chest, [.shoulders]),
         ("Cable Fly", .cable, .chest, []),
+        ("Dumbbell Fly", .dumbbell, .chest, []),
+        ("Incline Dumbbell Fly", .dumbbell, .chest, []),
         ("Pec Deck", .machine, .chest, []),
         ("Machine Chest Press", .machine, .chest, [.triceps]),
         ("Chest Dip", .bodyweight, .chest, [.triceps]),
