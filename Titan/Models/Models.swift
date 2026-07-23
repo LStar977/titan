@@ -109,6 +109,8 @@ final class Routine {
     var name: String = ""
     var orderIndex: Int = 0
     var createdAt: Date = Date()
+    /// Position in the athlete's split rotation (Day 1 = 0). Nil = not in the split.
+    var scheduleIndex: Int?
     @Relationship(deleteRule: .cascade, inverse: \RoutineItem.routine)
     var items: [RoutineItem] = []
 

@@ -10,8 +10,26 @@ struct RoutinesView: View {
 
     @State private var editing: Routine?
     @State private var editingIsNew = false
+    @State private var showSplitEditor = false
 
     private var finished: [Workout] { workouts.filter { $0.endedAt != nil } }
+
+    private var scheduled: [Routine] {
+        routines
+            .filter { $0.scheduleIndex != nil }
+            .sorted { ($0.scheduleIndex ?? 0) < ($1.scheduleIndex ?? 0) }
+    }
+
+    /// Index in `scheduled` of the next day up, matching Home's rotation logic.
+    private var nextSplitIndex: Int? {
+        guard !scheduled.isEmpty else { return nil }
+        let names = Set(scheduled.map { $0.name })
+        if let lastMatch = finished.first(where: { names.contains($0.title) }),
+           let idx = scheduled.firstIndex(where: { $0.name == lastMatch.title }) {
+            return (idx + 1) % scheduled.count
+        }
+        return 0
+    }
 
     var body: some View {
         ScrollView {
@@ -23,11 +41,25 @@ struct RoutinesView: View {
                     .kerning(2)
                     .foregroundStyle(Color.textMain)
 
-                SectionLabel("My templates · \(routines.count)")
+                SectionLabel("My split")
                     .padding(.top, 16)
                     .padding(.bottom, 10)
 
+                splitCard
+
+                SectionLabel("My routines · \(routines.count)")
+                    .padding(.top, 18)
+                    .padding(.bottom, 10)
+
                 VStack(spacing: 10) {
+                    if routines.isEmpty {
+                        Text("No routines yet. Create one, or adopt a program below.")
+                            .font(.barlow(13))
+                            .foregroundStyle(Color.textDim)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 20)
+                            .card()
+                    }
                     ForEach(routines) { routine in
                         routineCard(routine)
                     }
@@ -51,6 +83,21 @@ struct RoutinesView: View {
                     }
                     .buttonStyle(.plain)
                 }
+
+                SectionLabel("Popular programs")
+                    .padding(.top, 18)
+                    .padding(.bottom, 10)
+
+                VStack(spacing: 10) {
+                    ForEach(ProgramLibrary.all) { program in
+                        NavigationLink {
+                            ProgramDetailView(program: program)
+                        } label: {
+                            programCard(program)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
             }
             .padding(.horizontal, 20)
             .padding(.bottom, 130)
@@ -60,6 +107,104 @@ struct RoutinesView: View {
         .navigationDestination(item: $editing) { routine in
             RoutineEditorView(routine: routine, isNew: editingIsNew)
         }
+        .sheet(isPresented: $showSplitEditor) {
+            SplitEditorSheet()
+        }
+    }
+
+    // MARK: My Split
+
+    private var splitCard: some View {
+        VStack(spacing: 0) {
+            if scheduled.isEmpty {
+                Text("No split yet. Add your routines as Day 1, Day 2… and TITAN will rotate through them — finish one, and the next is up.")
+                    .font(.barlow(12.5))
+                    .lineSpacing(3)
+                    .foregroundStyle(Color.textDim)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, 16)
+                    .padding(.top, 14)
+                    .padding(.bottom, 4)
+            } else {
+                ForEach(Array(scheduled.enumerated()), id: \.offset) { i, routine in
+                    HStack(spacing: 12) {
+                        Text("DAY \(i + 1)")
+                            .font(.condensed(14, weight: .bold))
+                            .kerning(1)
+                            .foregroundStyle(i == nextSplitIndex ? Color.purpleBright : Color.textFaint)
+                            .frame(width: 52, alignment: .leading)
+                        Text(routine.name)
+                            .font(.barlow(14, weight: .semibold))
+                            .foregroundStyle(Color.textMain)
+                        if i == nextSplitIndex {
+                            Text("NEXT")
+                                .font(.barlow(8.5, weight: .bold))
+                                .kerning(1)
+                                .foregroundStyle(Color.purpleBright)
+                                .padding(.horizontal, 5)
+                                .padding(.vertical, 2)
+                                .overlay(RoundedRectangle(cornerRadius: 4).stroke(Color.purplePrimary.opacity(0.45), lineWidth: 1))
+                        }
+                        Spacer()
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 10)
+                    if i < scheduled.count - 1 {
+                        Divider().overlay(Color.white.opacity(0.04)).padding(.leading, 16)
+                    }
+                }
+            }
+            Button {
+                showSplitEditor = true
+            } label: {
+                HStack(spacing: 7) {
+                    Image(systemName: scheduled.isEmpty ? "plus" : "slider.horizontal.3")
+                        .font(.system(size: 11, weight: .bold))
+                    Text(scheduled.isEmpty ? "Set Up Split" : "Edit Split")
+                        .font(.barlow(12.5, weight: .semibold))
+                }
+                .foregroundStyle(Color.purpleBright)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 11)
+            }
+            .buttonStyle(.plain)
+            .overlay(alignment: .top) {
+                if !scheduled.isEmpty {
+                    Rectangle().fill(Color.hairline).frame(height: 1)
+                }
+            }
+        }
+        .card(16, border: Color.purplePrimary.opacity(0.25))
+    }
+
+    private func programCard(_ program: Program) -> some View {
+        VStack(alignment: .leading, spacing: 9) {
+            HStack(alignment: .top) {
+                VStack(alignment: .leading, spacing: 1) {
+                    Text(program.name)
+                        .font(.condensed(21, weight: .bold))
+                        .foregroundStyle(Color.textMain)
+                    Text(program.tagline)
+                        .font(.barlow(11.5))
+                        .foregroundStyle(Color.textDim)
+                }
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(Color.textFaint)
+                    .padding(.top, 6)
+            }
+            HStack(spacing: 5) {
+                ForEach(program.days) { day in
+                    TagChip(text: day.name)
+                }
+            }
+            .lineLimit(1)
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 14)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .card()
     }
 
     private var newButton: some View {
@@ -96,7 +241,10 @@ struct RoutinesView: View {
     }
 
     private func routineCard(_ routine: Routine) -> some View {
-        let isNext = upNext === routine
+        let isNext: Bool = {
+            if let idx = nextSplitIndex { return scheduled[idx] === routine }
+            return upNext === routine
+        }()
         return Button {
             editingIsNew = false
             editing = routine
@@ -185,12 +333,39 @@ struct RoutinesView: View {
         }
     }
 
+    private func addToSplit(_ routine: Routine) {
+        routine.scheduleIndex = (routines.compactMap { $0.scheduleIndex }.max() ?? -1) + 1
+        try? context.save()
+        Haptics.tap()
+    }
+
+    private func removeFromSplit(_ routine: Routine) {
+        routine.scheduleIndex = nil
+        for (i, r) in scheduled.enumerated() {
+            r.scheduleIndex = i
+        }
+        try? context.save()
+    }
+
     private func menuButton(_ routine: Routine) -> some View {
         Menu {
             Button {
                 startRoutine(routine)
             } label: {
                 Label("Start Workout", systemImage: "play.fill")
+            }
+            if routine.scheduleIndex == nil {
+                Button {
+                    addToSplit(routine)
+                } label: {
+                    Label("Add to Split", systemImage: "calendar.badge.plus")
+                }
+            } else {
+                Button {
+                    removeFromSplit(routine)
+                } label: {
+                    Label("Remove from Split", systemImage: "calendar.badge.minus")
+                }
             }
             Button {
                 editingIsNew = false

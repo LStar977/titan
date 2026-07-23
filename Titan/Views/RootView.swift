@@ -202,7 +202,7 @@ struct StartWorkoutSheet: View {
                         .frame(maxWidth: .infinity)
                         .multilineTextAlignment(.center)
 
-                    SectionLabel("Or use a template")
+                    SectionLabel("Or pick a routine")
                         .padding(.top, 12)
 
                     ForEach(routines) { routine in

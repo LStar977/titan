@@ -9,40 +9,36 @@ enum SeedData {
             context.insert(Supplement(name: "Whey Protein", serving: 25, unit: "g", orderIndex: 1))
         }
 
+        removeLegacySeedRoutines(context)
+
         let count = (try? context.fetchCount(FetchDescriptor<Exercise>())) ?? 0
         guard count == 0 else {
             try? context.save()
             return
         }
 
-        var byName: [String: Exercise] = [:]
         for spec in library {
             let ex = Exercise(name: spec.0, equipment: spec.1, muscle: spec.2, secondary: spec.3)
             context.insert(ex)
-            byName[spec.0] = ex
         }
 
         context.insert(Profile())
 
-        for (idx, plan) in starterRoutines.enumerated() {
-            let routine = Routine(name: plan.name, orderIndex: idx)
-            context.insert(routine)
-            for (i, item) in plan.items.enumerated() {
-                let ri = RoutineItem(
-                    orderIndex: i,
-                    exercise: byName[item.name],
-                    plannedSets: item.sets,
-                    repLow: item.low,
-                    repHigh: item.high,
-                    restSeconds: item.rest,
-                    supersetGroup: item.superset
-                )
-                context.insert(ri)
-                routine.items.append(ri)
+        try? context.save()
+    }
+
+    /// Early builds seeded four starter routines into the user's own list; the
+    /// routine list now belongs to the user (programs live in the library instead).
+    private static func removeLegacySeedRoutines(_ context: ModelContext) {
+        let flag = "titan.removedSeedRoutines.v1"
+        guard !UserDefaults.standard.bool(forKey: flag) else { return }
+        let legacyNames: Set<String> = ["Push Day A", "Pull Day A", "Leg Day", "Push Day B"]
+        if let routines = try? context.fetch(FetchDescriptor<Routine>()) {
+            for routine in routines where legacyNames.contains(routine.name) {
+                context.delete(routine)
             }
         }
-
-        try? context.save()
+        UserDefaults.standard.set(true, forKey: flag)
     }
 
     // (name, equipment, primary, secondary)
@@ -115,54 +111,6 @@ enum SeedData {
         ("Sit-Up", .bodyweight, .core, [])
     ]
 
-    private struct ItemPlan {
-        let name: String
-        let sets: Int
-        let low: Int
-        let high: Int
-        let rest: Int
-        var superset: Int?
-    }
-
-    private struct RoutinePlan {
-        let name: String
-        let items: [ItemPlan]
-    }
-
-    private static let starterRoutines: [RoutinePlan] = [
-        RoutinePlan(name: "Push Day A", items: [
-            ItemPlan(name: "Bench Press", sets: 4, low: 5, high: 8, rest: 180),
-            ItemPlan(name: "Incline DB Press", sets: 3, low: 8, high: 10, rest: 120),
-            ItemPlan(name: "Overhead Press", sets: 3, low: 6, high: 8, rest: 0, superset: 1),
-            ItemPlan(name: "Lateral Raise", sets: 3, low: 12, high: 15, rest: 90, superset: 1),
-            ItemPlan(name: "Cable Fly", sets: 3, low: 12, high: 15, rest: 90),
-            ItemPlan(name: "Triceps Pushdown", sets: 3, low: 10, high: 12, rest: 90)
-        ]),
-        RoutinePlan(name: "Pull Day A", items: [
-            ItemPlan(name: "Deadlift", sets: 3, low: 3, high: 5, rest: 210),
-            ItemPlan(name: "Weighted Pull-Up", sets: 4, low: 6, high: 8, rest: 150),
-            ItemPlan(name: "Barbell Row", sets: 4, low: 8, high: 10, rest: 120),
-            ItemPlan(name: "Face Pull", sets: 3, low: 12, high: 15, rest: 60),
-            ItemPlan(name: "Barbell Curl", sets: 3, low: 8, high: 12, rest: 90),
-            ItemPlan(name: "Hammer Curl", sets: 3, low: 10, high: 12, rest: 60)
-        ]),
-        RoutinePlan(name: "Leg Day", items: [
-            ItemPlan(name: "Back Squat", sets: 4, low: 5, high: 8, rest: 180),
-            ItemPlan(name: "Romanian Deadlift", sets: 3, low: 8, high: 10, rest: 150),
-            ItemPlan(name: "Leg Press", sets: 3, low: 10, high: 12, rest: 120),
-            ItemPlan(name: "Leg Curl", sets: 3, low: 10, high: 12, rest: 90),
-            ItemPlan(name: "Leg Extension", sets: 3, low: 12, high: 15, rest: 90),
-            ItemPlan(name: "Standing Calf Raise", sets: 4, low: 10, high: 15, rest: 60),
-            ItemPlan(name: "Hanging Leg Raise", sets: 3, low: 10, high: 15, rest: 60)
-        ]),
-        RoutinePlan(name: "Push Day B", items: [
-            ItemPlan(name: "Incline Bench Press", sets: 4, low: 6, high: 8, rest: 150),
-            ItemPlan(name: "DB Shoulder Press", sets: 3, low: 8, high: 10, rest: 120),
-            ItemPlan(name: "Chest Dip", sets: 3, low: 8, high: 12, rest: 120),
-            ItemPlan(name: "Cable Lateral Raise", sets: 3, low: 12, high: 15, rest: 60),
-            ItemPlan(name: "Overhead Triceps Extension", sets: 3, low: 10, high: 12, rest: 90)
-        ])
-    ]
 }
 
 // MARK: - Building live workouts

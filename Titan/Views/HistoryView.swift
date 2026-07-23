@@ -3,6 +3,7 @@ import SwiftData
 
 struct HistoryView: View {
     @Query(sort: \Workout.startedAt, order: .reverse) private var workouts: [Workout]
+    @Query(sort: \SupplementLog.date, order: .reverse) private var supLogs: [SupplementLog]
 
     @State private var month: Date = Date()
     @State private var selectedDay: Date = Calendar.current.startOfDay(for: Date())
@@ -46,6 +47,10 @@ struct HistoryView: View {
 
     private var trainedDays: Set<Date> {
         Set(finished.map { cal.startOfDay(for: $0.startedAt) })
+    }
+
+    private var supplementDays: Set<Date> {
+        Set(supLogs.map { cal.startOfDay(for: $0.date) })
     }
 
     private var calendarCard: some View {
@@ -96,6 +101,14 @@ struct HistoryView: View {
                 legend(fill: AnyShapeStyle(Color.purplePrimary.opacity(0.35)), border: Color.purplePrimary.opacity(0.55), label: "Trained")
                 legend(fill: AnyShapeStyle(LinearGradient(colors: [.purplePrimary, .purpleDeep], startPoint: .top, endPoint: .bottom)), border: .clear, label: "Selected")
                 legend(fill: AnyShapeStyle(Color.clear), border: Color.purpleBright, label: "Today")
+                HStack(spacing: 5) {
+                    Circle()
+                        .fill(Color.successGreen)
+                        .frame(width: 5, height: 5)
+                    Text("Supps")
+                        .font(.barlow(10))
+                        .foregroundStyle(Color.textDim)
+                }
                 Spacer()
             }
             .padding(.top, 10)
@@ -133,6 +146,14 @@ struct HistoryView: View {
                     .frame(height: 38)
                     .background(cellBackground(trained: trained, selected: selected))
                     .overlay(cellBorder(trained: trained, selected: selected, isToday: isToday))
+                    .overlay(alignment: .bottom) {
+                        if supplementDays.contains(day) {
+                            Circle()
+                                .fill(Color.successGreen)
+                                .frame(width: 4, height: 4)
+                                .offset(y: -3.5)
+                        }
+                    }
             }
             .buttonStyle(.plain)
         } else {
@@ -213,6 +234,66 @@ struct HistoryView: View {
             ForEach(dayWorkouts) { workout in
                 workoutCard(workout)
             }
+        }
+        daySupplementsCard
+    }
+
+    private var daySupplements: [(name: String, amount: Double, unit: String)] {
+        let logs = supLogs.filter { cal.isDate($0.date, inSameDayAs: selectedDay) }
+        var totals: [String: (amount: Double, unit: String)] = [:]
+        for log in logs {
+            let cur = totals[log.name]?.amount ?? 0
+            totals[log.name] = (cur + log.amount, log.unit)
+        }
+        return totals
+            .sorted { $0.key < $1.key }
+            .map { ($0.key, $0.value.amount, $0.value.unit) }
+    }
+
+    @ViewBuilder
+    private var daySupplementsCard: some View {
+        let supps = daySupplements
+        if !supps.isEmpty {
+            VStack(spacing: 0) {
+                Text("SUPPLEMENTS")
+                    .font(.barlow(10.5, weight: .bold))
+                    .kerning(1.5)
+                    .foregroundStyle(Color.textDim)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, 16)
+                    .padding(.top, 13)
+                    .padding(.bottom, 9)
+                    .overlay(alignment: .bottom) {
+                        Rectangle().fill(Color.hairline).frame(height: 1)
+                    }
+                ForEach(Array(supps.enumerated()), id: \.offset) { i, s in
+                    HStack {
+                        HStack(spacing: 8) {
+                            Circle()
+                                .fill(Color.successGreen)
+                                .frame(width: 5, height: 5)
+                            Text(s.name)
+                                .font(.barlow(13.5, weight: .medium))
+                                .foregroundStyle(Color.textMain)
+                        }
+                        Spacer()
+                        HStack(alignment: .firstTextBaseline, spacing: 2) {
+                            Text(Fmt.weight(s.amount))
+                                .font(.condensed(18, weight: .bold))
+                                .foregroundStyle(Color.textSoft)
+                            Text(s.unit)
+                                .font(.condensed(12, weight: .bold))
+                                .foregroundStyle(Color.textFaint)
+                        }
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 10)
+                    if i < supps.count - 1 {
+                        Divider().overlay(Color.white.opacity(0.04)).padding(.leading, 16)
+                    }
+                }
+            }
+            .card(18)
         }
     }
 

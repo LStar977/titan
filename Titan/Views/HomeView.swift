@@ -35,15 +35,16 @@ struct HomeView: View {
 
                 weekSection
 
-                if let next = upNextRoutine {
+                if let info = upNextInfo {
                     UpNextCard(
-                        routine: next,
-                        dayIndex: workoutsThisWeek.count + 1,
-                        goal: profile?.weeklyGoal ?? 5,
-                        lastDone: lastDone(next),
-                        onStart: { startRoutine(next) },
+                        routine: info.routine,
+                        headerLabel: info.label,
+                        lastDone: lastDone(info.routine),
+                        onStart: { startRoutine(info.routine) },
                         onSwitch: { app.showStartSheet = true }
                     )
+                } else {
+                    buildSplitCard
                 }
 
                 NavigationLink {
@@ -190,6 +191,32 @@ struct HomeView: View {
 
     // MARK: Up next
 
+    /// Routines the athlete has placed in their split, in day order.
+    private var scheduled: [Routine] {
+        routines
+            .filter { $0.scheduleIndex != nil }
+            .sorted { ($0.scheduleIndex ?? 0) < ($1.scheduleIndex ?? 0) }
+    }
+
+    /// With a split: rotate to the day after the last one completed.
+    /// Without one: suggest the least-recently-done routine.
+    private var upNextInfo: (routine: Routine, label: String)? {
+        if !scheduled.isEmpty {
+            let names = Set(scheduled.map { $0.name })
+            var nextIndex = 0
+            if let lastMatch = finished.first(where: { names.contains($0.title) }),
+               let idx = scheduled.firstIndex(where: { $0.name == lastMatch.title }) {
+                nextIndex = (idx + 1) % scheduled.count
+            }
+            let routine = scheduled[nextIndex]
+            return (routine, "MY SPLIT · DAY \(nextIndex + 1) OF \(scheduled.count)")
+        }
+        if let r = upNextRoutine {
+            return (r, "SUGGESTED")
+        }
+        return nil
+    }
+
     private var upNextRoutine: Routine? {
         routines.min { a, b in
             let la = lastDone(a) ?? .distantPast
@@ -197,6 +224,36 @@ struct HomeView: View {
             if la == lb { return a.orderIndex < b.orderIndex }
             return la < lb
         }
+    }
+
+    private var buildSplitCard: some View {
+        NavigationLink {
+            RoutinesView()
+        } label: {
+            VStack(alignment: .leading, spacing: 6) {
+                Text("BUILD YOUR SPLIT")
+                    .font(.condensed(26, weight: .heavy))
+                    .kerning(1.5)
+                    .foregroundStyle(Color.textMain)
+                Text("Create your own routines — day 1 chest, day 2 arms, whatever you run — or adopt a popular program like PPL or Starting Strength.")
+                    .font(.barlow(12.5))
+                    .lineSpacing(3)
+                    .foregroundStyle(Color.textDim)
+                HStack(spacing: 6) {
+                    Text("Set it up")
+                        .font(.barlow(13, weight: .semibold))
+                        .foregroundStyle(Color.purpleBright)
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 11, weight: .bold))
+                        .foregroundStyle(Color.purpleBright)
+                }
+                .padding(.top, 4)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(18)
+            .card(17, border: Color.purplePrimary.opacity(0.3))
+        }
+        .buttonStyle(.plain)
     }
 
     private func lastDone(_ routine: Routine) -> Date? {
@@ -349,8 +406,7 @@ struct HomeView: View {
 
 struct UpNextCard: View {
     let routine: Routine
-    let dayIndex: Int
-    let goal: Int
+    let headerLabel: String
     let lastDone: Date?
     let onStart: () -> Void
     let onSwitch: () -> Void
@@ -359,7 +415,7 @@ struct UpNextCard: View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(alignment: .top) {
                 VStack(alignment: .leading, spacing: 3) {
-                    Text("SUGGESTED · DAY \(min(dayIndex, goal)) OF \(goal)")
+                    Text(headerLabel)
                         .font(.barlow(10, weight: .bold))
                         .kerning(2)
                         .foregroundStyle(Color.purpleBright)
