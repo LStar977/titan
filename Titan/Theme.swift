@@ -141,8 +141,8 @@ struct LogoBars: View {
 
     var body: some View {
         HStack(spacing: barWidth) {
-            bar.rotationEffect(.degrees(10))
-            bar.rotationEffect(.degrees(-10))
+            bar.rotationEffect(.degrees(12))
+            bar.rotationEffect(.degrees(-12))
         }
     }
 
