@@ -23,7 +23,7 @@ struct ActiveWorkoutView: View {
                 VStack(spacing: 12) {
                     if workout.entries.isEmpty {
                         VStack(spacing: 8) {
-                            Text("YOUR WORKOUT, YOUR RULES")
+                            Text(Brand.setupTitle)
                                 .font(.condensed(22, weight: .bold))
                                 .kerning(2)
                                 .foregroundStyle(Color.textMain)

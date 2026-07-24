@@ -168,7 +168,7 @@ struct ProfileView: View {
         let prog = RankSystem.progress(xp: profile?.xp ?? 0)
         let currentGroup = prog.rank.groupIndex
         return VStack(alignment: .leading, spacing: 12) {
-            Text("THE CLIMB")
+            Text(Brand.climbTitle)
                 .font(.barlow(10.5, weight: .bold))
                 .kerning(1.5)
                 .foregroundStyle(Color.textDim)

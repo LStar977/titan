@@ -81,7 +81,7 @@ struct HomeView: View {
         HStack {
             HStack(spacing: 10) {
                 logoMark
-                Text("TITΛN")
+                Text(Brand.wordmark)
                     .font(.condensed(21, weight: .heavy))
                     .kerning(5)
                     .foregroundStyle(Color.textMain)
@@ -507,7 +507,7 @@ struct EmptyHomeView: View {
                         .frame(width: 30, height: 30)
                         .overlay(RoundedRectangle(cornerRadius: 9).stroke(Color.purplePrimary.opacity(0.35), lineWidth: 1))
                         .overlay(LogoBars())
-                    Text("TITΛN")
+                    Text(Brand.wordmark)
                         .font(.condensed(21, weight: .heavy))
                         .kerning(5)
                         .foregroundStyle(Color.textMain)
@@ -528,13 +528,13 @@ struct EmptyHomeView: View {
                         )
                         .overlay(LogoBars(barWidth: 7, barHeight: 26, glowRadius: 8))
 
-                    Text("THE FORGE AWAITS")
+                    Text(Brand.emptyStateTitle)
                         .font(.condensed(30, weight: .heavy))
                         .kerning(3)
                         .foregroundStyle(Color.textMain)
                         .padding(.top, 26)
 
-                    Text("No workouts logged yet. Start your first session to begin the climb from Bronze to Titan.")
+                    Text(Brand.emptyStateMessage)
                         .font(.barlow(14))
                         .lineSpacing(4)
                         .foregroundStyle(Color.textDim)
@@ -578,7 +578,7 @@ struct EmptyHomeView: View {
                         Text("Complete 1 workout to earn ")
                             .font(.barlow(12))
                             .foregroundStyle(Color.textDim)
-                        + Text("BRONZE I")
+                        + Text(Brand.firstRankName)
                             .font(.barlow(12, weight: .bold))
                             .foregroundStyle(Color.textSoft)
                     }

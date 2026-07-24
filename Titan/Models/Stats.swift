@@ -134,7 +134,7 @@ struct Rank {
     var groupName: String { Rank.groupNames[groupIndex] }
     var title: String { "\(groupName) \(tierNumeral)" }
 
-    static let groupNames = ["BRONZE", "IRON", "SPARTAN", "TITAN"]
+    static let groupNames = Brand.rankNames
 }
 
 enum RankSystem {

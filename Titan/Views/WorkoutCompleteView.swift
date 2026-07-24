@@ -194,7 +194,7 @@ struct WorkoutCompleteView: View {
 
     private var shareText: String {
         let vol = Fmt.volumeK(Stats.volume(workout))
-        var text = "⚔️ TITAN — \(workout.title)\n\(Fmt.clock(workout.duration)) · \(vol) lb volume · \(Stats.completedSetCount(workout)) sets"
+        var text = "\(Brand.shareTag) — \(workout.title)\n\(Fmt.clock(workout.duration)) · \(vol) lb volume · \(Stats.completedSetCount(workout)) sets"
         if !prs.isEmpty {
             text += "\nPRs: " + prs.map { "\($0.name) \(Fmt.weight($0.set.weight))×\($0.set.reps)" }.joined(separator: ", ")
         }
