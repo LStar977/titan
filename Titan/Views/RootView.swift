@@ -73,7 +73,7 @@ struct TitanTabBar: View {
         .padding(.top, 9)
         .frame(height: 84, alignment: .top)
         .background(
-            Color(hex: 0x0C0C13).opacity(0.96)
+            Color.tabBarBg.opacity(0.96)
                 .overlay(Rectangle().fill(Color.purplePrimary.opacity(0.16)).frame(height: 1), alignment: .top)
                 .ignoresSafeArea(edges: .bottom)
         )
@@ -218,7 +218,7 @@ struct StartWorkoutSheet: View {
                 .padding(.bottom, 30)
             }
         }
-        .background(Color(hex: 0x10101B).ignoresSafeArea())
+        .background(Color.sheetBg.ignoresSafeArea())
         .presentationDetents([.medium, .large])
         .presentationDragIndicator(.visible)
     }

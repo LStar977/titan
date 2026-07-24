@@ -8,6 +8,7 @@
 
 /* Begin PBXFileReference section */
 		1000000000000000000000A3 /* Titan.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Titan.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		1000000000000000000000B3 /* Valkyrie.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Valkyrie.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -30,6 +31,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		1000000000000000000000B7 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -45,6 +53,7 @@
 			isa = PBXGroup;
 			children = (
 				1000000000000000000000A3 /* Titan.app */,
+				1000000000000000000000B3 /* Valkyrie.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -74,6 +83,28 @@
 			productReference = 1000000000000000000000A3 /* Titan.app */;
 			productType = "com.apple.product-type.application";
 		};
+		1000000000000000000000B5 /* Valkyrie */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1000000000000000000000BC /* Build configuration list for PBXNativeTarget "Valkyrie" */;
+			buildPhases = (
+				1000000000000000000000B6 /* Sources */,
+				1000000000000000000000B7 /* Frameworks */,
+				1000000000000000000000B8 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				1000000000000000000000A4 /* Titan */,
+			);
+			name = Valkyrie;
+			packageProductDependencies = (
+			);
+			productName = Valkyrie;
+			productReference = 1000000000000000000000B3 /* Valkyrie.app */;
+			productType = "com.apple.product-type.application";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -85,6 +116,9 @@
 				LastUpgradeCheck = 1600;
 				TargetAttributes = {
 					1000000000000000000000A5 = {
+						CreatedOnToolsVersion = 16.0;
+					};
+					1000000000000000000000B5 = {
 						CreatedOnToolsVersion = 16.0;
 					};
 				};
@@ -104,6 +138,7 @@
 			projectRoot = "";
 			targets = (
 				1000000000000000000000A5 /* Titan */,
+				1000000000000000000000B5 /* Valkyrie */,
 			);
 		};
 /* End PBXProject section */
@@ -116,10 +151,24 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		1000000000000000000000B8 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		1000000000000000000000A6 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1000000000000000000000B6 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -271,7 +320,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.titan.strength;
+				PRODUCT_BUNDLE_IDENTIFIER = com.lancemorrison.titan;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -303,8 +352,74 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.titan.strength;
+				PRODUCT_BUNDLE_IDENTIFIER = com.lancemorrison.titan;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+		1000000000000000000000BD /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIconValkyrie;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColorValkyrie;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = VALKYRIE;
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UIStatusBarStyle = UIStatusBarStyleDarkContent;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UIUserInterfaceStyle = Light;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.lancemorrison.valkyrie;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "VALKYRIE $(inherited)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		1000000000000000000000BE /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIconValkyrie;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColorValkyrie;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = VALKYRIE;
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UIStatusBarStyle = UIStatusBarStyleDarkContent;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UIUserInterfaceStyle = Light;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.lancemorrison.valkyrie;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "VALKYRIE $(inherited)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 1;
@@ -328,6 +443,15 @@
 			buildConfigurations = (
 				1000000000000000000000AD /* Debug */,
 				1000000000000000000000AE /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		1000000000000000000000BC /* Build configuration list for PBXNativeTarget "Valkyrie" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1000000000000000000000BD /* Debug */,
+				1000000000000000000000BE /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

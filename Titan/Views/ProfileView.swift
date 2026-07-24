@@ -147,7 +147,7 @@ struct ProfileView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(
             RoundedRectangle(cornerRadius: 17)
-                .fill(LinearGradient(colors: [Color(hex: 0x17172A), .surface], startPoint: .top, endPoint: .bottom))
+                .fill(LinearGradient(colors: [Color.surfaceRaised, .surface], startPoint: .top, endPoint: .bottom))
         )
         .overlay(
             RoundedRectangle(cornerRadius: 18)
@@ -219,30 +219,28 @@ struct ProfileView: View {
                     .foregroundStyle(Color.glow)
             } else {
                 Hexagon()
-                    .fill(Color(hex: 0x15151F))
+                    .fill(Color.surfaceSunken)
                     .frame(width: 46, height: 51)
                     .overlay(
                         Image(systemName: "lock")
                             .font(.system(size: 13))
-                            .foregroundStyle(Color(hex: 0x3A3A4E))
+                            .foregroundStyle(Color.outline)
                     )
                 Text(name)
                     .font(.barlow(9.5, weight: .bold))
                     .kerning(1)
-                    .foregroundStyle(Color(hex: 0x3A3A4E))
+                    .foregroundStyle(Color.outline)
             }
         }
     }
 
     private func completedGradient(_ group: Int) -> LinearGradient {
-        if group == 0 {
-            return LinearGradient(colors: [Color(hex: 0x3A2E22), Color(hex: 0x241D15)], startPoint: .top, endPoint: .bottom)
-        }
-        return LinearGradient(colors: [Color(hex: 0x3A3A4E), Color(hex: 0x23232E)], startPoint: .top, endPoint: .bottom)
+        let hexes = group == 0 ? Brand.rankLowGradient : Brand.rankMidGradient
+        return LinearGradient(colors: hexes.map { Color(hex: $0) }, startPoint: .top, endPoint: .bottom)
     }
 
     private func completedText(_ group: Int) -> Color {
-        group == 0 ? Color(hex: 0xC9A97E) : Color(hex: 0xB9B9C8)
+        Color(hex: group == 0 ? Brand.rankLowText : Brand.rankMidText)
     }
 
     // MARK: Bodyweight
@@ -331,9 +329,9 @@ struct ProfileView: View {
             }
 
             measurementRow("Chest", keyPath: \.chest)
-            Divider().overlay(Color.white.opacity(0.04))
+            Divider().overlay(Color.hairlineSoft)
             measurementRow("Arm", keyPath: \.arm)
-            Divider().overlay(Color.white.opacity(0.04))
+            Divider().overlay(Color.hairlineSoft)
             measurementRow("Waist", keyPath: \.waist)
         }
         .card(16)
@@ -431,7 +429,7 @@ struct SettingsSheet: View {
             Spacer()
         }
         .padding(.horizontal, 20)
-        .background(Color(hex: 0x10101B).ignoresSafeArea())
+        .background(Color.sheetBg.ignoresSafeArea())
         .presentationDetents([.height(340)])
         .presentationDragIndicator(.visible)
         .onAppear { name = profiles.first?.name ?? "" }
@@ -532,7 +530,7 @@ struct LogMetricsSheet: View {
             Spacer()
         }
         .padding(.horizontal, 20)
-        .background(Color(hex: 0x10101B).ignoresSafeArea())
+        .background(Color.sheetBg.ignoresSafeArea())
         .presentationDetents([.height(420)])
         .presentationDragIndicator(.visible)
     }

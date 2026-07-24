@@ -14,7 +14,7 @@ struct TitanApp: App {
         WindowGroup {
             RootView()
                 .environment(appState)
-                .preferredColorScheme(.dark)
+                .preferredColorScheme(Brand.colorScheme)
         }
         .modelContainer(for: [
             Exercise.self,

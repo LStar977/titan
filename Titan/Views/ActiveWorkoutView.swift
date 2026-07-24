@@ -182,7 +182,7 @@ struct ActiveWorkoutView: View {
         .padding(.top, 8)
         .padding(.bottom, 12)
         .background(
-            LinearGradient(colors: [Color(hex: 0x10101B), .bg], startPoint: .top, endPoint: .bottom)
+            LinearGradient(colors: [Color.sheetBg, .bg], startPoint: .top, endPoint: .bottom)
                 .overlay(Rectangle().fill(Color.hairline).frame(height: 1), alignment: .bottom)
                 .ignoresSafeArea(edges: .top)
         )
@@ -192,7 +192,7 @@ struct ActiveWorkoutView: View {
     private var divider: some View {
         Text("|")
             .font(.barlow(11.5))
-            .foregroundStyle(Color(hex: 0x3A3A4E))
+            .foregroundStyle(Color.outline)
     }
 
     private func statText(_ value: String, _ label: String) -> some View {
@@ -243,7 +243,7 @@ struct ActiveWorkoutView: View {
                 .frame(maxWidth: .infinity)
                 .frame(height: 44)
                 .background(RoundedRectangle(cornerRadius: 13).fill(Color.surface))
-                .overlay(RoundedRectangle(cornerRadius: 13).stroke(Color.white.opacity(0.08), lineWidth: 1))
+                .overlay(RoundedRectangle(cornerRadius: 13).stroke(Color.strokeStrong, lineWidth: 1))
             }
             .buttonStyle(.plain)
             .sheet(isPresented: $showSupersetSheet) {
@@ -569,7 +569,7 @@ struct ExerciseCard: View {
         )
         .overlay(alignment: .top) {
             if !pr {
-                Rectangle().fill(Color.white.opacity(0.04)).frame(height: 1)
+                Rectangle().fill(Color.hairlineSoft).frame(height: 1)
             }
         }
     }
@@ -864,7 +864,7 @@ struct ActiveSetEditor: View {
             RoundedRectangle(cornerRadius: 9)
                 .fill(Color.surface2)
                 .frame(width: 34, height: 34)
-                .overlay(RoundedRectangle(cornerRadius: 9).stroke(Color.white.opacity(0.08), lineWidth: 1))
+                .overlay(RoundedRectangle(cornerRadius: 9).stroke(Color.strokeStrong, lineWidth: 1))
                 .overlay(
                     Image(systemName: icon)
                         .font(.system(size: 12, weight: .bold))
@@ -988,7 +988,7 @@ struct SupersetSheet: View {
                 VStack(spacing: 0) {
                     ForEach(workout.sortedEntries) { entry in
                         entryRow(entry)
-                        Divider().overlay(Color.white.opacity(0.04)).padding(.leading, 16)
+                        Divider().overlay(Color.hairlineSoft).padding(.leading, 16)
                     }
                 }
                 .padding(.bottom, 90)
@@ -1004,11 +1004,11 @@ struct SupersetSheet: View {
                 .padding(.horizontal, 16)
                 .padding(.bottom, 14)
                 .background(
-                    LinearGradient(colors: [Color(hex: 0x10101B).opacity(0), Color(hex: 0x10101B)], startPoint: .top, endPoint: .bottom)
+                    LinearGradient(colors: [Color.sheetBg.opacity(0), Color.sheetBg], startPoint: .top, endPoint: .bottom)
                 )
             }
         }
-        .background(Color(hex: 0x10101B).ignoresSafeArea())
+        .background(Color.sheetBg.ignoresSafeArea())
         .presentationDetents([.medium, .large])
         .presentationDragIndicator(.visible)
     }
@@ -1046,7 +1046,7 @@ struct SupersetSheet: View {
                         )
                 } else {
                     Circle()
-                        .stroke(Color(hex: 0x3A3A4E), lineWidth: 1.5)
+                        .stroke(Color.outline, lineWidth: 1.5)
                         .frame(width: 26, height: 26)
                 }
             }

@@ -3,6 +3,18 @@
 A native iOS strength-training tracker. Dark-only, purple-on-black, built to match the
 Claude Design handoff (`DESIGN_BRIEF.md` has the full feature scope).
 
+**This repo builds two apps from one codebase:**
+
+| Target | Brand | Theme | Bundle ID |
+|---|---|---|---|
+| `Titan` | TITΛN — dark, mythic (Bronze → Titan ranks) | Dark purple/black | `com.lancemorrison.titan` |
+| `Valkyrie` | VALKYRIE — bright, empowering (Ember → Immortal ranks) | Light blush/pink | `com.lancemorrison.valkyrie` |
+
+All branding (palette, wordmark, copy, rank ladder, default body model, flagship
+program) routes through `Titan/Brand.swift`, switched by the `VALKYRIE` compilation
+condition on the Valkyrie target. Every feature lands in both apps automatically —
+pick the scheme in Xcode to build either one.
+
 ![Platform](https://img.shields.io/badge/platform-iOS%2017%2B-8B5CF6) ![Stack](https://img.shields.io/badge/SwiftUI%20%2B%20SwiftData-131320)
 
 ## Features

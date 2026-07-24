@@ -135,11 +135,11 @@ struct ExercisePickerView: View {
                 LazyVStack(spacing: 0) {
                     if showCreateRow {
                         createRow
-                        Divider().overlay(Color.white.opacity(0.04)).padding(.leading, 16)
+                        Divider().overlay(Color.hairlineSoft).padding(.leading, 16)
                     }
                     ForEach(filtered) { ex in
                         exerciseRow(ex)
-                        Divider().overlay(Color.white.opacity(0.04)).padding(.leading, 16)
+                        Divider().overlay(Color.hairlineSoft).padding(.leading, 16)
                     }
                 }
                 .padding(.bottom, 90)
@@ -155,12 +155,12 @@ struct ExercisePickerView: View {
                     .padding(.horizontal, 16)
                     .padding(.bottom, 14)
                     .background(
-                        LinearGradient(colors: [Color(hex: 0x10101B).opacity(0), Color(hex: 0x10101B)], startPoint: .top, endPoint: .bottom)
+                        LinearGradient(colors: [Color.sheetBg.opacity(0), Color.sheetBg], startPoint: .top, endPoint: .bottom)
                     )
                 }
             }
         }
-        .background(Color(hex: 0x10101B).ignoresSafeArea())
+        .background(Color.sheetBg.ignoresSafeArea())
         .presentationDetents([.large])
         .presentationDragIndicator(.visible)
         .sheet(isPresented: $showNewExercise) {
@@ -256,7 +256,7 @@ struct ExercisePickerView: View {
                         .shadow(color: Color.purplePrimary.opacity(0.4), radius: 5)
                 } else {
                     Circle()
-                        .stroke(Color(hex: 0x3A3A4E), lineWidth: 1.5)
+                        .stroke(Color.outline, lineWidth: 1.5)
                         .frame(width: 26, height: 26)
                 }
             }
@@ -328,7 +328,7 @@ struct NewExerciseSheet: View {
             }
             .padding(12)
             .background(RoundedRectangle(cornerRadius: 13).fill(Color.surface2))
-            .overlay(RoundedRectangle(cornerRadius: 13).stroke(Color.white.opacity(0.08), lineWidth: 1))
+            .overlay(RoundedRectangle(cornerRadius: 13).stroke(Color.strokeStrong, lineWidth: 1))
 
             VStack(alignment: .leading, spacing: 8) {
                 SectionLabel("Equipment")
@@ -351,7 +351,7 @@ struct NewExerciseSheet: View {
             Spacer()
         }
         .padding(.horizontal, 16)
-        .background(Color(hex: 0x10101B).ignoresSafeArea())
+        .background(Color.sheetBg.ignoresSafeArea())
         .presentationDetents([.medium, .large])
         .presentationDragIndicator(.visible)
         .onAppear {

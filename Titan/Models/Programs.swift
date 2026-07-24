@@ -36,7 +36,51 @@ struct Program: Identifiable {
 }
 
 enum ProgramLibrary {
-    static let all: [Program] = [ppl, startingStrength, strongLifts, upperLower]
+    static var all: [Program] {
+        #if VALKYRIE
+        return [sculpt, ppl, upperLower, startingStrength, strongLifts]
+        #else
+        return [ppl, startingStrength, strongLifts, upperLower]
+        #endif
+    }
+
+    /// VALKYRIE's flagship program — lower-body-focused 4-day split.
+    static let sculpt = Program(
+        name: "Sculpt & Strength",
+        tagline: "4-day lower-body-focused split",
+        blurb: "Two lower-body days built around glutes and hamstrings, one upper day, one full-body day. Strength work first, sculpting volume after — the split most women actually want to run.",
+        days: [
+            ProgramDay(name: "Glutes & Hams", items: [
+                ProgramItem("Hip Thrust", 4, 8, 10, rest: 120),
+                ProgramItem("Romanian Deadlift", 3, 8, 10, rest: 150),
+                ProgramItem("Bulgarian Split Squat", 3, 10, 12, rest: 90),
+                ProgramItem("Glute Kickback", 3, 12, 15, rest: 60),
+                ProgramItem("Standing Calf Raise", 3, 12, 15, rest: 60)
+            ]),
+            ProgramDay(name: "Upper Body", items: [
+                ProgramItem("DB Shoulder Press", 3, 8, 10, rest: 120),
+                ProgramItem("Lat Pulldown", 3, 8, 12, rest: 90),
+                ProgramItem("Incline DB Press", 3, 8, 10, rest: 120),
+                ProgramItem("Lateral Raise", 3, 12, 15, rest: 60),
+                ProgramItem("Triceps Pushdown", 2, 10, 12, rest: 60),
+                ProgramItem("Dumbbell Curl", 2, 10, 12, rest: 60)
+            ]),
+            ProgramDay(name: "Quads & Glutes", items: [
+                ProgramItem("Back Squat", 4, 6, 8, rest: 180),
+                ProgramItem("Leg Press", 3, 10, 12, rest: 120),
+                ProgramItem("Walking Lunge", 3, 10, 12, rest: 90),
+                ProgramItem("Leg Extension", 3, 12, 15, rest: 90),
+                ProgramItem("Seated Calf Raise", 3, 12, 15, rest: 60)
+            ]),
+            ProgramDay(name: "Full Body & Core", items: [
+                ProgramItem("Deadlift", 3, 5, 5, rest: 210),
+                ProgramItem("Goblet Squat", 3, 10, 12, rest: 90),
+                ProgramItem("Push-Up", 3, 8, 15, rest: 90),
+                ProgramItem("Cable Crunch", 3, 12, 15, rest: 60),
+                ProgramItem("Hanging Leg Raise", 3, 10, 15, rest: 60)
+            ])
+        ]
+    )
 
     /// Copies the program's days into the athlete's routines and makes them the split.
     static func adopt(_ program: Program, context: ModelContext, routines: [Routine], exercises: [Exercise]) {

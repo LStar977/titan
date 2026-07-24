@@ -26,7 +26,7 @@ struct WorkoutCompleteView: View {
                         .overlay(Hexagon().fill(Color.surface).padding(2))
                         .overlay(LogoBars(barWidth: 6, barHeight: 22, color: .glow, glowRadius: 8))
 
-                    Text("WORKOUT COMPLETE")
+                    Text(Brand.completeTitle)
                         .font(.condensed(32, weight: .heavy))
                         .kerning(4)
                         .foregroundStyle(Color.textMain)
@@ -34,6 +34,14 @@ struct WorkoutCompleteView: View {
                         .padding(.top, 16)
                         .minimumScaleFactor(0.8)
                         .lineLimit(1)
+
+                    if let subline = Brand.completeSubline {
+                        Text(subline.uppercased())
+                            .font(.barlow(11, weight: .bold))
+                            .kerning(2)
+                            .foregroundStyle(Color.purpleBright)
+                            .padding(.top, 4)
+                    }
 
                     Text("\(workout.title) · \(finishedLabel)")
                         .font(.barlow(13))

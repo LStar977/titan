@@ -258,7 +258,7 @@ struct ExerciseDetailView: View {
                     .padding(.horizontal, 16)
                     .padding(.vertical, 11)
                     if i < sessions.count - 1 {
-                        Divider().overlay(Color.white.opacity(0.04)).padding(.leading, 16)
+                        Divider().overlay(Color.hairlineSoft).padding(.leading, 16)
                     }
                 }
             }

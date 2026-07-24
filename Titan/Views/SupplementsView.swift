@@ -36,7 +36,7 @@ struct SupplementsView: View {
                         ForEach(Array(supplements.enumerated()), id: \.offset) { i, supplement in
                             supplementRow(supplement)
                             if i < supplements.count - 1 {
-                                Divider().overlay(Color.white.opacity(0.04)).padding(.leading, 16)
+                                Divider().overlay(Color.hairlineSoft).padding(.leading, 16)
                             }
                         }
                     }
@@ -180,7 +180,7 @@ struct SupplementsView: View {
                 let day = cal.date(byAdding: .day, value: -offset, to: Date()) ?? Date()
                 dayRow(day)
                 if offset < 6 {
-                    Divider().overlay(Color.white.opacity(0.04)).padding(.leading, 16)
+                    Divider().overlay(Color.hairlineSoft).padding(.leading, 16)
                 }
             }
         }
@@ -327,7 +327,7 @@ struct AddSupplementSheet: View {
             Spacer()
         }
         .padding(.horizontal, 20)
-        .background(Color(hex: 0x10101B).ignoresSafeArea())
+        .background(Color.sheetBg.ignoresSafeArea())
         .presentationDetents([.height(400)])
         .presentationDragIndicator(.visible)
     }

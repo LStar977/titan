@@ -102,7 +102,7 @@ struct ProgressTabView: View {
         }
         .padding(3)
         .background(Capsule().fill(Color.surface))
-        .overlay(Capsule().stroke(Color.white.opacity(0.06), lineWidth: 1))
+        .overlay(Capsule().stroke(Color.hairline, lineWidth: 1))
     }
 
     private var isFemale: Bool { profiles.first?.isFemale ?? false }
@@ -192,7 +192,7 @@ struct ProgressTabView: View {
         }
         .padding(2)
         .background(Capsule().fill(Color.surface2))
-        .overlay(Capsule().stroke(Color.white.opacity(0.06), lineWidth: 1))
+        .overlay(Capsule().stroke(Color.hairline, lineWidth: 1))
     }
 
     private func genderButton(_ label: String, female: Bool) -> some View {

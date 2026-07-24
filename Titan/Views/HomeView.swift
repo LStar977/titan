@@ -82,8 +82,8 @@ struct HomeView: View {
             HStack(spacing: 10) {
                 logoMark
                 Text(Brand.wordmark)
-                    .font(.condensed(21, weight: .heavy))
-                    .kerning(5)
+                    .font(.condensed(Brand.wordmarkSize, weight: .heavy))
+                    .kerning(Brand.wordmarkKerning)
                     .foregroundStyle(Color.textMain)
             }
             Spacer()
@@ -177,7 +177,7 @@ struct HomeView: View {
     private var prsTile: some View {
         let prs = workoutsThisWeek.reduce(0) { $0 + Stats.prSets($1).count }
         return StatTile(
-            label: "PRs Hit",
+            label: Brand.recordsTile,
             value: "\(prs)",
             glowing: prs > 0,
             footer: AnyView(
@@ -290,7 +290,7 @@ struct HomeView: View {
                     ForEach(Array(supplements.prefix(4).enumerated()), id: \.offset) { i, supplement in
                         supplementRow(supplement)
                         if i < min(supplements.count, 4) - 1 {
-                            Divider().overlay(Color.white.opacity(0.04)).padding(.leading, 16)
+                            Divider().overlay(Color.hairlineSoft).padding(.leading, 16)
                         }
                     }
                 }
@@ -351,7 +351,7 @@ struct HomeView: View {
         return Group {
             if !prs.isEmpty {
                 VStack(alignment: .leading, spacing: 10) {
-                    SectionLabel("Recent PRs")
+                    SectionLabel(Brand.recordsTitle)
                     VStack(spacing: 0) {
                         ForEach(Array(prs.enumerated()), id: \.offset) { i, pr in
                             NavigationLink {
@@ -460,7 +460,7 @@ struct UpNextCard: View {
         .padding(18)
         .background(
             RoundedRectangle(cornerRadius: 17)
-                .fill(LinearGradient(colors: [Color(hex: 0x17172A), .surface], startPoint: .top, endPoint: .bottom))
+                .fill(LinearGradient(colors: [Color.surfaceRaised, .surface], startPoint: .top, endPoint: .bottom))
         )
         .overlay(
             RoundedRectangle(cornerRadius: 18)
@@ -508,8 +508,8 @@ struct EmptyHomeView: View {
                         .overlay(RoundedRectangle(cornerRadius: 9).stroke(Color.purplePrimary.opacity(0.35), lineWidth: 1))
                         .overlay(LogoBars())
                     Text(Brand.wordmark)
-                        .font(.condensed(21, weight: .heavy))
-                        .kerning(5)
+                        .font(.condensed(Brand.wordmarkSize, weight: .heavy))
+                        .kerning(Brand.wordmarkKerning)
                         .foregroundStyle(Color.textMain)
                 }
                 .padding(.horizontal, 20)
@@ -561,7 +561,7 @@ struct EmptyHomeView: View {
                             .frame(maxWidth: 300)
                             .frame(height: 48)
                             .background(RoundedRectangle(cornerRadius: 14).fill(Color.surface))
-                            .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.white.opacity(0.08), lineWidth: 1))
+                            .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.strokeStrong, lineWidth: 1))
                     }
                     .buttonStyle(.plain)
                     .padding(.top, 10)
@@ -584,7 +584,7 @@ struct EmptyHomeView: View {
                     }
                     .padding(.horizontal, 14)
                     .padding(.vertical, 10)
-                    .card(12, border: Color.white.opacity(0.06))
+                    .card(12, border: Color.hairline)
                     .padding(.top, 34)
                 }
                 .frame(maxWidth: .infinity)

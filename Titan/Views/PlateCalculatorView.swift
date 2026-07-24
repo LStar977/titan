@@ -144,7 +144,7 @@ struct PlateCalculatorView: View {
                         .padding(.horizontal, 16)
                         .padding(.vertical, 11)
                         if i < perSide.count - 1 {
-                            Divider().overlay(Color.white.opacity(0.04))
+                            Divider().overlay(Color.hairlineSoft)
                         }
                     }
                 }
@@ -174,7 +174,7 @@ struct PlateCalculatorView: View {
             Spacer()
         }
         .padding(.horizontal, 20)
-        .background(Color(hex: 0x10101B).ignoresSafeArea())
+        .background(Color.sheetBg.ignoresSafeArea())
         .presentationDetents([.fraction(0.78), .large])
         .presentationDragIndicator(.visible)
     }
@@ -184,7 +184,7 @@ struct PlateCalculatorView: View {
             RoundedRectangle(cornerRadius: 16)
                 .fill(Color.surface2)
                 .frame(width: 52, height: 52)
-                .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.white.opacity(0.08), lineWidth: 1))
+                .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.strokeStrong, lineWidth: 1))
                 .overlay(
                     Image(systemName: icon)
                         .font(.system(size: 16, weight: .bold))
@@ -198,14 +198,14 @@ struct PlateCalculatorView: View {
         HStack(spacing: 3) {
             // Left sleeve end
             RoundedRectangle(cornerRadius: 4)
-                .fill(Color(hex: 0x4A4A5E))
+                .fill(Color.neutralGear)
                 .frame(width: 26, height: 8)
             plateStack(reversed: false)
             RoundedRectangle(cornerRadius: 2)
                 .fill(Color.textFaint)
                 .frame(width: 6, height: 22)
             Rectangle()
-                .fill(Color(hex: 0x4A4A5E))
+                .fill(Color.neutralGear)
                 .frame(maxWidth: 86)
                 .frame(height: 8)
             RoundedRectangle(cornerRadius: 2)
@@ -213,7 +213,7 @@ struct PlateCalculatorView: View {
                 .frame(width: 6, height: 22)
             plateStack(reversed: true)
             RoundedRectangle(cornerRadius: 4)
-                .fill(Color(hex: 0x4A4A5E))
+                .fill(Color.neutralGear)
                 .frame(width: 26, height: 8)
         }
         .frame(height: 118)
@@ -240,7 +240,7 @@ struct PlateCalculatorView: View {
         case 25: return .purpleBright
         case 10: return .purpleMid
         case 5: return .purpleDeep
-        default: return Color(hex: 0x62627A)
+        default: return Color.textFaint
         }
     }
 

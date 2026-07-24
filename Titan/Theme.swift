@@ -14,22 +14,33 @@ extension Color {
         )
     }
 
-    static let bg = Color(hex: 0x0A0A0F)
-    static let surface = Color(hex: 0x131320)
-    static let surface2 = Color(hex: 0x1C1C2E)
-    static let surface3 = Color(hex: 0x2A2A3E)
-    static let purplePrimary = Color(hex: 0x8B5CF6)
-    static let purpleBright = Color(hex: 0xA78BFA)
-    static let purpleDeep = Color(hex: 0x5B21B6)
-    static let purpleMid = Color(hex: 0x6D28D9)
-    static let glow = Color(hex: 0xC4B5FD)
-    static let textMain = Color(hex: 0xEDEDF4)
-    static let textSoft = Color(hex: 0xC7C7D6)
-    static let textDim = Color(hex: 0x8E8EA3)
-    static let textFaint = Color(hex: 0x62627A)
-    static let hairline = Color.white.opacity(0.05)
-    static let successGreen = Color(hex: 0x34D399)
-    static let dangerRed = Color(hex: 0xF87171)
+    // All tokens resolve from the active Brand — TITAN (dark purple) or
+    // VALKYRIE (light pink). Views only ever use these semantic names.
+    static let bg = Color(hex: Brand.bg)
+    static let surface = Color(hex: Brand.surface)
+    static let surface2 = Color(hex: Brand.surface2)
+    static let surface3 = Color(hex: Brand.surface3)
+    static let purplePrimary = Color(hex: Brand.primary)
+    static let purpleBright = Color(hex: Brand.primaryBright)
+    static let purpleDeep = Color(hex: Brand.primaryDeep)
+    static let purpleMid = Color(hex: Brand.primaryMid)
+    static let glow = Color(hex: Brand.glow)
+    static let textMain = Color(hex: Brand.textMain)
+    static let textSoft = Color(hex: Brand.textSoft)
+    static let textDim = Color(hex: Brand.textDim)
+    static let textFaint = Color(hex: Brand.textFaint)
+    static let hairline = Brand.hairlineColor
+    static let hairlineSoft = Brand.hairlineSoft
+    static let strokeStrong = Brand.strokeStrong
+    static let successGreen = Color(hex: Brand.success)
+    static let dangerRed = Color(hex: Brand.danger)
+    static let sheetBg = Color(hex: Brand.sheetBg)
+    static let surfaceRaised = Color(hex: Brand.surfaceRaised)
+    static let tabBarBg = Color(hex: Brand.tabBarBg)
+    static let surfaceSunken = Color(hex: Brand.surfaceSunken)
+    static let outline = Color(hex: Brand.outline)
+    static let neutralGear = Color(hex: Brand.neutralGear)
+    static let heatBody = Color(hex: Brand.heatBody)
 }
 
 // MARK: - Fonts

@@ -103,7 +103,7 @@ struct LineChart: View {
                         p.move(to: CGPoint(x: 0, y: y))
                         p.addLine(to: CGPoint(x: geo.size.width, y: y))
                     }
-                    .stroke(Color.white.opacity(0.04), lineWidth: 1)
+                    .stroke(Color.hairlineSoft, lineWidth: 1)
                 }
                 if pts.count > 1 {
                     Path { p in

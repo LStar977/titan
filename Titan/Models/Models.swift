@@ -310,5 +310,6 @@ final class Profile {
         self.weeklyGoal = weeklyGoal
         self.defaultRestSeconds = defaultRestSeconds
         self.createdAt = Date()
+        self.bodyTypeRaw = Brand.defaultFemaleBody ? "female" : "male"
     }
 }

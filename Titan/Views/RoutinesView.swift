@@ -150,7 +150,7 @@ struct RoutinesView: View {
                     .padding(.horizontal, 16)
                     .padding(.vertical, 10)
                     if i < scheduled.count - 1 {
-                        Divider().overlay(Color.white.opacity(0.04)).padding(.leading, 16)
+                        Divider().overlay(Color.hairlineSoft).padding(.leading, 16)
                     }
                 }
             }
@@ -670,7 +670,7 @@ struct RoutineItemSheet: View {
             Spacer()
         }
         .padding(.horizontal, 20)
-        .background(Color(hex: 0x10101B).ignoresSafeArea())
+        .background(Color.sheetBg.ignoresSafeArea())
         .presentationDetents([.height(430)])
         .presentationDragIndicator(.visible)
     }

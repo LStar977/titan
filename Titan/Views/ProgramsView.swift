@@ -225,7 +225,7 @@ struct SplitEditorSheet: View {
             }
             .scrollContentBackground(.hidden)
         }
-        .background(Color(hex: 0x10101B).ignoresSafeArea())
+        .background(Color.sheetBg.ignoresSafeArea())
         .presentationDetents([.medium, .large])
         .presentationDragIndicator(.visible)
     }
