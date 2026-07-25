@@ -1,0 +1,21 @@
+{
+  "name": "titan-promo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Remotion promo videos for TITAN and VALKYRIE",
+  "scripts": {
+    "studio": "remotion studio",
+    "render": "remotion render TitanPromo out/titan-promo.mp4",
+    "render:valkyrie": "remotion render ValkyriePromo out/valkyrie-promo.mp4"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.410",
+    "react": "19.0.0",
+    "react-dom": "19.0.0",
+    "remotion": "4.0.410"
+  },
+  "devDependencies": {
+    "@types/react": "19.0.0",
+    "typescript": "5.6.3"
+  }
+}
