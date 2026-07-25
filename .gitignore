@@ -7,3 +7,7 @@ build/
 *.ipa
 *.dSYM.zip
 *.dSYM
+
+# App Store Connect keys — never commit
+*.p8
+build/
