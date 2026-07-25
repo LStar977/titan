@@ -224,6 +224,9 @@ final class SetEntry {
     var isCompleted: Bool = false
     var isPR: Bool = false
     var completedAt: Date?
+    /// For bodyweight exercises: the athlete's logged bodyweight at completion,
+    /// so push-ups and pull-ups count toward volume. 0 for loaded lifts.
+    var bodyLoad: Double = 0
     var entry: WorkoutEntry?
 
     init(orderIndex: Int, weight: Double, reps: Int, type: SetType = .working) {

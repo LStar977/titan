@@ -8,6 +8,8 @@ struct ExerciseDetailView: View {
     @Query(sort: \Workout.startedAt, order: .reverse) private var workouts: [Workout]
     @Query private var exercises: [Exercise]
 
+    @State private var selectedWorkout: Workout?
+
     private var exercise: Exercise? {
         exercises.first { $0.name == exerciseName }
     }
@@ -59,6 +61,9 @@ struct ExerciseDetailView: View {
         }
         .background(Color.bg.ignoresSafeArea())
         .toolbar(.hidden, for: .navigationBar)
+        .sheet(item: $selectedWorkout) { workout in
+            WorkoutDetailView(workout: workout, asSheet: true)
+        }
     }
 
     private var subtitle: String {
@@ -78,7 +83,7 @@ struct ExerciseDetailView: View {
     }
 
     private var lifetimeVolume: Double {
-        sessions.flatMap { $0.sets }.reduce(0) { $0 + $1.weight * Double($1.reps) }
+        sessions.flatMap { $0.sets }.reduce(0) { $0 + Stats.setVolume($1) }
     }
 
     private var statRow: some View {
@@ -189,7 +194,7 @@ struct ExerciseDetailView: View {
             let vol = sessions
                 .filter { week.contains($0.workout.startedAt) }
                 .flatMap { $0.sets }
-                .reduce(0.0) { $0 + $1.weight * Double($1.reps) }
+                .reduce(0.0) { $0 + Stats.setVolume($1) }
             out.append(vol)
         }
         return out
@@ -230,6 +235,9 @@ struct ExerciseDetailView: View {
                     .padding(.vertical, 24)
             } else {
                 ForEach(Array(sessions.enumerated()), id: \.offset) { i, session in
+                    Button {
+                        selectedWorkout = session.workout
+                    } label: {
                     HStack(spacing: 12) {
                         VStack(alignment: .leading, spacing: 1) {
                             HStack(spacing: 7) {
@@ -257,6 +265,9 @@ struct ExerciseDetailView: View {
                     }
                     .padding(.horizontal, 16)
                     .padding(.vertical, 11)
+                    .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
                     if i < sessions.count - 1 {
                         Divider().overlay(Color.hairlineSoft).padding(.leading, 16)
                     }
@@ -267,7 +278,7 @@ struct ExerciseDetailView: View {
     }
 
     private func volumeString(_ sets: [SetEntry]) -> String {
-        let vol = sets.reduce(0.0) { $0 + $1.weight * Double($1.reps) }
+        let vol = sets.reduce(0.0) { $0 + Stats.setVolume($1) }
         let n = Int(vol)
         let f = NumberFormatter()
         f.numberStyle = .decimal

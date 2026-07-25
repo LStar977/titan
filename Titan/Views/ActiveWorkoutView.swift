@@ -7,6 +7,7 @@ struct ActiveWorkoutView: View {
     @Environment(\.modelContext) private var context
     @Query(sort: \Workout.startedAt, order: .reverse) private var allWorkouts: [Workout]
     @Query private var profiles: [Profile]
+    @Query(sort: \BodyMetric.date, order: .reverse) private var metrics: [BodyMetric]
 
     @State private var showPicker = false
     @State private var showPlates = false
@@ -286,10 +287,19 @@ struct ActiveWorkoutView: View {
             set.isCompleted = false
             set.isPR = false
             set.completedAt = nil
+            set.bodyLoad = 0
             return
         }
         set.isCompleted = true
         set.completedAt = Date()
+
+        // Bodyweight exercises count the athlete's logged bodyweight toward
+        // volume (cardio and stretching excluded).
+        if let ex = entry.exercise, ex.equipment == .bodyweight, !ex.muscle.isDuration {
+            set.bodyLoad = metrics.compactMap { $0.weight }.first ?? 0
+        } else {
+            set.bodyLoad = 0
+        }
 
         // Carry this weight forward into the remaining empty sets of the same
         // exercise, so the athlete never re-enters the same number.

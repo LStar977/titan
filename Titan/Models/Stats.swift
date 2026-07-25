@@ -11,11 +11,17 @@ enum Stats {
         return weight * (1.0 + Double(reps) / 30.0)
     }
 
+    /// Effective volume of one set: added weight plus (for bodyweight
+    /// exercises) the athlete's bodyweight snapshotted at completion.
+    static func setVolume(_ s: SetEntry) -> Double {
+        (s.weight + s.bodyLoad) * Double(s.reps)
+    }
+
     static func volume(_ w: Workout) -> Double {
         w.entries
             .flatMap { $0.sets }
             .filter { $0.isCompleted }
-            .reduce(0) { $0 + $1.weight * Double($1.reps) }
+            .reduce(0) { $0 + setVolume($1) }
     }
 
     static func completedSetCount(_ w: Workout) -> Int {
@@ -98,7 +104,7 @@ enum Stats {
                 guard let ex = entry.exercise else { continue }
                 let vol = entry.sets
                     .filter { $0.isCompleted }
-                    .reduce(0.0) { $0 + $1.weight * Double($1.reps) }
+                    .reduce(0.0) { $0 + setVolume($1) }
                 guard vol > 0 else { continue }
                 out[ex.muscle, default: 0] += vol
                 for m in ex.secondary {

@@ -299,27 +299,38 @@ struct HistoryView: View {
 
     private func workoutCard(_ workout: Workout) -> some View {
         VStack(spacing: 0) {
-            HStack(alignment: .top) {
-                VStack(alignment: .leading, spacing: 1) {
-                    Text(dayLabel)
-                        .font(.barlow(10, weight: .bold))
-                        .kerning(1.5)
-                        .foregroundStyle(Color.purpleBright)
-                    Text(workout.title)
-                        .font(.condensed(22, weight: .bold))
-                        .foregroundStyle(Color.textMain)
+            NavigationLink {
+                WorkoutDetailView(workout: workout)
+            } label: {
+                HStack(alignment: .top) {
+                    VStack(alignment: .leading, spacing: 1) {
+                        Text(dayLabel)
+                            .font(.barlow(10, weight: .bold))
+                            .kerning(1.5)
+                            .foregroundStyle(Color.purpleBright)
+                        HStack(spacing: 6) {
+                            Text(workout.title)
+                                .font(.condensed(22, weight: .bold))
+                                .foregroundStyle(Color.textMain)
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 12, weight: .bold))
+                                .foregroundStyle(Color.purpleBright)
+                        }
+                    }
+                    Spacer()
+                    HStack(spacing: 12) {
+                        miniStat(Fmt.clock(workout.duration), "TIME")
+                        miniStat(Fmt.volumeK(Stats.volume(workout)), "LB VOL")
+                        let prs = Stats.prSets(workout).count
+                        miniStat("\(prs)", "PRS", glow: prs > 0)
+                    }
                 }
-                Spacer()
-                HStack(spacing: 12) {
-                    miniStat(Fmt.clock(workout.duration), "TIME")
-                    miniStat(Fmt.volumeK(Stats.volume(workout)), "LB VOL")
-                    let prs = Stats.prSets(workout).count
-                    miniStat("\(prs)", "PRS", glow: prs > 0)
-                }
+                .padding(.horizontal, 16)
+                .padding(.top, 14)
+                .padding(.bottom, 10)
+                .contentShape(Rectangle())
             }
-            .padding(.horizontal, 16)
-            .padding(.top, 14)
-            .padding(.bottom, 10)
+            .buttonStyle(.plain)
             .overlay(alignment: .bottom) {
                 Rectangle().fill(Color.hairline).frame(height: 1)
             }
