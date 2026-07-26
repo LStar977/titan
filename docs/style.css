@@ -1,0 +1,235 @@
+@font-face {
+  font-family: "Barlow";
+  src: url("fonts/Barlow-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Barlow";
+  src: url("fonts/Barlow-SemiBold.ttf") format("truetype");
+  font-weight: 600;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Barlow Condensed";
+  src: url("fonts/BarlowCondensed-ExtraBold.ttf") format("truetype");
+  font-weight: 800;
+  font-display: swap;
+}
+
+:root {
+  --bg: #0a0a0f;
+  --surface: #131320;
+  --primary: #8b5cf6;
+  --bright: #a78bfa;
+  --glow: #c4b5fd;
+  --text: #ededf4;
+  --soft: #c7c7d6;
+  --dim: #8e8ea3;
+  --faint: #62627a;
+  --hairline: rgba(255, 255, 255, 0.07);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  background-image: radial-gradient(
+    ellipse 70% 40% at 50% 0%,
+    rgba(139, 92, 246, 0.16),
+    transparent 70%
+  );
+  background-repeat: no-repeat;
+  color: var(--soft);
+  font-family: "Barlow", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 17px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+
+.wrap {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 72px 24px 96px;
+}
+
+header {
+  border-bottom: 1px solid var(--hairline);
+  padding-bottom: 34px;
+  margin-bottom: 40px;
+}
+
+.wordmark {
+  font-family: "Barlow Condensed", sans-serif;
+  font-weight: 800;
+  font-size: 46px;
+  letter-spacing: 10px;
+  color: #fff;
+  text-shadow: 0 0 44px rgba(139, 92, 246, 0.55);
+  margin: 0;
+  line-height: 1;
+}
+
+.tagline {
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: var(--dim);
+  margin-top: 14px;
+}
+
+h1 {
+  font-family: "Barlow Condensed", sans-serif;
+  font-weight: 800;
+  font-size: 44px;
+  letter-spacing: 1px;
+  color: var(--text);
+  line-height: 1.05;
+  margin: 0 0 10px;
+}
+
+h2 {
+  font-family: "Barlow Condensed", sans-serif;
+  font-weight: 800;
+  font-size: 27px;
+  letter-spacing: 0.5px;
+  color: var(--text);
+  margin: 44px 0 10px;
+}
+
+h3 {
+  font-weight: 600;
+  font-size: 18px;
+  color: var(--text);
+  margin: 28px 0 4px;
+}
+
+p {
+  margin: 0 0 16px;
+}
+
+a {
+  color: var(--bright);
+  text-decoration: none;
+  border-bottom: 1px solid rgba(167, 139, 250, 0.35);
+}
+
+a:hover {
+  color: var(--glow);
+  border-bottom-color: var(--glow);
+}
+
+ul {
+  padding-left: 22px;
+  margin: 0 0 16px;
+}
+
+li {
+  margin-bottom: 7px;
+}
+
+.lede {
+  font-size: 19px;
+  color: var(--text);
+}
+
+.meta {
+  font-size: 14px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--faint);
+  font-weight: 600;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: 18px;
+  padding: 24px 26px;
+  margin: 26px 0;
+}
+
+.card p:last-child {
+  margin-bottom: 0;
+}
+
+.apps {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin: 26px 0 0;
+}
+
+.app {
+  flex: 1 1 240px;
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: 18px;
+  padding: 20px 22px;
+}
+
+.app .name {
+  font-family: "Barlow Condensed", sans-serif;
+  font-weight: 800;
+  font-size: 26px;
+  letter-spacing: 2px;
+  color: var(--text);
+}
+
+.app .desc {
+  font-size: 15px;
+  color: var(--dim);
+  margin-top: 2px;
+}
+
+.mail {
+  display: inline-block;
+  background: linear-gradient(100deg, #5b21b6, #8b5cf6);
+  color: #fff;
+  border: none;
+  border-radius: 14px;
+  padding: 15px 28px;
+  font-weight: 600;
+  font-size: 17px;
+  letter-spacing: 1px;
+  margin-top: 6px;
+  box-shadow: 0 12px 30px rgba(139, 92, 246, 0.28);
+}
+
+.mail:hover {
+  color: #fff;
+}
+
+footer {
+  border-top: 1px solid var(--hairline);
+  margin-top: 64px;
+  padding-top: 26px;
+  font-size: 14px;
+  color: var(--faint);
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+footer a {
+  color: var(--dim);
+  border-bottom-color: rgba(142, 142, 163, 0.3);
+}
+
+@media (max-width: 560px) {
+  .wrap {
+    padding: 48px 20px 72px;
+  }
+  .wordmark {
+    font-size: 36px;
+    letter-spacing: 7px;
+  }
+  h1 {
+    font-size: 34px;
+  }
+}
