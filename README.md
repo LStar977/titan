@@ -5,7 +5,7 @@ Claude Design handoff (`DESIGN_BRIEF.md` has the full feature scope).
 
 **Demo video:** [promo/renders/titan-promo.mp4](promo/renders/titan-promo.mp4) (26s, vertical) ·
 VALKYRIE: [promo/renders/valkyrie-promo.mp4](promo/renders/valkyrie-promo.mp4)
-**Status:** on TestFlight (build 4), App Store submission package complete.
+**Status:** live on the App Store.
 
 <p>
   <img src="screenshots/6.9-inch/01-home-dashboard.png" width="19%" alt="Home dashboard" />
@@ -60,8 +60,8 @@ rank names, copy, and default body model, switched by one compilation condition.
   automatically, a second brand would cost a day rather than a fork. It did.
 
 **Result.** Brief on 22 July 2026, TestFlight builds by 25 July, App Store submission
-package (metadata, privacy pages, screenshots in three device sizes) by 26 July. Two
-apps, one codebase, 29 commits. The same brief-to-handoff-to-code pipeline was reused
+package (metadata, privacy pages, screenshots in three device sizes) by 26 July, and
+live on the App Store. Two apps, one codebase, 29 commits. The same brief-to-handoff-to-code pipeline was reused
 for the next portfolio project, [Distill](https://github.com/LStar977/distill).
 
 ---
