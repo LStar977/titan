@@ -3,6 +3,69 @@
 A native iOS strength-training tracker. Dark-only, purple-on-black, built to match the
 Claude Design handoff (`DESIGN_BRIEF.md` has the full feature scope).
 
+**Demo video:** [promo/renders/titan-promo.mp4](promo/renders/titan-promo.mp4) (26s, vertical) ·
+VALKYRIE: [promo/renders/valkyrie-promo.mp4](promo/renders/valkyrie-promo.mp4)
+**Status:** on TestFlight (build 4), App Store submission package complete.
+
+<p>
+  <img src="screenshots/6.9-inch/01-home-dashboard.png" width="19%" alt="Home dashboard" />
+  <img src="screenshots/6.9-inch/02-active-workout.png" width="19%" alt="Active workout with rest timer" />
+  <img src="screenshots/6.9-inch/03-workout-complete.png" width="19%" alt="Workout complete" />
+  <img src="screenshots/6.9-inch/04-progress-heatmap.png" width="19%" alt="Muscle heat map" />
+  <img src="screenshots/6.9-inch/05-profile-titan-ranks.png" width="19%" alt="Titan ranks" />
+</p>
+
+## The case study
+
+> Portfolio project: the polished-product piece. Brief → Claude Design → native code →
+> TestFlight in five days, and a second app for free on day three.
+
+**Problem.** Most workout trackers are slow at the one moment that matters: between
+sets, when you're gassed and want to record a number and get back under the bar. They
+bury logging under accounts, sync, and social features, and they hide the two things
+lifters actually care about (did I beat my best, and what have I actually trained this
+week) behind menus. I wanted a log that gets out of the way, catches personal records
+without spreadsheets, and stores everything on the phone with no account.
+
+**What I built.** A native SwiftUI + SwiftData app for iOS 17+, about 7,500 lines of
+Swift across 15 screens: one-tap set logging with last session's numbers pre-filled,
+an automatic rest timer, estimated one-rep-max tracking with PR detection on every set,
+routines with supersets and a program library, a front-and-back muscle heat map of
+weekly volume, a twelve-level rank ladder, a plate calculator, and body and supplement
+tracking. Fully offline. Then, on day three, a brand configuration layer that builds a
+second app, **VALKYRIE**, from the same codebase: light palette, different wordmark,
+rank names, copy, and default body model, switched by one compilation condition.
+
+**How AI was used.** TITAN is not an AI product; the AI is in how it was made.
+- **Design first, in Claude Design.** The brief in `DESIGN_BRIEF.md` was written before
+  any code, with the palette pulled from the logo and every v1 feature scoped. Claude
+  Design produced the screens; the handoff in `design/handoff` is the source the app was
+  built to match, and the App Store screenshots were rendered from the same handoff so
+  the listing matches the product.
+- **Built with Claude Code.** From handoff to a compiling SwiftUI app in a day, then
+  iterated from real use: a feedback round moved custom workouts first, replaced steppers
+  with typed input where it mattered, and made set types clearer. The heat map went
+  through three anatomy attempts in one afternoon and was reverted to the simpler
+  pill-style body, because the realistic silhouette looked worse at phone size.
+- **Promo in code.** The two 26-second promo videos are Remotion compositions that read
+  the app's real palette, fonts, and icons, so one timeline renders both brands, the same
+  way one codebase builds both apps.
+
+**Decisions worth noting.**
+- Started as a PWA and switched to native SwiftUI on day one, for haptics, background
+  rest timers, and SwiftData persistence without a backend.
+- No account and no network in v1. It shipped faster, and it makes the privacy story
+  one sentence long.
+- The brand layer was a deliberate bet: if every feature had to land in both apps
+  automatically, a second brand would cost a day rather than a fork. It did.
+
+**Result.** Brief on 22 July 2026, TestFlight builds by 25 July, App Store submission
+package (metadata, privacy pages, screenshots in three device sizes) by 26 July. Two
+apps, one codebase, 29 commits. The same brief-to-handoff-to-code pipeline was reused
+for the next portfolio project, [Distill](https://github.com/LStar977/distill).
+
+---
+
 **This repo builds two apps from one codebase:**
 
 | Target | Brand | Theme | Bundle ID |
