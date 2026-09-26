@@ -285,7 +285,7 @@ struct AddSupplementSheet: View {
                     .foregroundStyle(Color.textMain)
             }
             .padding(12)
-            .background(RoundedRectangle(cornerRadius: 13).fill(Color.surface2))
+            .background(RoundedRectangle(cornerRadius: 13).fieldFill())
 
             VStack(alignment: .leading, spacing: 4) {
                 Text("SERVING SIZE")
@@ -298,7 +298,7 @@ struct AddSupplementSheet: View {
                     .keyboardType(.decimalPad)
             }
             .padding(12)
-            .background(RoundedRectangle(cornerRadius: 13).fill(Color.surface2))
+            .background(RoundedRectangle(cornerRadius: 13).fieldFill())
 
             VStack(alignment: .leading, spacing: 8) {
                 SectionLabel("Unit")
@@ -314,9 +314,13 @@ struct AddSupplementSheet: View {
                                 .foregroundStyle(sel ? .white : Color.textDim)
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 9)
-                                .background(
-                                    Capsule().fill(sel ? AnyShapeStyle(Color.purplePrimary) : AnyShapeStyle(Color.surface2))
-                                )
+                                .background {
+                                    if sel {
+                                        Capsule().fill(Color.purplePrimary)
+                                    } else {
+                                        Capsule().fieldFill()
+                                    }
+                                }
                         }
                         .buttonStyle(.plain)
                     }

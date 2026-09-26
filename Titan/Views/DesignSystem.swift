@@ -259,8 +259,10 @@ struct NumberField: View {
             .onAppear { text = NumberField.format(value, decimals: decimals) }
             .onChange(of: text) { _, newText in
                 if let v = NumberField.parse(newText) {
-                    if abs(v - value) > 0.0001 { value = max(0, v) }
-                } else if newText.isEmpty, value != 0, !focused {
+                    if abs(v - value) > 0.0001 { value = v }
+                } else if newText.isEmpty, value != 0 {
+                    // A cleared field is zero even mid-edit, so what's on
+                    // screen is exactly what LOG SET records.
                     value = 0
                 }
             }
@@ -281,14 +283,16 @@ struct NumberField: View {
             }
     }
 
+    /// Accepts "82,5" as well as "82.5". Pasted nonsense ("1e999", "nan") is
+    /// rejected and anything huge is capped, so no stored value can overflow.
     static func parse(_ s: String) -> Double? {
         let t = s.replacingOccurrences(of: ",", with: ".").trimmingCharacters(in: .whitespaces)
-        guard !t.isEmpty else { return nil }
-        return Double(t)
+        guard let v = Double(t), v.isFinite else { return nil }
+        return min(max(v, 0), 99_999)
     }
 
     static func format(_ v: Double, decimals: Bool) -> String {
-        decimals ? Fmt.num(v) : String(Int(v.rounded()))
+        decimals ? Fmt.num(v) : String(v.roundedInt)
     }
 }
 

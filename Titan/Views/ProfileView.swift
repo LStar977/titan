@@ -100,7 +100,7 @@ struct ProfileView: View {
                     .font(.condensed(30, weight: .heavy))
                     .kerning(1.8)
                     .foregroundStyle(Color.textMain)
-                    .shadow(color: Color.purplePrimary.opacity(0.45), radius: 9)
+                    .brandGlow(Color.purplePrimary.opacity(0.45), radius: 9)
                     .lineLimit(1)
                     .minimumScaleFactor(0.7)
                 RankProgressBar(fraction: prog.fraction)
@@ -197,10 +197,11 @@ struct ProfileView: View {
                 Hexagon()
                     .fill(Color.surfaceSunken)
                     .frame(width: 48, height: 53)
+                    .overlay(Hexagon().stroke(Color.outline.opacity(0.5), lineWidth: 1))
                     .overlay(
                         Image(systemName: "lock.fill")
                             .font(.system(size: 13))
-                            .foregroundStyle(Color.outline)
+                            .foregroundStyle(Color.textDim)
                     )
                 Text(name)
                     .font(.barlow(11, weight: .bold))
@@ -547,6 +548,6 @@ struct LogMetricsSheet: View {
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 10)
-        .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(Color.surface2))
+        .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fieldFill())
     }
 }

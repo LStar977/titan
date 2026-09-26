@@ -112,7 +112,7 @@ struct ProgressTabView: View {
             Text(value)
                 .font(.condensed(30, weight: .bold))
                 .foregroundStyle(glow ? Color.glow : Color.textMain)
-                .shadow(color: glow ? Color.glow.opacity(0.4) : .clear, radius: 6)
+                .brandGlow(glow ? Color.glow.opacity(0.4) : .clear, radius: 6)
                 .lineLimit(1)
                 .minimumScaleFactor(0.6)
                 .contentTransition(.numericText())
@@ -137,15 +137,15 @@ struct ProgressTabView: View {
 
     private func percentChange(_ now: Double, _ then: Double) -> (text: String, up: Bool)? {
         guard then > 0 else { return nil }
-        let pct = Int(((now - then) / then * 100).rounded())
-        return pct >= 0 ? ("+\(pct)%", true) : ("−\(-pct)%", false)
+        let pct = ((now - then) / then * 100).roundedInt
+        return pct >= 0 ? (text: "+\(pct)%", up: true) : (text: "−\(-pct)%", up: false)
     }
 
     private func countChange(_ now: Int, _ then: Int) -> (text: String, up: Bool)? {
         guard then > 0 || now > 0 else { return nil }
         let d = now - then
-        if d == 0 { return ("=", true) }
-        return d > 0 ? ("+\(d)", true) : ("−\(-d)", false)
+        if d == 0 { return (text: "=", up: true) }
+        return d > 0 ? (text: "+\(d)", up: true) : (text: "−\(-d)", up: false)
     }
 
     // MARK: Trend
@@ -419,7 +419,7 @@ struct ProgressTabView: View {
     }
 
     private func changeChip(_ change: Double) -> some View {
-        let shown = Int(Fmt.unit.fromLb(abs(change)).rounded())
+        let shown = Fmt.unit.fromLb(abs(change)).roundedInt
         let up = change > 0.5
         let flat = shown == 0
         return Text(flat ? "±0" : (up ? "+\(shown)" : "−\(shown)"))

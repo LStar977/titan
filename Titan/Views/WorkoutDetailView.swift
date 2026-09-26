@@ -40,6 +40,14 @@ struct WorkoutDetailView: View {
         }
         .scrollDismissesKeyboard(.interactively)
         .background((asSheet ? Color.sheetBg : Color.bg).ignoresSafeArea())
+        .interactiveDismissDisabled(editing)
+        // Leaving mid-edit (another tab, swipe back) still saves properly.
+        .onDisappear {
+            if editing {
+                commitEdits()
+                editing = false
+            }
+        }
         .toolbar(.hidden, for: .navigationBar)
         .toolbar {
             ToolbarItemGroup(placement: .keyboard) {
@@ -160,7 +168,7 @@ struct WorkoutDetailView: View {
                     .foregroundStyle(Color.textMain)
                     .padding(.horizontal, 12)
                     .padding(.vertical, 6)
-                    .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(Color.surface2))
+                    .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fieldFill())
             } else {
                 Text(workout.title.uppercased())
                     .font(.condensed(36, weight: .heavy))
@@ -187,7 +195,7 @@ struct WorkoutDetailView: View {
             Text(value)
                 .font(.condensed(22, weight: .bold))
                 .foregroundStyle(glow ? Color.glow : Color.textMain)
-                .shadow(color: glow ? Color.glow.opacity(0.5) : .clear, radius: 6)
+                .brandGlow(glow ? Color.glow.opacity(0.5) : .clear, radius: 6)
                 .lineLimit(1)
                 .minimumScaleFactor(0.6)
             Text(label)
@@ -293,7 +301,9 @@ struct WorkoutDetailView: View {
                     .foregroundStyle(Color.textFaint)
                     .padding(16)
             } else {
-                ForEach(Array(done.enumerated()), id: \.offset) { i, set in
+                // Keyed by the set itself, so deleting one row can't shift a
+                // focused field onto its neighbour.
+                ForEach(done) { set in
                     Group {
                         if editing {
                             editRow(set, in: entry)
@@ -303,7 +313,7 @@ struct WorkoutDetailView: View {
                     }
                     .padding(.horizontal, 16)
                     .frame(minHeight: 50)
-                    if i < done.count - 1 {
+                    if set !== done.last {
                         Divider().overlay(Color.hairlineSoft).padding(.leading, 56)
                     }
                 }
@@ -326,7 +336,7 @@ struct WorkoutDetailView: View {
                 Text(loadLabel(set))
                     .font(.condensed(23, weight: .bold))
                     .foregroundStyle(set.isPR ? Color.glow : Color.textMain)
-                    .shadow(color: set.isPR ? Color.glow.opacity(0.5) : .clear, radius: 6)
+                    .brandGlow(set.isPR ? Color.glow.opacity(0.5) : .clear, radius: 6)
             }
             if set.isPR {
                 PRBadge(filled: true)
@@ -348,7 +358,7 @@ struct WorkoutDetailView: View {
                     .font(.condensed(22, weight: .bold))
                     .foregroundStyle(Color.textMain)
                     .frame(width: 78, height: 40)
-                    .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(Color.surface2))
+                    .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fieldFill())
                 Text(Fmt.unitLabel)
                     .font(.barlow(13, weight: .semibold))
                     .foregroundStyle(Color.textDim)
@@ -360,7 +370,7 @@ struct WorkoutDetailView: View {
                 .font(.condensed(22, weight: .bold))
                 .foregroundStyle(Color.textMain)
                 .frame(width: 58, height: 40)
-                .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(Color.surface2))
+                .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fieldFill())
             Text(entry.isDuration ? "min" : "reps")
                 .font(.barlow(13, weight: .semibold))
                 .foregroundStyle(Color.textDim)
@@ -389,7 +399,7 @@ struct WorkoutDetailView: View {
     private func repsBinding(_ set: SetEntry) -> Binding<Double> {
         Binding(
             get: { Double(set.reps) },
-            set: { set.reps = max(0, min(999, Int($0.rounded()))) }
+            set: { set.reps = max(0, min(999, $0.roundedInt)) }
         )
     }
 
@@ -438,6 +448,15 @@ struct WorkoutDetailView: View {
     // MARK: Actions
 
     private func finishEditing() {
+        commitEdits()
+        hideKeyboard()
+        withAnimation(.snappy) { editing = false }
+        Haptics.success()
+    }
+
+    /// Tidies the edited workout and re-derives records (and with them XP)
+    /// for it and everything after.
+    private func commitEdits() {
         let title = workout.title.trimmingCharacters(in: .whitespacesAndNewlines)
         if title.isEmpty { workout.title = Stats.autoTitle(workout) }
         let empty = workout.entries.filter { $0.completedSets.isEmpty }
@@ -447,9 +466,6 @@ struct WorkoutDetailView: View {
         }
         Stats.recomputePRs(since: workout.startedAt, all: workouts)
         try? context.save()
-        hideKeyboard()
-        withAnimation(.snappy) { editing = false }
-        Haptics.success()
     }
 
     private func removeSet(_ set: SetEntry, from entry: WorkoutEntry) {

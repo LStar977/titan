@@ -20,7 +20,7 @@ struct StatTile: View {
                 Text(value)
                     .font(.condensed(32, weight: .bold))
                     .foregroundStyle(glowing ? Color.glow : Color.textMain)
-                    .shadow(color: glowing ? Color.glow.opacity(0.5) : .clear, radius: 7)
+                    .brandGlow(glowing ? Color.glow.opacity(0.5) : .clear, radius: 7)
                     .lineLimit(1)
                     .minimumScaleFactor(0.6)
                     .contentTransition(.numericText())

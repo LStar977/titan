@@ -45,7 +45,10 @@ final class AppState {
     }
 
     func startRest(seconds: Int, next: RestNext?) {
-        guard seconds > 0 else { return }
+        guard seconds > 0 else {
+            stopRest()
+            return
+        }
         let now = Date()
         restTotal = Double(seconds)
         restStartedAt = now

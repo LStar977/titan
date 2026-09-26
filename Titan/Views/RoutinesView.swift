@@ -546,7 +546,8 @@ struct RoutineEditorView: View {
     }
 
     private func itemRow(_ item: RoutineItem) -> some View {
-        Button {
+        let rest = item.restSeconds > 0 ? "rest \(Fmt.clock(Double(item.restSeconds)))" : "no rest"
+        return Button {
             editingItem = item
         } label: {
             HStack(spacing: 12) {
@@ -565,7 +566,7 @@ struct RoutineEditorView: View {
                                 .overlay(RoundedRectangle(cornerRadius: 4).stroke(Color.purplePrimary.opacity(0.45), lineWidth: 1))
                         }
                     }
-                    Text("\(item.plannedSets) sets · \(item.repLow)–\(item.repHigh) reps · rest \(Fmt.clock(Double(item.restSeconds)))")
+                    Text("\(item.plannedSets) sets · \(item.repLow)–\(item.repHigh) reps · \(rest)")
                         .font(.barlow(13))
                         .foregroundStyle(Color.textDim)
                 }
@@ -662,7 +663,7 @@ struct RoutineItemSheet: View {
                 item.repHigh = min(50, item.repHigh + 1)
             }
 
-            stepperRow("Rest", value: Fmt.clock(Double(item.restSeconds))) {
+            stepperRow("Rest", value: item.restSeconds > 0 ? Fmt.clock(Double(item.restSeconds)) : "Off") {
                 item.restSeconds = max(0, item.restSeconds - 15)
             } plus: {
                 item.restSeconds = min(600, item.restSeconds + 15)

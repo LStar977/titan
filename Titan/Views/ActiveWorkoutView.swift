@@ -26,6 +26,7 @@ struct ActiveWorkoutView: View {
     @State private var showRename = false
     @State private var renameText = ""
     @State private var toast: ToastInfo?
+    @State private var finishing = false
 
     // MARK: Derived state
 
@@ -80,6 +81,16 @@ struct ActiveWorkoutView: View {
     // MARK: Body
 
     var body: some View {
+        // Finishing deletes the unlogged sets, so the logger steps aside
+        // instead of drawing them during the hand-off to the summary.
+        if finishing {
+            Color.bg.ignoresSafeArea()
+        } else {
+            logger
+        }
+    }
+
+    private var logger: some View {
         let current = currentEntry
         return ScrollViewReader { proxy in
             VStack(spacing: 0) {
@@ -224,7 +235,9 @@ struct ActiveWorkoutView: View {
         .padding(.top, 4)
         .padding(.bottom, 12)
         .background(
-            Color.sheetBg
+            // White on the light theme, where the tinted sheet color would
+            // swallow the header's tinted buttons.
+            (Brand.isLight ? Color.surface : Color.sheetBg)
                 .overlay(alignment: .bottom) { Rectangle().fill(Color.hairline).frame(height: 1) }
                 .ignoresSafeArea(edges: .top)
         )
@@ -595,8 +608,7 @@ struct ActiveWorkoutView: View {
         if let target = entry.targetLabel {
             parts.append(target.uppercased())
         }
-        let rest = entry.restSeconds > 0 ? entry.restSeconds : (profiles.first?.defaultRestSeconds ?? 120)
-        parts.append("REST \(Fmt.clock(Double(rest)))")
+        parts.append(entry.restSeconds > 0 ? "REST \(Fmt.clock(Double(entry.restSeconds)))" : "NO REST")
         return parts.joined(separator: " · ")
     }
 
@@ -1080,13 +1092,16 @@ struct ActiveWorkoutView: View {
             Haptics.medium()
         }
 
-        let next = nextUp(after: entry)
-        if next != nil && !skipsRest(after: entry) {
-            let seconds = entry.restSeconds > 0 ? entry.restSeconds : (profiles.first?.defaultRestSeconds ?? 120)
+        // Every log either starts the next rest or ends the running one, so a
+        // rest never outlives the set that followed it.
+        let next = nextUp(after: set, in: entry)
+        if let next, let seconds = restSeconds(after: set, in: entry) {
             withAnimation(.spring(response: 0.4, dampingFraction: 0.85)) {
-                app.startRest(seconds: seconds, next: next.map { restNext(for: $0.set, in: $0.entry) })
+                app.startRest(seconds: seconds, next: restNext(for: next.set, in: next.entry))
             }
             RestAlerts.requestIfNeeded()
+        } else {
+            withAnimation(.snappy) { app.stopRest() }
         }
 
         withAnimation(.snappy(duration: 0.35)) {
@@ -1099,6 +1114,7 @@ struct ActiveWorkoutView: View {
     }
 
     private func unlog(_ set: SetEntry) {
+        cancelRest(startedBy: set)
         set.isCompleted = false
         set.isPR = false
         set.completedAt = nil
@@ -1109,16 +1125,18 @@ struct ActiveWorkoutView: View {
         save()
     }
 
-    /// The set that should come after one in `entry` was logged.
-    private func nextUp(after entry: WorkoutEntry) -> (entry: WorkoutEntry, set: SetEntry)? {
+    /// The set that should come after `set` in `entry` was logged.
+    private func nextUp(after set: SetEntry, in entry: WorkoutEntry) -> (entry: WorkoutEntry, set: SetEntry)? {
         let list = entries
+        // A warm-up ramps into its own lift before any hand-off.
+        if set.type == .warmup, let s = activeSet(entry) { return (entry, s) }
         if let g = entry.supersetGroup {
             let group = list.filter { $0.supersetGroup == g }
             if group.count > 1, let i = group.firstIndex(where: { $0 === entry }) {
                 // Partners after this one first, wrapping around the group.
                 let rotated = Array(group[(i + 1)...]) + Array(group[..<i])
-                let myDone = entry.completedSets.count
-                if let partner = rotated.first(where: { $0.completedSets.count < myDone && $0.hasPendingSets }),
+                let mine = rounds(entry)
+                if let partner = rotated.first(where: { rounds($0) < mine && $0.hasPendingSets }),
                    let s = activeSet(partner) {
                     return (partner, s)
                 }
@@ -1138,12 +1156,39 @@ struct ActiveWorkoutView: View {
         return nil
     }
 
+    /// Rest after `set`, or nil to go straight on: supersets rest after the
+    /// round rather than between partners, warm-ups get a short breather, and
+    /// a rest set to 0:00 in the routine means none.
+    private func restSeconds(after set: SetEntry, in entry: WorkoutEntry) -> Int? {
+        guard entry.restSeconds > 0 else { return nil }
+        if set.type == .warmup { return min(entry.restSeconds, 60) }
+        return skipsRest(after: entry) ? nil : entry.restSeconds
+    }
+
     /// Supersets rest after the round, not between partners.
     private func skipsRest(after entry: WorkoutEntry) -> Bool {
         guard let g = entry.supersetGroup else { return false }
-        let myDone = entry.completedSets.count
+        let mine = rounds(entry)
         return entries.contains {
-            $0.supersetGroup == g && $0 !== entry && $0.completedSets.count < myDone && $0.hasPendingSets
+            $0.supersetGroup == g && $0 !== entry && rounds($0) < mine && $0.hasPendingSets
+        }
+    }
+
+    /// Superset rounds done — working sets only, so warm-ups never pair up.
+    private func rounds(_ entry: WorkoutEntry) -> Int {
+        entry.workingSets.count
+    }
+
+    /// A running rest was started by the most recently logged set, so undoing
+    /// or deleting that set takes its rest (and alert) back too.
+    private func cancelRest(startedBy set: SetEntry) {
+        guard app.restEndsAt != nil, let done = set.completedAt else { return }
+        let latest = workout.entries
+            .flatMap { $0.sets }
+            .compactMap { $0.isCompleted ? $0.completedAt : nil }
+            .max()
+        if done == latest {
+            withAnimation(.snappy) { app.stopRest() }
         }
     }
 
@@ -1199,6 +1244,7 @@ struct ActiveWorkoutView: View {
     }
 
     private func deleteSet(_ set: SetEntry, from entry: WorkoutEntry) {
+        cancelRest(startedBy: set)
         if editingSetID == ObjectIdentifier(set) { editingSetID = nil }
         withAnimation(.snappy) {
             entry.sets.removeAll { $0 === set }
@@ -1317,6 +1363,7 @@ struct ActiveWorkoutView: View {
     }
 
     private func finish() {
+        finishing = true
         WorkoutBuilder.cleanUp(workout, context: context)
         if workout.title == WorkoutBuilder.defaultTitle {
             workout.title = Stats.autoTitle(workout)
@@ -1438,7 +1485,7 @@ struct SetPanel: View {
     private var reps: Binding<Double> {
         Binding(
             get: { Double(set.reps) },
-            set: { set.reps = max(0, min(999, Int($0.rounded()))) }
+            set: { set.reps = max(0, min(999, $0.roundedInt)) }
         )
     }
 

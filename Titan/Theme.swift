@@ -112,6 +112,21 @@ extension View {
     func card(_ radius: CGFloat = Layout.cardRadius, border: Color = .hairline) -> some View {
         modifier(CardBackground(radius: radius, borderColor: border))
     }
+
+    /// The soft neon glow behind headline numbers and titles. On the light
+    /// theme a glow reads as a smudge, so it's dropped there.
+    func brandGlow(_ color: Color, radius: CGFloat) -> some View {
+        shadow(color: Brand.isLight ? .clear : color, radius: radius)
+    }
+}
+
+extension Shape {
+    /// Fill for text fields and chips. A tinted fill all but vanishes on the
+    /// light theme's tinted sheets, so there it's white with a visible edge.
+    func fieldFill() -> some View {
+        fill(Brand.isLight ? Color.surface : Color.surface2)
+            .overlay(stroke(Color.black.opacity(Brand.isLight ? 0.14 : 0), lineWidth: 1))
+    }
 }
 
 // MARK: - Buttons
@@ -319,7 +334,7 @@ enum Fmt {
     static func weightU(_ lb: Double) -> String { "\(weight(lb)) \(unitLabel)" }
 
     /// Stored pounds rounded to a whole number in the athlete's unit (e1RM).
-    static func whole(_ lb: Double) -> String { String(Int(unit.fromLb(lb).rounded())) }
+    static func whole(_ lb: Double) -> String { String(unit.fromLb(lb).roundedInt) }
 
     /// Stored pounds as compact volume: 42_300 → "42.3k".
     static func volumeK(_ lb: Double) -> String { compact(unit.fromLb(lb)) }
@@ -328,7 +343,7 @@ enum Fmt {
     static func compact(_ v: Double) -> String {
         if v >= 1_000_000 { return num(v / 1_000_000, decimals: 2) + "M" }
         if v >= 1000 { return String(format: "%.1fk", v / 1000) }
-        return String(Int(v.rounded()))
+        return String(v.roundedInt)
     }
 
     /// Stored inches shown as inches or centimetres.
@@ -336,13 +351,13 @@ enum Fmt {
 
     /// Rest-timer style: 83 → "1:23".
     static func clock(_ t: TimeInterval) -> String {
-        let s = max(0, Int(t.rounded()))
+        let s = max(0, t.roundedInt)
         return String(format: "%d:%02d", s / 60, s % 60)
     }
 
     /// Workout length: "58 min", "1 h 12 min".
     static func duration(_ t: TimeInterval) -> String {
-        let m = max(0, Int((t / 60).rounded()))
+        let m = max(0, (t / 60).roundedInt)
         if m < 60 { return "\(m) min" }
         let h = m / 60
         let r = m % 60
@@ -352,7 +367,7 @@ enum Fmt {
     /// Compact hours for lifetime totals: "37.5 h".
     static func hours(_ t: TimeInterval) -> String {
         let h = t / 3600
-        return h < 10 ? num(h, decimals: 1) + " h" : "\(Int(h.rounded())) h"
+        return h < 10 ? num(h, decimals: 1) + " h" : "\(h.roundedInt) h"
     }
 
     static func shortDate(_ d: Date) -> String { shortFormatter.string(from: d) }
@@ -394,4 +409,13 @@ enum Fmt {
         f.dateStyle = .none
         return f
     }()
+}
+
+extension Double {
+    /// Rounded to an `Int` without trapping: NaN and infinity become 0 and
+    /// absurd values are clamped, so bad data can never crash a screen.
+    var roundedInt: Int {
+        guard isFinite else { return 0 }
+        return Int(Swift.max(-1e12, Swift.min(1e12, rounded())))
+    }
 }

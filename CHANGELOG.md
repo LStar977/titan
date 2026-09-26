@@ -29,6 +29,7 @@ A redesign built around the gym floor.
 - Program exercises missing from the library showed a blank name when a workout started.
 - XP never came back off when a workout was removed; rank is now derived from the log itself.
 - Cardio and stretching pages showed "0 lb" stats; they now show minutes.
+- A routine rest of 0:00 started a 2:00 timer anyway; it now means no rest (shown as "Off").
 
 ### New
 - Focus-mode workout logger: the current exercise expands with a large set panel; the rest collapse to progress rows, and focus advances automatically — alternating between superset partners, with rest after each round.
@@ -49,6 +50,7 @@ A redesign built around the gym floor.
 - Every tappable control is at least 44 pt.
 - Shared components (DesignSystem.swift): ScreenTitle, SectionHeader, PillPicker, StepperField, NumberField, ProgressRing, RankEmblem, RecordToast, EmptyStateCard.
 - Press feedback on every button; softer cards with a hint of depth in the light theme.
+- Light theme contrast: faint text and control outlines darkened to at least 3:1, fields and chips in sheets are white with a visible edge, and neon glows are dropped on light backgrounds.
 
 ### Data model (automatic migration — no data loss)
 - `Workout.notes`, `WorkoutEntry.notes`, `WorkoutEntry.targetLow`, `WorkoutEntry.targetHigh`, all with defaults.

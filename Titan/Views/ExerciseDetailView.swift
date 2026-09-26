@@ -32,6 +32,7 @@ struct ExerciseDetailView: View {
 
     var body: some View {
         let list = sessions()
+        let chart = chartData(list)
         return ScrollView {
             VStack(alignment: .leading, spacing: 14) {
                 topBar
@@ -48,8 +49,8 @@ struct ExerciseDetailView: View {
                     } else {
                         strengthStats(list)
                     }
-                    if list.count > 1 {
-                        chartCard(list)
+                    if chart.points.count > 1 {
+                        chartCard(chart)
                     }
                     if !isDuration {
                         repMaxCard
@@ -120,23 +121,23 @@ struct ExerciseDetailView: View {
 
     private func strengthStats(_ list: [ExerciseSession]) -> some View {
         let all = list.flatMap { $0.sets }
-        let best = all.map { Stats.e1RM($0.weight, $0.reps) }.max() ?? 0
+        let load = tracksLoad(list)
+        let best = all.filter { $0.weight > 0 }.map { Stats.e1RM($0.weight, $0.reps) }.max() ?? 0
         let lifetime = all.reduce(0.0) { $0 + Stats.setVolume($1) }
         let bestSet = Stats.bestSet(exerciseName: exerciseName, workouts: workouts)
-        let bodyweightOnly = best == 0
-        let mostReps = all.map { $0.reps }.max() ?? 0
+        let mostReps = all.filter { $0.weight == 0 }.map { $0.reps }.max() ?? (all.map { $0.reps }.max() ?? 0)
         return HStack(spacing: 10) {
             VStack(alignment: .leading, spacing: 2) {
-                Text(bodyweightOnly ? "MOST REPS" : "EST. 1RM")
+                Text(load ? "EST. 1RM" : "MOST REPS")
                     .font(.barlow(11, weight: .semibold))
                     .kerning(1.4)
                     .foregroundStyle(Color.glow)
                 HStack(alignment: .firstTextBaseline, spacing: 2) {
-                    Text(bodyweightOnly ? "\(mostReps)" : Fmt.whole(best))
+                    Text(load ? Fmt.whole(best) : "\(mostReps)")
                         .font(.condensed(32, weight: .bold))
                         .foregroundStyle(Color.glow)
-                        .shadow(color: Color.glow.opacity(0.5), radius: 6)
-                    if !bodyweightOnly {
+                        .brandGlow(Color.glow.opacity(0.5), radius: 6)
+                    if load {
                         Text(Fmt.unitLabel)
                             .font(.condensed(16, weight: .bold))
                             .foregroundStyle(Color.textDim)
@@ -182,29 +183,47 @@ struct ExerciseDetailView: View {
 
     // MARK: Chart
 
-    private func chartCard(_ list: [ExerciseSession]) -> some View {
+    /// Whether this lift is measured by estimated 1RM or — for bodyweight work
+    /// done mostly without added weight — by reps. Decided once, so the header
+    /// and chart never mix the two scales.
+    private func tracksLoad(_ list: [ExerciseSession]) -> Bool {
+        guard !isDuration else { return false }
+        let recent = list.prefix(24)
+        let loaded = recent.filter { s in s.sets.contains { $0.weight > 0 } }.count
+        return loaded > 0 && loaded * 2 >= recent.count
+    }
+
+    /// The last 24 sessions, oldest first, all on the one scale. Sessions with
+    /// nothing on that scale are left out rather than plotted as zero.
+    private func chartData(_ list: [ExerciseSession]) -> (points: [SessionPoint], load: Bool) {
         let unit = Fmt.unit
-        let recent = Array(list.prefix(24).reversed())
-        let points: [SessionPoint] = recent.map { s in
+        let load = tracksLoad(list)
+        let points: [SessionPoint] = list.prefix(24).reversed().compactMap { s in
             let value: Double
             if isDuration {
                 value = Double(s.sets.reduce(0) { $0 + $1.reps })
+            } else if load {
+                value = unit.fromLb(s.sets.filter { $0.weight > 0 }.map { Stats.e1RM($0.weight, $0.reps) }.max() ?? 0)
             } else {
-                let e1rm = s.sets.map { Stats.e1RM($0.weight, $0.reps) }.max() ?? 0
-                value = e1rm > 0 ? unit.fromLb(e1rm) : Double(s.sets.map { $0.reps }.max() ?? 0)
+                value = Double(s.sets.filter { $0.weight == 0 }.map { $0.reps }.max() ?? 0)
             }
+            guard value > 0 else { return nil }
             return SessionPoint(date: s.workout.startedAt, value: value, isPR: s.sets.contains { $0.isPR })
         }
+        return (points: points, load: load)
+    }
+
+    private func chartCard(_ chart: (points: [SessionPoint], load: Bool)) -> some View {
+        let points = chart.points
         let lo = points.map { $0.value }.min() ?? 0
         let hi = points.map { $0.value }.max() ?? 1
         let pad = max((hi - lo) * 0.15, hi * 0.03, 1)
         let yMin = max(0, lo - pad)
         let yMax = hi + pad
-        let usesE1RM = !isDuration && (list.first?.sets.contains { $0.weight > 0 } ?? false)
 
         return VStack(alignment: .leading, spacing: 12) {
             HStack(alignment: .firstTextBaseline) {
-                SectionLabel(isDuration ? "Minutes per session" : (usesE1RM ? "Estimated 1RM" : "Best reps"))
+                SectionLabel(isDuration ? "Minutes per session" : (chart.load ? "Estimated 1RM" : "Best reps"))
                 Spacer()
                 Text("Last \(points.count) sessions")
                     .font(.barlow(12.5))

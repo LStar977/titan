@@ -183,7 +183,7 @@ struct ExercisePickerView: View {
         }
         .padding(.horizontal, 14)
         .frame(height: 46)
-        .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(Color.surface2))
+        .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fieldFill())
         .padding(.horizontal, 18)
         .padding(.bottom, 10)
     }
@@ -202,9 +202,13 @@ struct ExercisePickerView: View {
                             .foregroundStyle(sel ? Color.white : Color.textDim)
                             .padding(.horizontal, 14)
                             .frame(height: 36)
-                            .background(
-                                Capsule().fill(sel ? AnyShapeStyle(Color.accentGradient) : AnyShapeStyle(Color.surface2))
-                            )
+                            .background {
+                                if sel {
+                                    Capsule().fill(Color.accentGradient)
+                                } else {
+                                    Capsule().fieldFill()
+                                }
+                            }
                             .shadow(color: sel ? Color.purplePrimary.opacity(0.3) : .clear, radius: 6)
                     }
                     .buttonStyle(.plain)
@@ -296,7 +300,7 @@ struct ExercisePickerView: View {
         } label: {
             HStack(spacing: 14) {
                 RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .fill(Color.surface2)
+                    .fieldFill()
                     .frame(width: 40, height: 40)
                     .overlay(
                         Text(ex.equipment.abbrev)
@@ -439,8 +443,8 @@ struct NewExerciseSheet: View {
                     .foregroundStyle(Color.textMain)
             }
             .padding(14)
-            .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(Color.surface2))
-            .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(Color.strokeStrong, lineWidth: 1))
+            .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fieldFill())
+            .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(Brand.isLight ? Color.clear : Color.strokeStrong, lineWidth: 1))
 
             VStack(alignment: .leading, spacing: 8) {
                 SectionLabel("Equipment")
@@ -495,9 +499,13 @@ struct FlowChips: View {
                         .minimumScaleFactor(0.8)
                         .frame(maxWidth: .infinity)
                         .frame(height: 38)
-                        .background(
-                            Capsule().fill(sel ? AnyShapeStyle(Color.purplePrimary) : AnyShapeStyle(Color.surface2))
-                        )
+                        .background {
+                            if sel {
+                                Capsule().fill(Color.purplePrimary)
+                            } else {
+                                Capsule().fieldFill()
+                            }
+                        }
                 }
                 .buttonStyle(.plain)
             }

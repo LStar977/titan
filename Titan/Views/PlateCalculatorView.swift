@@ -103,9 +103,13 @@ struct PlateCalculatorView: View {
                             .foregroundStyle(sel ? Color.white : Color.textDim)
                             .padding(.horizontal, 14)
                             .frame(height: 36)
-                            .background(
-                                Capsule().fill(sel ? AnyShapeStyle(Color.accentGradient) : AnyShapeStyle(Color.surface2))
-                            )
+                            .background {
+                                if sel {
+                                    Capsule().fill(Color.accentGradient)
+                                } else {
+                                    Capsule().fieldFill()
+                                }
+                            }
                             .shadow(color: sel ? Color.purplePrimary.opacity(0.4) : .clear, radius: 6)
                     }
                     .buttonStyle(.plain)
@@ -212,9 +216,9 @@ struct PlateCalculatorView: View {
             Haptics.selection()
         } label: {
             RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .fill(Color.surface2)
+                .fieldFill()
                 .frame(width: 56, height: 56)
-                .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).stroke(Color.strokeStrong, lineWidth: 1))
+                .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).stroke(Brand.isLight ? Color.clear : Color.strokeStrong, lineWidth: 1))
                 .overlay(
                     Image(systemName: icon)
                         .font(.system(size: 17, weight: .bold))

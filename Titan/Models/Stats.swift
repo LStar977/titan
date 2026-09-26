@@ -93,58 +93,102 @@ enum Stats {
 
     // MARK: Personal records
 
-    /// How a set ranks for PR purposes: e1RM for loaded sets, reps for
-    /// unloaded bodyweight sets (push-ups, pull-ups), zero otherwise.
-    static func prScore(_ s: SetEntry, bodyweight: Bool) -> Double {
-        guard s.isCompleted, s.type != .warmup, s.reps > 0 else { return 0 }
-        if s.weight > 0 { return e1RM(s.weight, s.reps) }
-        return bodyweight ? Double(s.reps) : 0
+    /// The best an exercise has been done, kept on two scales so bodyweight
+    /// moves compare like with like: added-weight sets by e1RM, unweighted
+    /// sets by reps.
+    struct PRBest {
+        var load: Double = 0
+        var reps: Int = 0
+
+        mutating func absorb(_ s: SetEntry) {
+            guard s.isCompleted, s.type != .warmup, s.reps > 0 else { return }
+            if s.weight > 0 {
+                load = max(load, Stats.e1RM(s.weight, s.reps))
+            } else {
+                reps = max(reps, s.reps)
+            }
+        }
     }
 
     /// Re-derives the PR flags for one workout against everything finished
-    /// before it. At most one set per exercise is a PR — the best one.
+    /// before it, in one pass over history — cheap enough to run on every
+    /// logged set.
     static func recomputePRs(in workout: Workout, all: [Workout]) {
-        let earlier = all.filter {
-            $0 !== workout && $0.endedAt != nil && $0.startedAt < workout.startedAt
+        let names = Set(workout.entries.map { $0.displayName })
+        var history: [String: PRBest] = [:]
+        for w in all where w !== workout && w.endedAt != nil && w.startedAt < workout.startedAt {
+            for e in w.entries {
+                let name = e.displayName
+                guard names.contains(name) else { continue }
+                for s in e.sets { history[name, default: PRBest()].absorb(s) }
+            }
         }
-        for entry in workout.entries {
-            for s in entry.sets { s.isPR = false }
-            if entry.isDuration { continue }
-            let bodyweight = entry.exercise?.equipment == .bodyweight
+        flagPRs(in: workout, history: history)
+    }
 
-            var history: Double = 0
-            for w in earlier {
-                for e in w.entries where e.displayName == entry.displayName {
-                    for s in e.sets {
-                        history = max(history, prScore(s, bodyweight: bodyweight))
-                    }
-                }
+    /// Re-derives PR flags for every workout from `date` onward in a single
+    /// chronological pass — needed after history is edited or deleted, because
+    /// later records are measured against it. A workout in progress is
+    /// re-checked too, but never counts as history.
+    static func recomputePRs(since date: Date, all: [Workout]) {
+        var history: [String: PRBest] = [:]
+        for w in all.sorted(by: { $0.startedAt < $1.startedAt }) {
+            if w.startedAt >= date { flagPRs(in: w, history: history) }
+            guard w.endedAt != nil else { continue }
+            for e in w.entries {
+                let name = e.displayName
+                for s in e.sets { history[name, default: PRBest()].absorb(s) }
             }
-            // The first time is a baseline, not a record.
-            guard history > 0 else { continue }
-
-            var best = history
-            var winner: SetEntry?
-            for s in entry.sets {
-                let score = prScore(s, bodyweight: bodyweight)
-                if score > best + 0.0001 {
-                    best = score
-                    winner = s
-                }
-            }
-            winner?.isPR = true
         }
     }
 
-    /// Re-derives PR flags for every finished workout from `date` onward —
-    /// needed after history is edited or deleted, because later records are
-    /// measured against it.
-    static func recomputePRs(since date: Date, all: [Workout]) {
-        let affected = all
-            .filter { $0.endedAt != nil && $0.startedAt >= date }
-            .sorted { $0.startedAt < $1.startedAt }
-        for w in affected {
-            recomputePRs(in: w, all: all)
+    /// Flags at most one record per exercise — even one done twice in the
+    /// session: a new best e1RM or, for bodyweight moves without added
+    /// weight, a new most-reps. The first time on either scale is a
+    /// baseline, not a record.
+    private static func flagPRs(in workout: Workout, history: [String: PRBest]) {
+        var groups: [(name: String, bodyweight: Bool, sets: [SetEntry])] = []
+        for entry in workout.sortedEntries {
+            guard !entry.isDuration else { continue }
+            let name = entry.displayName
+            if let i = groups.firstIndex(where: { $0.name == name }) {
+                groups[i].sets += entry.sortedSets
+            } else {
+                groups.append((name: name, bodyweight: entry.exercise?.equipment == .bodyweight, sets: entry.sortedSets))
+            }
+        }
+
+        var winners = Set<ObjectIdentifier>()
+        for group in groups {
+            guard let past = history[group.name] else { continue }
+            let counted = group.sets.filter { $0.isCompleted && $0.type != .warmup && $0.reps > 0 }
+            var winner: SetEntry?
+            if past.load > 0 {
+                var best = past.load
+                for s in counted where s.weight > 0 {
+                    let score = e1RM(s.weight, s.reps)
+                    if score > best + 0.0001 {
+                        best = score
+                        winner = s
+                    }
+                }
+            }
+            if winner == nil, group.bodyweight, past.reps > 0 {
+                var best = past.reps
+                for s in counted where s.weight == 0 && s.reps > best {
+                    best = s.reps
+                    winner = s
+                }
+            }
+            if let winner { winners.insert(ObjectIdentifier(winner)) }
+        }
+
+        // Write only flags that change, so a logged set doesn't redraw every row.
+        for entry in workout.entries {
+            for s in entry.sets {
+                let flag = winners.contains(ObjectIdentifier(s))
+                if s.isPR != flag { s.isPR = flag }
+            }
         }
     }
 

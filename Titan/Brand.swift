@@ -37,14 +37,16 @@ enum Brand {
     static let textMain: UInt32 = 0x241A20
     static let textSoft: UInt32 = 0x4A3A42
     static let textDim: UInt32 = 0x8A7480
-    static let textFaint: UInt32 = 0xB8A5AE
+    /// Darkened from the handoff's B8A5AE (2.3:1 on white) to clear 3:1.
+    static let textFaint: UInt32 = 0x9C8792
     static let success: UInt32 = 0x059669
     static let danger: UInt32 = 0xDC2626
     static let sheetBg: UInt32 = 0xFDF2F5
     static let surfaceRaised: UInt32 = 0xFFFFFF
     static let tabBarBg: UInt32 = 0xFFFDFC
     static let surfaceSunken: UInt32 = 0xFBE9EF
-    static let outline: UInt32 = 0xE8B4C4
+    /// Unchecked boxes and selection rings — 3:1 on every surface they sit on.
+    static let outline: UInt32 = 0xB8788F
     static let neutralGear: UInt32 = 0xC9B4BC
     static let heatBody: UInt32 = 0xF4E3E7
     /// Hairlines & strokes on a light field are dark, not white.
@@ -96,7 +98,7 @@ enum Brand {
     static let surfaceRaised: UInt32 = 0x17172A
     static let tabBarBg: UInt32 = 0x0C0C13
     static let surfaceSunken: UInt32 = 0x15151F
-    static let outline: UInt32 = 0x3A3A4E
+    static let outline: UInt32 = 0x505066
     static let neutralGear: UInt32 = 0x4A4A5E
     static let heatBody: UInt32 = 0x232333
     static let hairlineColor = Color.white.opacity(0.05)

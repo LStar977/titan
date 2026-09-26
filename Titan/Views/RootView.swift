@@ -4,6 +4,7 @@ import SwiftData
 struct RootView: View {
     @Environment(AppState.self) private var app
     @Environment(\.modelContext) private var context
+    @Environment(\.scenePhase) private var scenePhase
 
     @State private var showOnboarding = false
 
@@ -52,16 +53,25 @@ struct RootView: View {
             decideOnboarding()
         }
         // Wakes exactly when rest ends — no polling, and it keeps running while
-        // the workout screen is minimized.
+        // the workout screen is minimized. The continuous clock keeps counting
+        // while the phone sleeps, so a locked phone can't stall the dock.
         .task(id: app.restEndsAt) {
             guard let end = app.restEndsAt else { return }
             let wait = end.timeIntervalSinceNow
             if wait > 0 {
-                try? await Task.sleep(nanoseconds: UInt64(wait * 1_000_000_000))
+                try? await Task.sleep(for: .seconds(wait))
             }
             guard !Task.isCancelled, app.restEndsAt == end else { return }
+            // Waking late means the lock-screen alert already did the job.
+            let onTime = Date().timeIntervalSince(end) < 2
             withAnimation(.snappy) { app.restFinished() }
-            Haptics.restDone()
+            if onTime { Haptics.restDone() }
+        }
+        .onChange(of: scenePhase) { _, phase in
+            // Back in the app after rest ran out: clear the dock quietly.
+            if phase == .active, let end = app.restEndsAt, end <= Date() {
+                withAnimation(.snappy) { app.restFinished() }
+            }
         }
     }
 

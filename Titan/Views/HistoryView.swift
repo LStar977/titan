@@ -198,8 +198,10 @@ struct HistoryView: View {
 
     private func cellText(trained: Bool, selected: Bool, today: Bool, future: Bool) -> Color {
         if selected { return .white }
-        if today { return .purpleBright }
+        // Accent text on the accent-tinted trained fill is too faint; the
+        // ring already marks today.
         if trained { return .textMain }
+        if today { return .purpleBright }
         return future ? .textFaint.opacity(0.5) : .textFaint
     }
 

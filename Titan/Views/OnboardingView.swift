@@ -159,7 +159,7 @@ struct OnboardingView: View {
                 .font(.condensed(52, weight: .heavy))
                 .kerning(Brand.wordmarkKerning * 2)
                 .foregroundStyle(Color.textMain)
-                .shadow(color: Color.purplePrimary.opacity(0.45), radius: 16)
+                .brandGlow(Color.purplePrimary.opacity(0.45), radius: 16)
             Text(Brand.onboardingTagline)
                 .font(.barlow(18))
                 .lineSpacing(4)
@@ -244,7 +244,7 @@ struct OnboardingView: View {
                 .font(.condensed(96, weight: .heavy))
                 .foregroundStyle(Color.textMain)
                 .contentTransition(.numericText())
-                .shadow(color: Color.purplePrimary.opacity(0.4), radius: 16)
+                .brandGlow(Color.purplePrimary.opacity(0.4), radius: 16)
             HStack(spacing: 8) {
                 ForEach(2...6, id: \.self) { n in
                     let selected = goal == n

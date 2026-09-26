@@ -191,8 +191,8 @@ struct HomeView: View {
 
     private func delta(_ now: Double, _ then: Double) -> (text: String, up: Bool)? {
         guard then > 0 else { return nil }
-        let pct = Int(((now - then) / then * 100).rounded())
-        return pct >= 0 ? ("↑ \(pct)% vs last wk", true) : ("↓ \(-pct)% vs last wk", false)
+        let pct = ((now - then) / then * 100).roundedInt
+        return pct >= 0 ? (text: "↑ \(pct)% vs last wk", up: true) : (text: "↓ \(-pct)% vs last wk", up: false)
     }
 
     private func weekMetric(_ value: String, unit: String, label: String, delta: (text: String, up: Bool)?, glow: Bool = false) -> some View {
@@ -201,7 +201,7 @@ struct HomeView: View {
                 Text(value)
                     .font(.condensed(27, weight: .bold))
                     .foregroundStyle(glow ? Color.glow : Color.textMain)
-                    .shadow(color: glow ? Color.glow.opacity(0.4) : .clear, radius: 6)
+                    .brandGlow(glow ? Color.glow.opacity(0.4) : .clear, radius: 6)
                     .lineLimit(1)
                     .minimumScaleFactor(0.7)
                 if !unit.isEmpty {

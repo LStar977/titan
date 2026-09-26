@@ -99,7 +99,7 @@ struct WorkoutCompleteView: View {
                 .font(.condensed(34, weight: .heavy))
                 .kerning(3.5)
                 .foregroundStyle(Color.textMain)
-                .shadow(color: Color.purplePrimary.opacity(0.45), radius: 12)
+                .brandGlow(Color.purplePrimary.opacity(0.45), radius: 12)
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
 
@@ -207,7 +207,7 @@ struct WorkoutCompleteView: View {
                     Text(pr.set.weight > 0 ? "\(Fmt.weight(pr.set.weight)) × \(pr.set.reps)" : "\(pr.set.reps) reps")
                         .font(.condensed(23, weight: .bold))
                         .foregroundStyle(Color.glow)
-                        .shadow(color: Color.glow.opacity(0.5), radius: 6)
+                        .brandGlow(Color.glow.opacity(0.5), radius: 6)
                 }
                 .padding(.horizontal, 16)
                 .padding(.vertical, 11)
@@ -234,7 +234,7 @@ struct WorkoutCompleteView: View {
         let now = Stats.volume(workout)
         let then = Stats.volume(previous)
         guard then > 0, now > 0 else { return nil }
-        let pct = Int(((now - then) / then * 100).rounded())
+        let pct = ((now - then) / then * 100).roundedInt
         if pct > 0 { return "Volume up \(pct)% on your last \(workout.title)." }
         if pct < 0 { return "Volume \(-pct)% under your last \(workout.title) — recovery days count too." }
         return "Matched your last \(workout.title) exactly."
