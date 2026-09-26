@@ -27,7 +27,7 @@ struct ProgramDetailView: View {
                     .minimumScaleFactor(0.6)
 
                 Text(program.blurb)
-                    .font(.barlow(13.5))
+                    .font(.barlow(15))
                     .lineSpacing(4)
                     .foregroundStyle(Color.textDim)
 
@@ -40,7 +40,7 @@ struct ProgramDetailView: View {
                         Image(systemName: "checkmark.circle.fill")
                             .foregroundStyle(Color.successGreen)
                         Text("Added to your routines and set as your split")
-                            .font(.barlow(13, weight: .semibold))
+                            .font(.barlow(14.5, weight: .semibold))
                             .foregroundStyle(Color.textMain)
                     }
                     .frame(maxWidth: .infinity)
@@ -52,7 +52,7 @@ struct ProgramDetailView: View {
                     }
                     .padding(.top, 8)
                     Text("Copies these \(program.days.count) days into your routines and makes them your split. Your existing routines aren't touched.")
-                        .font(.barlow(11.5))
+                        .font(.barlow(13))
                         .foregroundStyle(Color.textFaint)
                         .frame(maxWidth: .infinity)
                         .multilineTextAlignment(.center)
@@ -79,7 +79,7 @@ struct ProgramDetailView: View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Text("DAY \(index + 1)")
-                    .font(.barlow(9.5, weight: .bold))
+                    .font(.barlow(11, weight: .bold))
                     .kerning(1.5)
                     .foregroundStyle(Color.purpleBright)
                 Text(day.name.uppercased())
@@ -88,14 +88,14 @@ struct ProgramDetailView: View {
                     .foregroundStyle(Color.textMain)
                 Spacer()
                 Text("\(day.items.count) exercises")
-                    .font(.barlow(11))
+                    .font(.barlow(12.5))
                     .foregroundStyle(Color.textFaint)
             }
             VStack(spacing: 6) {
                 ForEach(Array(day.items.enumerated()), id: \.offset) { _, item in
                     HStack {
                         Text(item.name)
-                            .font(.barlow(13, weight: .medium))
+                            .font(.barlow(14.5, weight: .medium))
                             .foregroundStyle(Color.textSoft)
                         Spacer()
                         Text(repLabel(item))
@@ -150,7 +150,7 @@ struct SplitEditorSheet: View {
                     try? context.save()
                     dismiss()
                 }
-                .font(.barlow(14, weight: .semibold))
+                .font(.barlow(15.5, weight: .semibold))
                 .foregroundStyle(Color.purpleBright)
                 .frame(width: 50, alignment: .trailing)
             }
@@ -162,7 +162,7 @@ struct SplitEditorSheet: View {
                 Section {
                     if scheduled.isEmpty {
                         Text("Nothing in your split yet — add routines below.")
-                            .font(.barlow(12.5))
+                            .font(.barlow(14))
                             .foregroundStyle(Color.textDim)
                             .listRowBackground(Color.surface)
                     }
@@ -174,7 +174,7 @@ struct SplitEditorSheet: View {
                                 .foregroundStyle(Color.purpleBright)
                                 .frame(width: 52, alignment: .leading)
                             Text(routine.name)
-                                .font(.barlow(14, weight: .semibold))
+                                .font(.barlow(15.5, weight: .semibold))
                                 .foregroundStyle(Color.textMain)
                             Spacer()
                             Button {
@@ -191,7 +191,7 @@ struct SplitEditorSheet: View {
                     .onMove(perform: move)
                 } header: {
                     Text("ROTATION · HOLD & DRAG TO REORDER")
-                        .font(.barlow(10.5, weight: .semibold))
+                        .font(.barlow(12, weight: .semibold))
                         .kerning(1.5)
                         .foregroundStyle(Color.textDim)
                 }
@@ -201,7 +201,7 @@ struct SplitEditorSheet: View {
                         ForEach(unscheduled) { routine in
                             HStack {
                                 Text(routine.name)
-                                    .font(.barlow(14, weight: .medium))
+                                    .font(.barlow(15.5, weight: .medium))
                                     .foregroundStyle(Color.textSoft)
                                 Spacer()
                                 Button {
@@ -217,7 +217,7 @@ struct SplitEditorSheet: View {
                         }
                     } header: {
                         Text("ADD TO SPLIT")
-                            .font(.barlow(10.5, weight: .semibold))
+                            .font(.barlow(12, weight: .semibold))
                             .kerning(1.5)
                             .foregroundStyle(Color.textDim)
                     }

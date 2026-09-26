@@ -5,6 +5,8 @@ struct RootView: View {
     @Environment(AppState.self) private var app
     @Environment(\.modelContext) private var context
 
+    @State private var showOnboarding = false
+
     var body: some View {
         @Bindable var app = app
         ZStack(alignment: .bottom) {
@@ -21,8 +23,17 @@ struct RootView: View {
             VStack(spacing: 0) {
                 if app.activeWorkout != nil && !app.workoutPresented {
                     ResumeBar()
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
                 TitanTabBar()
+            }
+
+            if showOnboarding {
+                OnboardingView {
+                    withAnimation(.easeInOut(duration: 0.35)) { showOnboarding = false }
+                }
+                .transition(.opacity)
+                .zIndex(10)
             }
         }
         .background(Color.bg.ignoresSafeArea())
@@ -34,6 +45,52 @@ struct RootView: View {
         }
         .task {
             SeedData.seedIfNeeded(context)
+            restoreUnfinishedWorkouts()
+            decideOnboarding()
+        }
+        // Wakes exactly when rest ends — no polling, and it keeps running while
+        // the workout screen is minimized.
+        .task(id: app.restEndsAt) {
+            guard let end = app.restEndsAt else { return }
+            let wait = end.timeIntervalSinceNow
+            if wait > 0 {
+                try? await Task.sleep(nanoseconds: UInt64(wait * 1_000_000_000))
+            }
+            guard !Task.isCancelled, app.restEndsAt == end else { return }
+            withAnimation(.snappy) { app.restFinished() }
+            Haptics.restDone()
+        }
+    }
+
+    /// A workout left running when the app was killed comes back as the active
+    /// workout; anything older is closed out (or deleted if nothing was logged).
+    private func restoreUnfinishedWorkouts() {
+        guard app.activeWorkout == nil else { return }
+        let descriptor = FetchDescriptor<Workout>(sortBy: [SortDescriptor(\.startedAt, order: .reverse)])
+        let all = (try? context.fetch(descriptor)) ?? []
+        let open = all.filter { $0.endedAt == nil }
+        guard !open.isEmpty else { return }
+
+        for (i, w) in open.enumerated() {
+            let stale = Date().timeIntervalSince(w.startedAt) > 12 * 3600
+            if i == 0 && !stale {
+                app.activeWorkout = w
+            } else {
+                WorkoutBuilder.closeStale(w, context: context)
+            }
+        }
+        try? context.save()
+    }
+
+    private func decideOnboarding() {
+        let prefs = Prefs.shared
+        guard !prefs.hasOnboarded else { return }
+        let count = (try? context.fetchCount(FetchDescriptor<Workout>())) ?? 0
+        if count > 0 {
+            // Someone updating from v1.0 already knows their way around.
+            prefs.setOnboarded(true)
+        } else {
+            showOnboarding = true
         }
     }
 }
@@ -42,16 +99,20 @@ struct WorkoutFlowView: View {
     @Environment(AppState.self) private var app
 
     var body: some View {
-        Group {
-            if let workout = app.activeWorkout {
-                if app.showSummary {
-                    WorkoutCompleteView(workout: workout)
+        NavigationStack {
+            Group {
+                if let workout = app.activeWorkout {
+                    if app.showSummary {
+                        WorkoutCompleteView(workout: workout)
+                            .transition(.opacity)
+                    } else {
+                        ActiveWorkoutView(workout: workout)
+                    }
                 } else {
-                    ActiveWorkoutView(workout: workout)
+                    Color.bg.ignoresSafeArea()
                 }
-            } else {
-                Color.bg.ignoresSafeArea()
             }
+            .toolbar(.hidden, for: .navigationBar)
         }
     }
 }
@@ -62,39 +123,49 @@ struct TitanTabBar: View {
     @Environment(AppState.self) private var app
 
     var body: some View {
-        HStack(alignment: .top) {
-            tabButton(.home, icon: "house", label: "Home")
-            tabButton(.history, icon: "clock", label: "History")
+        HStack(alignment: .top, spacing: 0) {
+            tabButton(.home, icon: "house", selectedIcon: "house.fill", label: "Home")
+            tabButton(.history, icon: "clock", selectedIcon: "clock.fill", label: "History")
             centerButton
-            tabButton(.progress, icon: "chart.bar.fill", label: "Progress")
-            tabButton(.profile, icon: "person", label: "Profile")
+                .frame(maxWidth: .infinity)
+            tabButton(.progress, icon: "chart.bar", selectedIcon: "chart.bar.fill", label: "Progress")
+            tabButton(.profile, icon: "person", selectedIcon: "person.fill", label: "Profile")
         }
-        .padding(.horizontal, 20)
-        .padding(.top, 9)
+        .padding(.horizontal, 6)
+        .padding(.top, 8)
         .frame(height: 84, alignment: .top)
         .background(
-            Color.tabBarBg.opacity(0.96)
-                .overlay(Rectangle().fill(Color.purplePrimary.opacity(0.16)).frame(height: 1), alignment: .top)
+            Color.tabBarBg.opacity(0.97)
+                .overlay(alignment: .top) {
+                    Rectangle().fill(Color.purplePrimary.opacity(0.16)).frame(height: 1)
+                }
                 .ignoresSafeArea(edges: .bottom)
         )
     }
 
-    private func tabButton(_ tab: Tab, icon: String, label: String) -> some View {
+    private func tabButton(_ tab: Tab, icon: String, selectedIcon: String, label: String) -> some View {
         let selected = app.tab == tab
         return Button {
-            app.tab = tab
-            Haptics.tap()
+            if app.tab != tab {
+                app.tab = tab
+                Haptics.selection()
+            }
         } label: {
-            VStack(spacing: 3) {
-                Image(systemName: icon)
-                    .font(.system(size: 20, weight: selected ? .semibold : .regular))
+            VStack(spacing: 4) {
+                Image(systemName: selected ? selectedIcon : icon)
+                    .font(.system(size: 21, weight: selected ? .semibold : .regular))
+                    .frame(height: 24)
                 Text(label)
-                    .font(.barlow(10, weight: selected ? .semibold : .medium))
+                    .font(.barlow(11, weight: selected ? .semibold : .medium))
             }
             .foregroundStyle(selected ? Color.purpleBright : Color.textFaint)
-            .frame(width: 56)
+            .frame(maxWidth: .infinity)
+            .frame(height: 50)
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+        .accessibilityLabel(label)
+        .accessibilityAddTraits(selected ? .isSelected : [])
     }
 
     private var centerButton: some View {
@@ -106,19 +177,24 @@ struct TitanTabBar: View {
                 app.showStartSheet = true
             }
         } label: {
-            RoundedRectangle(cornerRadius: 17)
-                .fill(LinearGradient(colors: [.purplePrimary, .purpleDeep], startPoint: .topLeading, endPoint: .bottomTrailing))
-                .frame(width: 56, height: 56)
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .fill(Color.accentGradient)
+                .frame(width: 58, height: 58)
                 .overlay(
-                    Image(systemName: "dumbbell.fill")
+                    Image(systemName: app.activeWorkout != nil ? "bolt.fill" : "dumbbell.fill")
                         .font(.system(size: 24, weight: .semibold))
                         .foregroundStyle(.white)
                 )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 18, style: .continuous)
+                        .stroke(Color.white.opacity(0.18), lineWidth: 1)
+                )
                 .shadow(color: Color.purplePrimary.opacity(0.45), radius: 13)
-                .shadow(color: .black.opacity(0.55), radius: 11, y: 10)
+                .shadow(color: .black.opacity(Brand.isLight ? 0.12 : 0.55), radius: 11, y: 10)
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.pressable)
         .offset(y: -26)
+        .accessibilityLabel(app.activeWorkout != nil ? "Open current workout" : "Start a workout")
     }
 }
 
@@ -131,36 +207,54 @@ struct ResumeBar: View {
         Button {
             app.workoutPresented = true
         } label: {
-            HStack {
+            HStack(spacing: 10) {
                 Circle()
-                    .fill(Color.glow)
-                    .frame(width: 7, height: 7)
-                    .shadow(color: Color.glow.opacity(0.9), radius: 4)
-                Text(app.activeWorkout?.hasBegun == false ? "FINISH SETUP" : "RESUME WORKOUT")
-                    .font(.condensed(15, weight: .bold))
-                    .kerning(2)
-                    .foregroundStyle(.white)
-                Spacer()
-                if let w = app.activeWorkout, w.hasBegun {
+                    .fill(Color.white)
+                    .frame(width: 8, height: 8)
+                    .shadow(color: .white.opacity(0.9), radius: 4)
+                VStack(alignment: .leading, spacing: 0) {
+                    Text(app.activeWorkout?.hasBegun == false ? "FINISH SETUP" : "RESUME WORKOUT")
+                        .font(.condensed(16, weight: .bold))
+                        .kerning(1.8)
+                    if let w = app.activeWorkout, w.hasBegun {
+                        let done = Stats.completedSetCount(w)
+                        let total = Stats.totalSetCount(w)
+                        Text("\(w.title) · \(done)/\(total) sets")
+                            .font(.barlow(12, weight: .medium))
+                            .opacity(0.85)
+                            .lineLimit(1)
+                    }
+                }
+                Spacer(minLength: 6)
+                if let end = app.restEndsAt {
+                    HStack(spacing: 4) {
+                        Image(systemName: "timer")
+                            .font(.system(size: 12, weight: .bold))
+                        Text(timerInterval: Date()...max(Date(), end), countsDown: true)
+                            .font(.condensed(18, weight: .bold))
+                            .monospacedDigit()
+                    }
+                } else if let w = app.activeWorkout, w.hasBegun {
                     Text(w.startedAt, style: .timer)
-                        .font(.condensed(17, weight: .bold))
-                        .foregroundStyle(.white)
+                        .font(.condensed(18, weight: .bold))
+                        .monospacedDigit()
                 }
                 Image(systemName: "chevron.up")
                     .font(.system(size: 12, weight: .bold))
-                    .foregroundStyle(.white.opacity(0.8))
+                    .opacity(0.8)
             }
+            .foregroundStyle(.white)
             .padding(.horizontal, 16)
-            .frame(height: 44)
+            .frame(height: 54)
             .background(
-                RoundedRectangle(cornerRadius: 13)
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
                     .fill(LinearGradient(colors: [.purplePrimary, .purpleDeep], startPoint: .leading, endPoint: .trailing))
             )
             .shadow(color: Color.purplePrimary.opacity(0.35), radius: 10)
             .padding(.horizontal, 14)
             .padding(.bottom, 8)
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.pressable)
     }
 }
 
@@ -173,48 +267,90 @@ struct StartWorkoutSheet: View {
     @Query(sort: \Routine.orderIndex) private var routines: [Routine]
     @Query(sort: \Workout.startedAt, order: .reverse) private var workouts: [Workout]
 
+    private var finished: [Workout] { workouts.filter { $0.endedAt != nil } }
+
+    private var splitNext: (routine: Routine, day: Int, count: Int)? {
+        let scheduled = routines
+            .filter { $0.scheduleIndex != nil }
+            .sorted { ($0.scheduleIndex ?? 0) < ($1.scheduleIndex ?? 0) }
+        guard !scheduled.isEmpty else { return nil }
+        let names = Set(scheduled.map { $0.name })
+        var next = 0
+        if let last = finished.first(where: { names.contains($0.title) }),
+           let idx = scheduled.firstIndex(where: { $0.name == last.title }) {
+            next = (idx + 1) % scheduled.count
+        }
+        return (scheduled[next], next + 1, scheduled.count)
+    }
+
     var body: some View {
-        VStack(spacing: 0) {
+        let split = splitNext
+        let others = routines.filter { $0 !== split?.routine }
+        return VStack(spacing: 0) {
             HStack {
                 Button("Cancel") { dismiss() }
-                    .font(.barlow(14, weight: .medium))
+                    .font(.barlow(16, weight: .medium))
                     .foregroundStyle(Color.purpleBright)
+                    .frame(width: 70, alignment: .leading)
                 Spacer()
                 Text("START WORKOUT")
-                    .font(.condensed(19, weight: .bold))
+                    .font(.condensed(20, weight: .bold))
                     .kerning(1.5)
                     .foregroundStyle(Color.textMain)
                 Spacer()
-                Color.clear.frame(width: 48, height: 1)
+                Color.clear.frame(width: 70, height: 1)
             }
-            .padding(.horizontal, 16)
+            .padding(.horizontal, 18)
             .padding(.top, 18)
-            .padding(.bottom, 12)
+            .padding(.bottom, 14)
 
             ScrollView {
-                VStack(alignment: .leading, spacing: 10) {
-                    GradientCTA("CREATE YOUR OWN", systemIcon: "plus") {
+                VStack(alignment: .leading, spacing: 12) {
+                    GradientCTA("EMPTY WORKOUT", systemIcon: "plus") {
                         start(nil)
                     }
-                    Text("Build it as you go — pick your exercises, log your sets.")
-                        .font(.barlow(12))
+                    Text("Build it as you go — pick exercises, log sets, done.")
+                        .font(.barlow(13.5))
                         .foregroundStyle(Color.textDim)
                         .frame(maxWidth: .infinity)
                         .multilineTextAlignment(.center)
 
-                    SectionLabel("Or pick a routine")
-                        .padding(.top, 12)
-
-                    ForEach(routines) { routine in
+                    if let next = split {
+                        SectionLabel("Up next in your split")
+                            .padding(.top, 14)
                         Button {
-                            start(routine)
+                            start(next.routine)
                         } label: {
-                            routineRow(routine)
+                            routineRow(next.routine, badge: "DAY \(next.day) OF \(next.count)", highlighted: true)
                         }
-                        .buttonStyle(.plain)
+                        .buttonStyle(.pressable)
+                    }
+
+                    if let last = finished.first {
+                        SectionLabel("Do it again")
+                            .padding(.top, 14)
+                        Button {
+                            repeatWorkout(last)
+                        } label: {
+                            repeatRow(last)
+                        }
+                        .buttonStyle(.pressable)
+                    }
+
+                    if !others.isEmpty {
+                        SectionLabel("Your routines")
+                            .padding(.top, 14)
+                        ForEach(others) { routine in
+                            Button {
+                                start(routine)
+                            } label: {
+                                routineRow(routine, badge: nil, highlighted: false)
+                            }
+                            .buttonStyle(.pressable)
+                        }
                     }
                 }
-                .padding(.horizontal, 16)
+                .padding(.horizontal, 18)
                 .padding(.bottom, 30)
             }
         }
@@ -223,54 +359,103 @@ struct StartWorkoutSheet: View {
         .presentationDragIndicator(.visible)
     }
 
-    private func routineRow(_ routine: Routine) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                VStack(alignment: .leading, spacing: 1) {
+    private func routineRow(_ routine: Routine, badge: String?, highlighted: Bool) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(alignment: .center, spacing: 12) {
+                VStack(alignment: .leading, spacing: 2) {
+                    if let badge {
+                        Text(badge)
+                            .font(.barlow(11.5, weight: .bold))
+                            .kerning(1.6)
+                            .foregroundStyle(Color.purpleBright)
+                    }
                     Text(routine.name)
-                        .font(.condensed(22, weight: .bold))
+                        .font(.condensed(23, weight: .bold))
                         .foregroundStyle(Color.textMain)
+                        .lineLimit(1)
                     Text(subtitle(routine))
-                        .font(.barlow(11.5))
+                        .font(.barlow(13))
                         .foregroundStyle(Color.textDim)
                 }
                 Spacer()
                 Image(systemName: "play.fill")
-                    .font(.system(size: 14))
+                    .font(.system(size: 15))
                     .foregroundStyle(.white)
-                    .frame(width: 36, height: 36)
-                    .background(
-                        RoundedRectangle(cornerRadius: 11)
-                            .fill(LinearGradient(colors: [.purplePrimary, .purpleDeep], startPoint: .top, endPoint: .bottom))
-                    )
+                    .frame(width: 44, height: 44)
+                    .background(RoundedRectangle(cornerRadius: 13, style: .continuous).fill(Color.accentGradient))
                     .shadow(color: Color.purplePrimary.opacity(0.35), radius: 7)
             }
-            let names = routine.sortedItems.prefix(4).map { $0.displayName }
+            let names = routine.sortedItems.prefix(3).map { $0.displayName }
             if !names.isEmpty {
-                HStack(spacing: 5) {
+                HStack(spacing: 6) {
                     ForEach(names, id: \.self) { TagChip(text: $0) }
-                    if routine.items.count > 4 {
-                        TagChip(text: "+\(routine.items.count - 4)", dim: true)
+                    if routine.items.count > 3 {
+                        TagChip(text: "+\(routine.items.count - 3)", dim: true)
                     }
                 }
                 .lineLimit(1)
             }
         }
-        .padding(14)
+        .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .card()
+        .card(18, border: highlighted ? Color.purplePrimary.opacity(0.45) : .hairline)
+    }
+
+    private func repeatRow(_ workout: Workout) -> some View {
+        HStack(spacing: 12) {
+            Image(systemName: "arrow.clockwise")
+                .font(.system(size: 16, weight: .bold))
+                .foregroundStyle(Color.purpleBright)
+                .frame(width: 44, height: 44)
+                .background(RoundedRectangle(cornerRadius: 13, style: .continuous).fill(Color.purplePrimary.opacity(0.12)))
+            VStack(alignment: .leading, spacing: 2) {
+                Text(workout.title)
+                    .font(.condensed(21, weight: .bold))
+                    .foregroundStyle(Color.textMain)
+                    .lineLimit(1)
+                Text("\(Fmt.relative(workout.startedAt)) · \(workout.entries.count) exercises")
+                    .font(.barlow(13))
+                    .foregroundStyle(Color.textDim)
+            }
+            Spacer()
+            Image(systemName: "chevron.right")
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundStyle(Color.textFaint)
+        }
+        .padding(14)
+        .card(18)
     }
 
     private func subtitle(_ routine: Routine) -> String {
         let count = routine.items.count
-        if let last = workouts.first(where: { $0.title == routine.name && $0.endedAt != nil }) {
-            return "\(count) exercises · last \(Fmt.shortDate(last.startedAt))"
+        var parts = ["\(count) exercise\(count == 1 ? "" : "s")"]
+        if let last = finished.first(where: { $0.title == routine.name }) {
+            parts.append("last \(Fmt.relative(last.startedAt).lowercased())")
         }
-        return "\(count) exercises"
+        return parts.joined(separator: " · ")
     }
 
     private func start(_ routine: Routine?) {
+        guard app.activeWorkout == nil else {
+            dismiss()
+            app.workoutPresented = true
+            return
+        }
         let w = WorkoutBuilder.start(routine: routine, context: context, history: workouts)
+        present(w)
+    }
+
+    private func repeatWorkout(_ source: Workout) {
+        guard app.activeWorkout == nil else {
+            dismiss()
+            app.workoutPresented = true
+            return
+        }
+        let w = WorkoutBuilder.repeatWorkout(source, context: context, history: workouts)
+        present(w)
+    }
+
+    private func present(_ w: Workout) {
         app.activeWorkout = w
         app.showSummary = false
         dismiss()

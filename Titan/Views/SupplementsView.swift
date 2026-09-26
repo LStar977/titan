@@ -26,7 +26,7 @@ struct SupplementsView: View {
 
                 if supplements.isEmpty {
                     Text("No supplements yet — add one to start tracking.")
-                        .font(.barlow(13))
+                        .font(.barlow(14.5))
                         .foregroundStyle(Color.textDim)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 24)
@@ -50,7 +50,7 @@ struct SupplementsView: View {
                         Image(systemName: "plus")
                             .font(.system(size: 12, weight: .bold))
                         Text("Add Supplement")
-                            .font(.barlow(13, weight: .semibold))
+                            .font(.barlow(14.5, weight: .semibold))
                     }
                     .foregroundStyle(Color.purpleBright)
                     .frame(maxWidth: .infinity)
@@ -108,16 +108,16 @@ struct SupplementsView: View {
         return HStack(spacing: 12) {
             VStack(alignment: .leading, spacing: 1) {
                 Text(supplement.name)
-                    .font(.barlow(14.5, weight: .semibold))
+                    .font(.barlow(16, weight: .semibold))
                     .foregroundStyle(Color.textMain)
-                Text("\(Fmt.weight(supplement.serving)) \(supplement.unit) per serving")
-                    .font(.barlow(11.5))
+                Text("\(Fmt.num(supplement.serving)) \(supplement.unit) per serving")
+                    .font(.barlow(13))
                     .foregroundStyle(Color.textDim)
             }
             Spacer()
             if total > 0 {
                 HStack(alignment: .firstTextBaseline, spacing: 2) {
-                    Text(Fmt.weight(total))
+                    Text(Fmt.num(total))
                         .font(.condensed(24, weight: .bold))
                         .foregroundStyle(Color.purpleBright)
                     Text(supplement.unit)
@@ -196,7 +196,7 @@ struct SupplementsView: View {
         }
         let summary = totals
             .sorted { $0.key < $1.key }
-            .map { "\($0.key) \(Fmt.weight($0.value.amount)) \($0.value.unit)" }
+            .map { "\($0.key) \(Fmt.num($0.value.amount)) \($0.value.unit)" }
             .joined(separator: " · ")
 
         let f = DateFormatter()
@@ -205,16 +205,16 @@ struct SupplementsView: View {
 
         return HStack {
             Text(label)
-                .font(.barlow(12.5, weight: .semibold))
+                .font(.barlow(14, weight: .semibold))
                 .foregroundStyle(cal.isDateInToday(day) ? Color.purpleBright : Color.textMain)
                 .frame(width: 56, alignment: .leading)
             if summary.isEmpty {
                 Text("Nothing logged")
-                    .font(.barlow(12))
+                    .font(.barlow(13.5))
                     .foregroundStyle(Color.textFaint)
             } else {
                 Text(summary)
-                    .font(.barlow(12))
+                    .font(.barlow(13.5))
                     .foregroundStyle(Color.textDim)
                     .lineLimit(1)
                     .minimumScaleFactor(0.8)
@@ -247,7 +247,7 @@ struct AddSupplementSheet: View {
         VStack(spacing: 16) {
             HStack {
                 Button("Cancel") { dismiss() }
-                    .font(.barlow(14, weight: .medium))
+                    .font(.barlow(15.5, weight: .medium))
                     .foregroundStyle(Color.purpleBright)
                     .frame(width: 60, alignment: .leading)
                 Spacer()
@@ -268,7 +268,7 @@ struct AddSupplementSheet: View {
                     Haptics.success()
                     dismiss()
                 }
-                .font(.barlow(14, weight: .bold))
+                .font(.barlow(15.5, weight: .bold))
                 .foregroundStyle(canSave ? Color.purpleBright : Color.textFaint)
                 .disabled(!canSave)
                 .frame(width: 60, alignment: .trailing)
@@ -277,7 +277,7 @@ struct AddSupplementSheet: View {
 
             VStack(alignment: .leading, spacing: 4) {
                 Text("NAME")
-                    .font(.barlow(9.5, weight: .bold))
+                    .font(.barlow(11, weight: .bold))
                     .kerning(1.5)
                     .foregroundStyle(Color.textFaint)
                 TextField("e.g. Creatine", text: $name)
@@ -289,7 +289,7 @@ struct AddSupplementSheet: View {
 
             VStack(alignment: .leading, spacing: 4) {
                 Text("SERVING SIZE")
-                    .font(.barlow(9.5, weight: .bold))
+                    .font(.barlow(11, weight: .bold))
                     .kerning(1.5)
                     .foregroundStyle(Color.textFaint)
                 TextField("5", text: $serving)
@@ -310,7 +310,7 @@ struct AddSupplementSheet: View {
                             Haptics.tap()
                         } label: {
                             Text(u)
-                                .font(.barlow(13, weight: .semibold))
+                                .font(.barlow(14.5, weight: .semibold))
                                 .foregroundStyle(sel ? .white : Color.textDim)
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 9)

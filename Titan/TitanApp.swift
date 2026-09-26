@@ -1,6 +1,7 @@
 import SwiftUI
 import SwiftData
 import CoreText
+import UserNotifications
 
 @main
 struct TitanApp: App {
@@ -8,6 +9,7 @@ struct TitanApp: App {
 
     init() {
         FontLoader.registerBundledFonts()
+        UNUserNotificationCenter.current().delegate = NotificationPresenter.shared
     }
 
     var body: some Scene {
@@ -15,6 +17,7 @@ struct TitanApp: App {
             RootView()
                 .environment(appState)
                 .preferredColorScheme(Brand.colorScheme)
+                .tint(Color.purplePrimary)
         }
         .modelContainer(for: [
             Exercise.self,

@@ -34,7 +34,7 @@ struct RoutinesView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
-                BackHeader(label: "Home", trailing: AnyView(newButton)) { dismiss() }
+                BackHeader(label: "Back", trailing: AnyView(newButton)) { dismiss() }
 
                 Text("ROUTINES")
                     .font(.condensed(36, weight: .heavy))
@@ -54,7 +54,7 @@ struct RoutinesView: View {
                 VStack(spacing: 10) {
                     if routines.isEmpty {
                         Text("No routines yet. Create one, or adopt a program below.")
-                            .font(.barlow(13))
+                            .font(.barlow(14.5))
                             .foregroundStyle(Color.textDim)
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 20)
@@ -71,7 +71,7 @@ struct RoutinesView: View {
                             Image(systemName: "plus")
                                 .font(.system(size: 12, weight: .bold))
                             Text("New Routine")
-                                .font(.barlow(13, weight: .semibold))
+                                .font(.barlow(14.5, weight: .semibold))
                         }
                         .foregroundStyle(Color.purpleBright)
                         .frame(maxWidth: .infinity)
@@ -117,8 +117,8 @@ struct RoutinesView: View {
     private var splitCard: some View {
         VStack(spacing: 0) {
             if scheduled.isEmpty {
-                Text("No split yet. Add your routines as Day 1, Day 2… and TITAN will rotate through them — finish one, and the next is up.")
-                    .font(.barlow(12.5))
+                Text("No split yet. Add your routines as Day 1, Day 2… and \(Brand.plainName) will rotate through them — finish one, and the next is up.")
+                    .font(.barlow(14))
                     .lineSpacing(3)
                     .foregroundStyle(Color.textDim)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -134,11 +134,11 @@ struct RoutinesView: View {
                             .foregroundStyle(i == nextSplitIndex ? Color.purpleBright : Color.textFaint)
                             .frame(width: 52, alignment: .leading)
                         Text(routine.name)
-                            .font(.barlow(14, weight: .semibold))
+                            .font(.barlow(15.5, weight: .semibold))
                             .foregroundStyle(Color.textMain)
                         if i == nextSplitIndex {
                             Text("NEXT")
-                                .font(.barlow(8.5, weight: .bold))
+                                .font(.barlow(11, weight: .bold))
                                 .kerning(1)
                                 .foregroundStyle(Color.purpleBright)
                                 .padding(.horizontal, 5)
@@ -161,7 +161,7 @@ struct RoutinesView: View {
                     Image(systemName: scheduled.isEmpty ? "plus" : "slider.horizontal.3")
                         .font(.system(size: 11, weight: .bold))
                     Text(scheduled.isEmpty ? "Set Up Split" : "Edit Split")
-                        .font(.barlow(12.5, weight: .semibold))
+                        .font(.barlow(14, weight: .semibold))
                 }
                 .foregroundStyle(Color.purpleBright)
                 .frame(maxWidth: .infinity)
@@ -185,7 +185,7 @@ struct RoutinesView: View {
                         .font(.condensed(21, weight: .bold))
                         .foregroundStyle(Color.textMain)
                     Text(program.tagline)
-                        .font(.barlow(11.5))
+                        .font(.barlow(13))
                         .foregroundStyle(Color.textDim)
                 }
                 Spacer()
@@ -258,7 +258,7 @@ struct RoutinesView: View {
                                 .foregroundStyle(Color.textMain)
                             if isNext {
                                 Text("SUGGESTED")
-                                    .font(.barlow(9, weight: .bold))
+                                    .font(.barlow(11, weight: .bold))
                                     .kerning(1)
                                     .foregroundStyle(Color.purpleBright)
                                     .padding(.horizontal, 6)
@@ -268,7 +268,7 @@ struct RoutinesView: View {
                             }
                         }
                         Text(subtitle(routine))
-                            .font(.barlow(11.5))
+                            .font(.barlow(13))
                             .foregroundStyle(Color.textDim)
                     }
                     Spacer()
@@ -406,6 +406,10 @@ struct RoutinesView: View {
     }
 
     private func startRoutine(_ routine: Routine) {
+        guard app.activeWorkout == nil else {
+            app.workoutPresented = true
+            return
+        }
         let w = WorkoutBuilder.start(routine: routine, context: context, history: workouts)
         app.activeWorkout = w
         app.showSummary = false
@@ -452,7 +456,7 @@ struct RoutineEditorView: View {
                     if isNew { context.delete(routine) }
                     dismiss()
                 }
-                .font(.barlow(14, weight: .medium))
+                .font(.barlow(15.5, weight: .medium))
                 .foregroundStyle(Color.purpleBright)
                 .frame(width: 64, alignment: .leading)
                 Spacer()
@@ -466,7 +470,7 @@ struct RoutineEditorView: View {
                     try? context.save()
                     dismiss()
                 }
-                .font(.barlow(14, weight: .bold))
+                .font(.barlow(15.5, weight: .bold))
                 .foregroundStyle(Color.purpleBright)
                 .frame(width: 64, alignment: .trailing)
             }
@@ -480,7 +484,7 @@ struct RoutineEditorView: View {
                 Section {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("ROUTINE NAME")
-                            .font(.barlow(9.5, weight: .bold))
+                            .font(.barlow(11, weight: .bold))
                             .kerning(1.5)
                             .foregroundStyle(Color.textFaint)
                         TextField("Routine name", text: $name)
@@ -499,7 +503,7 @@ struct RoutineEditorView: View {
                     .onMove(perform: moveItems)
                 } header: {
                     Text("EXERCISES · \(routine.items.count) · HOLD & DRAG TO REORDER")
-                        .font(.barlow(11, weight: .semibold))
+                        .font(.barlow(12.5, weight: .semibold))
                         .kerning(2)
                         .foregroundStyle(Color.textDim)
                 }
@@ -512,7 +516,7 @@ struct RoutineEditorView: View {
                             Image(systemName: "plus")
                                 .font(.system(size: 12, weight: .bold))
                             Text("Add Exercise")
-                                .font(.barlow(13, weight: .semibold))
+                                .font(.barlow(14.5, weight: .semibold))
                         }
                         .foregroundStyle(Color.purpleBright)
                         .frame(maxWidth: .infinity)
@@ -549,11 +553,11 @@ struct RoutineEditorView: View {
                 VStack(alignment: .leading, spacing: 1) {
                     HStack(spacing: 7) {
                         Text(item.displayName)
-                            .font(.barlow(14.5, weight: .semibold))
+                            .font(.barlow(16, weight: .semibold))
                             .foregroundStyle(Color.textMain)
                         if let g = item.supersetGroup {
                             Text("SS \(supersetLetter(g))")
-                                .font(.barlow(8.5, weight: .bold))
+                                .font(.barlow(11, weight: .bold))
                                 .kerning(1)
                                 .foregroundStyle(Color.purpleBright)
                                 .padding(.horizontal, 5)
@@ -562,7 +566,7 @@ struct RoutineEditorView: View {
                         }
                     }
                     Text("\(item.plannedSets) sets · \(item.repLow)–\(item.repHigh) reps · rest \(Fmt.clock(Double(item.restSeconds)))")
-                        .font(.barlow(11.5))
+                        .font(.barlow(13))
                         .foregroundStyle(Color.textDim)
                 }
                 Spacer()
@@ -678,7 +682,7 @@ struct RoutineItemSheet: View {
     private func stepperRow(_ label: String, value: String, minus: @escaping () -> Void, plus: @escaping () -> Void) -> some View {
         HStack {
             Text(label.uppercased())
-                .font(.barlow(11, weight: .semibold))
+                .font(.barlow(12.5, weight: .semibold))
                 .kerning(1.5)
                 .foregroundStyle(Color.textDim)
             Spacer()

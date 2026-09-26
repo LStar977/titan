@@ -41,6 +41,20 @@ enum Muscle: String, Codable, CaseIterable {
 
     /// Cardio and stretching log time, not weight × reps.
     var isDuration: Bool { self == .cardio || self == .mobility }
+
+    /// The broad group this muscle belongs to — used for workout titles.
+    var groupName: String {
+        switch self {
+        case .chest: return "Chest"
+        case .back, .traps: return "Back"
+        case .shoulders: return "Shoulders"
+        case .biceps, .triceps, .forearms: return "Arms"
+        case .core: return "Core"
+        case .quads, .hamstrings, .glutes, .calves: return "Legs"
+        case .cardio: return "Cardio"
+        case .mobility: return "Mobility"
+        }
+    }
 }
 
 /// Coarse filter categories used by the exercise picker chips.
@@ -168,6 +182,7 @@ final class Workout {
     /// False while the athlete is still building the workout (setup mode);
     /// the clock starts when this flips to true.
     var hasBegun: Bool = true
+    var notes: String = ""
     @Relationship(deleteRule: .cascade, inverse: \WorkoutEntry.workout)
     var entries: [WorkoutEntry] = []
 
@@ -192,6 +207,11 @@ final class WorkoutEntry {
     var exerciseName: String = ""
     var restSeconds: Int = 120
     var supersetGroup: Int?
+    /// Free-text note for this exercise today — shown again next session.
+    var notes: String = ""
+    /// Rep range carried over from the routine (0 = no target).
+    var targetLow: Int = 0
+    var targetHigh: Int = 0
     var workout: Workout?
     @Relationship(deleteRule: .cascade, inverse: \SetEntry.entry)
     var sets: [SetEntry] = []
@@ -212,6 +232,25 @@ final class WorkoutEntry {
 
     var completedSets: [SetEntry] {
         sortedSets.filter { $0.isCompleted }
+    }
+
+    /// Completed sets that count as real work (warm-ups excluded).
+    var workingSets: [SetEntry] {
+        completedSets.filter { $0.type != .warmup }
+    }
+
+    var hasPendingSets: Bool { sets.contains { !$0.isCompleted } }
+
+    /// Cardio and stretching log minutes instead of weight × reps.
+    var isDuration: Bool { exercise?.muscle.isDuration ?? false }
+
+    var isBarbell: Bool { exercise?.equipment == .barbell }
+
+    /// "8–12 reps", "5 reps", or nil when there's no target.
+    var targetLabel: String? {
+        guard targetHigh > 0 else { return nil }
+        if targetLow == targetHigh || targetLow == 0 { return "\(targetHigh) reps" }
+        return "\(targetLow)–\(targetHigh) reps"
     }
 }
 

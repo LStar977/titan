@@ -12,14 +12,18 @@ struct StatTile: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
             Text(label.uppercased())
-                .font(.barlow(10, weight: .semibold))
-                .kerning(1.5)
+                .font(.barlow(11, weight: .semibold))
+                .kerning(1.4)
                 .foregroundStyle(glowing ? Color.glow : Color.textDim)
+                .lineLimit(1)
             HStack(alignment: .firstTextBaseline, spacing: 1) {
                 Text(value)
                     .font(.condensed(32, weight: .bold))
                     .foregroundStyle(glowing ? Color.glow : Color.textMain)
                     .shadow(color: glowing ? Color.glow.opacity(0.5) : .clear, radius: 7)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.6)
+                    .contentTransition(.numericText())
                 if !unit.isEmpty {
                     Text(unit)
                         .font(.condensed(17, weight: .bold))
@@ -31,7 +35,7 @@ struct StatTile: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, 14)
         .padding(.vertical, 12)
-        .card(14, border: glowing ? Color.glow.opacity(0.4) : .hairline)
+        .card(16, border: glowing ? Color.glow.opacity(0.4) : .hairline)
     }
 }
 
@@ -42,20 +46,21 @@ struct PRBadge: View {
 
     var body: some View {
         Text(filled ? "✦ PR" : "PR")
-            .font(.barlow(9.5, weight: .bold))
-            .kerning(1)
+            .font(.barlow(11, weight: .bold))
+            .kerning(0.8)
             .foregroundStyle(filled ? Color.bg : Color.glow)
-            .padding(.horizontal, 6)
+            .padding(.horizontal, 7)
             .padding(.vertical, 3)
             .background(
-                RoundedRectangle(cornerRadius: 6)
+                RoundedRectangle(cornerRadius: 7, style: .continuous)
                     .fill(filled ? Color.glow : Color.glow.opacity(0.1))
             )
             .overlay(
-                RoundedRectangle(cornerRadius: 6)
+                RoundedRectangle(cornerRadius: 7, style: .continuous)
                     .stroke(filled ? Color.clear : Color.glow.opacity(0.35), lineWidth: 1)
             )
-            .shadow(color: Color.glow.opacity(filled ? 0.6 : 0.2), radius: 5)
+            .shadow(color: Color.glow.opacity(filled ? 0.5 : 0.15), radius: 5)
+            .accessibilityLabel("Personal record")
     }
 }
 
@@ -68,110 +73,48 @@ struct StreakPill: View {
     var body: some View {
         HStack(spacing: 6) {
             Image(systemName: "flame.fill")
-                .font(.system(size: 13))
-                .foregroundStyle(Color.purpleBright)
+                .font(.system(size: 14))
+                .foregroundStyle(days > 0 ? Color.purpleBright : Color.textFaint)
             Text("\(days)")
-                .font(.condensed(16, weight: .bold))
+                .font(.condensed(18, weight: .bold))
                 .foregroundStyle(Color.textMain)
+                .contentTransition(.numericText())
             if showLabel {
                 Text("day streak")
-                    .font(.barlow(11, weight: .medium))
+                    .font(.barlow(12, weight: .medium))
                     .foregroundStyle(Color.textDim)
             }
         }
         .padding(.horizontal, 12)
-        .padding(.vertical, 6)
+        .frame(height: 34)
         .background(Capsule().fill(Color.surface))
         .overlay(Capsule().stroke(Color.purplePrimary.opacity(0.25), lineWidth: 1))
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(days) day streak")
     }
 }
 
-// MARK: - Charts
+// MARK: - Rank progress
 
-struct LineChart: View {
-    let values: [Double]
-    var height: CGFloat = 112
-    var highlightLast = true
+struct RankProgressBar: View {
+    let fraction: Double
+    var height: CGFloat = 8
 
     var body: some View {
         GeometryReader { geo in
-            let pts = points(in: geo.size)
-            ZStack {
-                ForEach(0..<3, id: \.self) { i in
-                    Path { p in
-                        let y = geo.size.height * CGFloat(i + 1) / 4
-                        p.move(to: CGPoint(x: 0, y: y))
-                        p.addLine(to: CGPoint(x: geo.size.width, y: y))
-                    }
-                    .stroke(Color.hairlineSoft, lineWidth: 1)
-                }
-                if pts.count > 1 {
-                    Path { p in
-                        p.move(to: CGPoint(x: pts[0].x, y: geo.size.height))
-                        for pt in pts { p.addLine(to: pt) }
-                        p.addLine(to: CGPoint(x: pts[pts.count - 1].x, y: geo.size.height))
-                        p.closeSubpath()
-                    }
-                    .fill(
-                        LinearGradient(
-                            colors: [Color.purplePrimary.opacity(0.35), Color.purplePrimary.opacity(0)],
-                            startPoint: .top, endPoint: .bottom
-                        )
-                    )
-                    Path { p in
-                        p.move(to: pts[0])
-                        for pt in pts.dropFirst() { p.addLine(to: pt) }
-                    }
-                    .stroke(Color.purplePrimary, style: StrokeStyle(lineWidth: 2.5, lineCap: .round, lineJoin: .round))
-                }
-                if highlightLast, let last = pts.last {
-                    Circle().fill(Color.glow.opacity(0.25)).frame(width: 16, height: 16).position(last)
-                    Circle().fill(Color.glow).frame(width: 8, height: 8).position(last)
-                }
+            ZStack(alignment: .leading) {
+                Capsule().fill(Color.surface2)
+                Capsule()
+                    .fill(LinearGradient(colors: [.purpleDeep, .purplePrimary, .purpleBright], startPoint: .leading, endPoint: .trailing))
+                    .frame(width: max(height, geo.size.width * min(1, max(0, fraction))))
+                    .shadow(color: Color.purpleBright.opacity(0.5), radius: 5)
             }
         }
         .frame(height: height)
     }
-
-    private func points(in size: CGSize) -> [CGPoint] {
-        guard !values.isEmpty else { return [] }
-        let lo = values.min() ?? 0
-        let hi = values.max() ?? 1
-        let span = max(hi - lo, 1)
-        let padTop: CGFloat = 10
-        let padBottom: CGFloat = 6
-        let h = size.height - padTop - padBottom
-        if values.count == 1 {
-            return [CGPoint(x: size.width - 10, y: padTop + h * 0.5)]
-        }
-        return values.enumerated().map { i, v in
-            let x = 6 + (size.width - 16) * CGFloat(i) / CGFloat(values.count - 1)
-            let y = padTop + h * (1 - CGFloat((v - lo) / span))
-            return CGPoint(x: x, y: y)
-        }
-    }
 }
 
-struct BarChart: View {
-    let values: [Double]
-    var height: CGFloat = 76
-
-    var body: some View {
-        GeometryReader { geo in
-            let hi = max(values.max() ?? 1, 1)
-            HStack(alignment: .bottom, spacing: geo.size.width * 0.04) {
-                ForEach(Array(values.enumerated()), id: \.offset) { i, v in
-                    RoundedRectangle(cornerRadius: 3)
-                        .fill(i == values.count - 1 ? Color.purpleBright : Color.purplePrimary.opacity(0.4))
-                        .frame(height: max(4, geo.size.height * CGFloat(v / hi)))
-                        .frame(maxWidth: .infinity)
-                }
-            }
-            .frame(maxHeight: .infinity, alignment: .bottom)
-        }
-        .frame(height: height)
-    }
-}
+// MARK: - Sparkline
 
 struct Sparkline: View {
     let values: [Double]
@@ -241,8 +184,8 @@ struct BodyHeatMap: View {
             }
 
             // Head + neck (neutral)
-            circle(70, 15, 11, .surface2)
-            rect(64, 24, 12, 8, 3, .surface2)
+            circle(70, 15, 11, .heatBody)
+            rect(64, 24, 12, 8, 3, .heatBody)
 
             if female {
                 if front {
@@ -312,6 +255,7 @@ struct BodyHeatMap: View {
             }
         }
         .frame(width: width, height: height)
+        .accessibilityHidden(true)
     }
 }
 
@@ -327,21 +271,22 @@ struct BackHeader: View {
             Button(action: onBack) {
                 HStack(spacing: 6) {
                     Image(systemName: "chevron.left")
-                        .font(.system(size: 15, weight: .semibold))
+                        .font(.system(size: 16, weight: .semibold))
                     Text(label)
-                        .font(.barlow(15, weight: .medium))
+                        .font(.barlow(16, weight: .medium))
                 }
                 .foregroundStyle(Color.purpleBright)
+                .frame(minHeight: Layout.minTap)
+                .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
             Spacer()
             if let trailing { trailing }
         }
-        .padding(.vertical, 6)
     }
 }
 
-// MARK: - Empty little helpers
+// MARK: - Little helpers
 
 extension Array {
     subscript(safe index: Int) -> Element? {

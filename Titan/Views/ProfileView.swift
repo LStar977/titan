@@ -6,61 +6,78 @@ struct ProfileView: View {
     @Query(sort: \Workout.startedAt, order: .reverse) private var workouts: [Workout]
     @Query(sort: \BodyMetric.date, order: .reverse) private var metrics: [BodyMetric]
 
-    @State private var showSettings = false
     @State private var showLogMetrics = false
 
     private var profile: Profile? { profiles.first }
-    private var finished: [Workout] { workouts.filter { $0.endedAt != nil } }
 
     var body: some View {
-        NavigationStack {
+        let done = workouts.filter { $0.endedAt != nil }
+        let xp = RankSystem.totalXP(done)
+        return NavigationStack {
             ScrollView {
-                VStack(alignment: .leading, spacing: 12) {
-                    header
-                    rankCard
-                    climbCard
-                    supplementsLink
-                    bodyweightCard
-                    measurementsCard
+                VStack(alignment: .leading, spacing: 14) {
+                    header(done)
+                    rankCard(xp: xp)
+                    climbCard(xp: xp)
+                    lifetimeCard(done)
+                    bodyCard
+                    linksCard
                 }
-                .padding(.horizontal, 20)
-                .padding(.bottom, 130)
+                .padding(.horizontal, Layout.screenPad)
+                .padding(.bottom, Layout.tabBarClearance)
             }
             .background(Color.bg.ignoresSafeArea())
             .toolbar(.hidden, for: .navigationBar)
-        }
-        .sheet(isPresented: $showSettings) {
-            SettingsSheet()
         }
         .sheet(isPresented: $showLogMetrics) {
             LogMetricsSheet()
         }
     }
 
-    private var supplementsLink: some View {
-        NavigationLink {
-            SupplementsView()
-        } label: {
-            HStack {
-                Image(systemName: "pills")
-                    .font(.system(size: 15))
-                    .foregroundStyle(Color.purpleBright)
-                Text("Supplements")
-                    .font(.barlow(13.5, weight: .semibold))
-                    .foregroundStyle(Color.textMain)
-                Spacer()
-                Image(systemName: "chevron.right")
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundStyle(Color.textFaint)
-            }
-            .padding(.horizontal, 16)
-            .frame(height: 48)
-            .card(14)
-        }
-        .buttonStyle(.plain)
-    }
-
     // MARK: Header
+
+    private func header(_ done: [Workout]) -> some View {
+        let name = (profile?.name ?? "").trimmingCharacters(in: .whitespaces)
+        let display = name.isEmpty ? "ATHLETE" : name.uppercased()
+        return HStack(alignment: .center, spacing: 14) {
+            ZStack {
+                Hexagon()
+                    .fill(Color.accentGradient)
+                    .frame(width: 52, height: 57)
+                Text(String(display.prefix(1)))
+                    .font(.condensed(26, weight: .heavy))
+                    .foregroundStyle(.white)
+            }
+            .shadow(color: Color.purplePrimary.opacity(0.4), radius: 8)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(display)
+                    .font(.condensed(30, weight: .heavy))
+                    .kerning(1.2)
+                    .foregroundStyle(Color.textMain)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.6)
+                Text("\(done.count) workout\(done.count == 1 ? "" : "s") · since \(memberSince)")
+                    .font(.barlow(14))
+                    .foregroundStyle(Color.textDim)
+            }
+            Spacer()
+            NavigationLink {
+                SettingsView()
+            } label: {
+                Image(systemName: "gearshape.fill")
+                    .font(.system(size: 17))
+                    .foregroundStyle(Color.textSoft)
+                    .frame(width: 42, height: 42)
+                    .background(Circle().fill(Color.surface2))
+                    .frame(width: Layout.minTap, height: Layout.minTap)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.pressable)
+            .accessibilityLabel("Settings")
+        }
+        .padding(.top, 8)
+    }
 
     private var memberSince: String {
         let f = DateFormatter()
@@ -68,89 +85,47 @@ struct ProfileView: View {
         return f.string(from: profile?.createdAt ?? Date())
     }
 
-    private var header: some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 1) {
-                Text((profile?.name ?? "ATHLETE").uppercased())
-                    .font(.condensed(32, weight: .heavy))
-                    .kerning(1.5)
-                    .foregroundStyle(Color.textMain)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.6)
-                Text("\(finished.count) workout\(finished.count == 1 ? "" : "s") · since \(memberSince)")
-                    .font(.barlow(11.5))
-                    .foregroundStyle(Color.textDim)
-            }
-            Spacer()
-            Button {
-                showSettings = true
-            } label: {
-                Image(systemName: "gearshape")
-                    .font(.system(size: 16))
-                    .foregroundStyle(Color.textDim)
-                    .frame(width: 34, height: 34)
-                    .background(Circle().fill(Color.surface2))
-            }
-            .buttonStyle(.plain)
-        }
-        .padding(.top, 6)
-    }
-
     // MARK: Rank
 
-    private var rankCard: some View {
-        let prog = RankSystem.progress(xp: profile?.xp ?? 0)
+    private func rankCard(xp: Int) -> some View {
+        let prog = RankSystem.progress(xp: xp)
         return HStack(spacing: 16) {
-            Hexagon()
-                .fill(LinearGradient(colors: [.purplePrimary, .purpleDeep], startPoint: .top, endPoint: .bottom))
-                .frame(width: 72, height: 80)
-                .overlay(
-                    Hexagon()
-                        .fill(LinearGradient(colors: [.surface2, .surface], startPoint: .top, endPoint: .bottom))
-                        .padding(3)
-                )
-                .overlay(
-                    VStack(spacing: 3) {
-                        LogoBars(barWidth: 4, barHeight: 15, color: .glow, glowRadius: 5)
-                        Text(prog.rank.tierNumeral)
-                            .font(.condensed(14, weight: .heavy))
-                            .kerning(1)
-                            .foregroundStyle(Color.glow)
-                    }
-                )
-
+            RankEmblem(rank: prog.rank, size: 72)
             VStack(alignment: .leading, spacing: 0) {
                 Text("CURRENT RANK")
-                    .font(.barlow(9.5, weight: .bold))
-                    .kerning(2)
+                    .font(.barlow(11.5, weight: .bold))
+                    .kerning(1.8)
                     .foregroundStyle(Color.purpleBright)
                 Text(prog.rank.title)
-                    .font(.condensed(28, weight: .heavy))
-                    .kerning(2)
+                    .font(.condensed(30, weight: .heavy))
+                    .kerning(1.8)
                     .foregroundStyle(Color.textMain)
-                    .shadow(color: Color.purplePrimary.opacity(0.5), radius: 9)
+                    .shadow(color: Color.purplePrimary.opacity(0.45), radius: 9)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
                 RankProgressBar(fraction: prog.fraction)
-                    .padding(.top, 7)
+                    .padding(.top, 8)
                 Group {
                     if let next = prog.next {
                         Text("\(prog.current) / \(prog.span) XP · \(prog.span - prog.current) to \(next.title)")
                     } else {
-                        Text("Highest rank achieved · \(profile?.xp ?? 0) XP")
+                        Text("Highest rank achieved · \(xp) XP")
                     }
                 }
-                .font(.barlow(10.5))
+                .font(.barlow(13))
                 .foregroundStyle(Color.textDim)
-                .padding(.top, 5)
+                .padding(.top, 6)
             }
         }
-        .padding(16)
+        .padding(18)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(
-            RoundedRectangle(cornerRadius: 17)
+            RoundedRectangle(cornerRadius: 22, style: .continuous)
                 .fill(LinearGradient(colors: [Color.surfaceRaised, .surface], startPoint: .top, endPoint: .bottom))
+                .shadow(color: Brand.isLight ? Color.black.opacity(0.06) : .clear, radius: 12, y: 4)
         )
         .overlay(
-            RoundedRectangle(cornerRadius: 18)
+            RoundedRectangle(cornerRadius: 22, style: .continuous)
                 .stroke(
                     LinearGradient(
                         colors: [Color.glow.opacity(0.6), Color.purplePrimary.opacity(0.15), Color.purpleDeep.opacity(0.4)],
@@ -159,77 +134,80 @@ struct ProfileView: View {
                     lineWidth: 1
                 )
         )
-        .shadow(color: Color.purplePrimary.opacity(0.18), radius: 13)
+        .shadow(color: Color.purplePrimary.opacity(0.16), radius: 13)
     }
 
     // MARK: The Climb
 
-    private var climbCard: some View {
-        let prog = RankSystem.progress(xp: profile?.xp ?? 0)
+    private func climbCard(xp: Int) -> some View {
+        let prog = RankSystem.progress(xp: xp)
         let currentGroup = prog.rank.groupIndex
-        return VStack(alignment: .leading, spacing: 12) {
-            Text(Brand.climbTitle)
-                .font(.barlow(10.5, weight: .bold))
-                .kerning(1.5)
-                .foregroundStyle(Color.textDim)
-
-            HStack {
+        return VStack(alignment: .leading, spacing: 14) {
+            SectionLabel(Brand.climbTitle)
+            HStack(spacing: 0) {
                 ForEach(0..<4, id: \.self) { group in
-                    Spacer()
                     climbEmblem(group: group, currentGroup: currentGroup, rank: prog.rank)
-                    Spacer()
+                        .frame(maxWidth: .infinity)
                 }
             }
+            Text("XP comes from every workout, every working set, and every record.")
+                .font(.barlow(13))
+                .foregroundStyle(Color.textDim)
         }
         .padding(16)
-        .card(16)
+        .card(20)
     }
 
     @ViewBuilder
     private func climbEmblem(group: Int, currentGroup: Int, rank: Rank) -> some View {
         let name = Rank.groupNames[group]
-        VStack(spacing: 6) {
+        VStack(spacing: 7) {
             if group < currentGroup {
-                // Completed group
                 Hexagon()
                     .fill(completedGradient(group))
-                    .frame(width: 46, height: 51)
+                    .frame(width: 48, height: 53)
                     .overlay(
-                        Text("III")
-                            .font(.condensed(13, weight: .heavy))
+                        Image(systemName: "checkmark")
+                            .font(.system(size: 15, weight: .heavy))
                             .foregroundStyle(completedText(group))
                     )
                 Text(name)
-                    .font(.barlow(9.5, weight: .bold))
-                    .kerning(1)
+                    .font(.barlow(11, weight: .bold))
+                    .kerning(0.8)
                     .foregroundStyle(Color.textDim)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
             } else if group == currentGroup {
                 Hexagon()
                     .fill(LinearGradient(colors: [.purplePrimary, .purpleDeep], startPoint: .top, endPoint: .bottom))
-                    .frame(width: 46, height: 51)
+                    .frame(width: 48, height: 53)
                     .overlay(
                         Text(rank.tierNumeral)
-                            .font(.condensed(13, weight: .heavy))
+                            .font(.condensed(16, weight: .heavy))
                             .foregroundStyle(.white)
                     )
                     .shadow(color: Color.purplePrimary.opacity(0.55), radius: 9)
                 Text(name)
-                    .font(.barlow(9.5, weight: .bold))
-                    .kerning(1)
+                    .font(.barlow(11, weight: .bold))
+                    .kerning(0.8)
                     .foregroundStyle(Color.glow)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
             } else {
                 Hexagon()
                     .fill(Color.surfaceSunken)
-                    .frame(width: 46, height: 51)
+                    .frame(width: 48, height: 53)
                     .overlay(
-                        Image(systemName: "lock")
+                        Image(systemName: "lock.fill")
                             .font(.system(size: 13))
                             .foregroundStyle(Color.outline)
                     )
                 Text(name)
-                    .font(.barlow(9.5, weight: .bold))
-                    .kerning(1)
-                    .foregroundStyle(Color.outline)
+                    .font(.barlow(11, weight: .bold))
+                    .kerning(0.8)
+                    .foregroundStyle(Color.textFaint)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
             }
         }
     }
@@ -243,56 +221,153 @@ struct ProfileView: View {
         Color(hex: group == 0 ? Brand.rankLowText : Brand.rankMidText)
     }
 
-    // MARK: Bodyweight
+    // MARK: Lifetime
+
+    private func lifetimeCard(_ done: [Workout]) -> some View {
+        let volume = done.reduce(0.0) { $0 + Stats.volume($1) }
+        let sets = done.reduce(0) { $0 + Stats.completedSetCount($1) }
+        let time = done.reduce(0.0) { $0 + $1.duration }
+        let prs = done.reduce(0) { $0 + Stats.prSets($1).count }
+        return VStack(alignment: .leading, spacing: 12) {
+            SectionLabel("Lifetime")
+            HStack(alignment: .firstTextBaseline, spacing: 4) {
+                Text(Fmt.volumeK(volume))
+                    .font(.condensed(40, weight: .bold))
+                    .foregroundStyle(Color.textMain)
+                Text("\(Fmt.unitLabel) lifted")
+                    .font(.condensed(18, weight: .bold))
+                    .foregroundStyle(Color.textDim)
+                Spacer()
+                if let comparison = volumeComparison(volume) {
+                    Text(comparison)
+                        .font(.barlow(13, weight: .semibold))
+                        .foregroundStyle(Color.purpleBright)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.8)
+                }
+            }
+            HStack(spacing: 0) {
+                lifetimeStat("\(done.count)", "WORKOUTS")
+                lifetimeStat("\(sets)", "SETS")
+                lifetimeStat(Fmt.hours(time), "TRAINING")
+                lifetimeStat("\(prs)", Brand.recordsTile.uppercased(), glow: prs > 0)
+            }
+        }
+        .padding(16)
+        .card(20)
+    }
+
+    private func lifetimeStat(_ value: String, _ label: String, glow: Bool = false) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(value)
+                .font(.condensed(22, weight: .bold))
+                .foregroundStyle(glow ? Color.glow : Color.textMain)
+                .lineLimit(1)
+                .minimumScaleFactor(0.6)
+            Text(label)
+                .font(.barlow(10.5, weight: .bold))
+                .kerning(1)
+                .foregroundStyle(Color.textFaint)
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    /// A physical comparison for lifetime volume — mass is mass in any unit.
+    private func volumeComparison(_ lb: Double) -> String? {
+        let things: [(name: String, lb: Double)] = [
+            ("blue whales", 300_000),
+            ("elephants", 13_000),
+            ("pickup trucks", 5_000),
+            ("grand pianos", 1_000)
+        ]
+        for thing in things where lb >= thing.lb * 2 {
+            let n = lb / thing.lb
+            return "≈ \(Fmt.num(n, decimals: n < 10 ? 1 : 0)) \(thing.name)"
+        }
+        return nil
+    }
+
+    // MARK: Body
 
     private var weightEntries: [BodyMetric] {
         metrics.filter { $0.weight != nil }
     }
 
-    private var bodyweightCard: some View {
+    private var bodyCard: some View {
         let latest = weightEntries.first?.weight
-        return VStack(alignment: .leading, spacing: 6) {
-            HStack(alignment: .firstTextBaseline) {
-                Text("BODYWEIGHT")
-                    .font(.barlow(10.5, weight: .bold))
-                    .kerning(1.5)
-                    .foregroundStyle(Color.textDim)
+        return VStack(alignment: .leading, spacing: 0) {
+            HStack {
+                SectionLabel("Body")
                 Spacer()
-                if let delta = monthDelta {
-                    Text(delta >= 0 ? "↑ \(String(format: "%.1f", delta)) lb this month" : "↓ \(String(format: "%.1f", -delta)) lb this month")
-                        .font(.barlow(11, weight: .semibold))
-                        .foregroundStyle(Color.successGreen)
+                Button {
+                    showLogMetrics = true
+                } label: {
+                    HStack(spacing: 4) {
+                        Image(systemName: "plus")
+                            .font(.system(size: 11, weight: .bold))
+                        Text("Log")
+                            .font(.barlow(14, weight: .semibold))
+                    }
+                    .foregroundStyle(Color.purpleBright)
+                    .frame(minHeight: Layout.minTap)
+                    .contentShape(Rectangle())
                 }
+                .buttonStyle(.plain)
             }
+            .padding(.horizontal, 16)
+            .padding(.top, 4)
+
             HStack(alignment: .bottom, spacing: 14) {
                 if let latest {
-                    HStack(alignment: .firstTextBaseline, spacing: 2) {
-                        Text(String(format: "%.1f", latest))
-                            .font(.condensed(38, weight: .bold))
-                            .foregroundStyle(Color.textMain)
-                        Text("lb")
-                            .font(.condensed(18, weight: .bold))
-                            .foregroundStyle(Color.textDim)
+                    VStack(alignment: .leading, spacing: 2) {
+                        HStack(alignment: .firstTextBaseline, spacing: 3) {
+                            Text(Fmt.num(Fmt.unit.fromLb(latest), decimals: 1))
+                                .font(.condensed(38, weight: .bold))
+                                .foregroundStyle(Color.textMain)
+                            Text(Fmt.unitLabel)
+                                .font(.condensed(18, weight: .bold))
+                                .foregroundStyle(Color.textDim)
+                        }
+                        if let delta = monthDelta {
+                            Text(deltaText(delta))
+                                .font(.barlow(13, weight: .semibold))
+                                .foregroundStyle(Color.textSoft)
+                        } else {
+                            Text("Bodyweight")
+                                .font(.barlow(13))
+                                .foregroundStyle(Color.textDim)
+                        }
                     }
                 } else {
                     Button {
                         showLogMetrics = true
                     } label: {
-                        Text("Log your bodyweight")
-                            .font(.barlow(13, weight: .semibold))
-                            .foregroundStyle(Color.purpleBright)
+                        Text("Log your bodyweight — push-ups and pull-ups use it for volume.")
+                            .font(.barlow(14, weight: .medium))
+                            .foregroundStyle(Color.textDim)
+                            .multilineTextAlignment(.leading)
                     }
                     .buttonStyle(.plain)
-                    .padding(.vertical, 8)
                 }
                 Spacer()
                 if weightEntries.count > 1 {
-                    Sparkline(values: weightEntries.prefix(12).reversed().compactMap { $0.weight })
+                    Sparkline(values: weightEntries.prefix(12).reversed().compactMap { $0.weight }, width: 120, height: 40)
                 }
             }
+            .padding(.horizontal, 16)
+            .padding(.bottom, 12)
+
+            Rectangle().fill(Color.hairline).frame(height: 1)
+
+            measurementRow("Chest", keyPath: \.chest)
+            Divider().overlay(Color.hairlineSoft).padding(.leading, 16)
+            measurementRow("Arm", keyPath: \.arm)
+            Divider().overlay(Color.hairlineSoft).padding(.leading, 16)
+            measurementRow("Waist", keyPath: \.waist)
         }
-        .padding(16)
-        .card(16)
+        .card(20)
     }
 
     private var monthDelta: Double? {
@@ -302,39 +377,9 @@ struct ProfileView: View {
         return latest - past
     }
 
-    // MARK: Measurements
-
-    private var measurementsCard: some View {
-        VStack(spacing: 0) {
-            HStack {
-                Text("MEASUREMENTS")
-                    .font(.barlow(10.5, weight: .bold))
-                    .kerning(1.5)
-                    .foregroundStyle(Color.textDim)
-                Spacer()
-                Button {
-                    showLogMetrics = true
-                } label: {
-                    Text("Log")
-                        .font(.barlow(11.5, weight: .semibold))
-                        .foregroundStyle(Color.purpleBright)
-                }
-                .buttonStyle(.plain)
-            }
-            .padding(.horizontal, 16)
-            .padding(.top, 13)
-            .padding(.bottom, 9)
-            .overlay(alignment: .bottom) {
-                Rectangle().fill(Color.hairline).frame(height: 1)
-            }
-
-            measurementRow("Chest", keyPath: \.chest)
-            Divider().overlay(Color.hairlineSoft)
-            measurementRow("Arm", keyPath: \.arm)
-            Divider().overlay(Color.hairlineSoft)
-            measurementRow("Waist", keyPath: \.waist)
-        }
-        .card(16)
+    private func deltaText(_ lbDelta: Double) -> String {
+        let shown = Fmt.num(Fmt.unit.fromLb(abs(lbDelta)), decimals: 1)
+        return lbDelta >= 0 ? "↑ \(shown) \(Fmt.unitLabel) this month" : "↓ \(shown) \(Fmt.unitLabel) this month"
     }
 
     private func measurementRow(_ label: String, keyPath: KeyPath<BodyMetric, Double?>) -> some View {
@@ -343,135 +388,80 @@ struct ProfileView: View {
         let previous = entries.count > 1 ? entries[1] : nil
         return HStack {
             Text(label)
-                .font(.barlow(13.5, weight: .medium))
+                .font(.barlow(15.5, weight: .medium))
                 .foregroundStyle(Color.textMain)
             Spacer()
             if let latest {
                 HStack(alignment: .firstTextBaseline, spacing: 3) {
-                    Text(String(format: "%.1f", latest))
-                        .font(.condensed(18, weight: .bold))
+                    Text(Fmt.length(latest))
+                        .font(.condensed(20, weight: .bold))
                         .foregroundStyle(Color.textMain)
-                    Text("in")
-                        .font(.condensed(12, weight: .bold))
+                    Text(Fmt.unit.lengthLabel)
+                        .font(.condensed(13, weight: .bold))
                         .foregroundStyle(Color.textDim)
                     if let previous, previous != latest {
-                        let d = latest - previous
-                        Text(d > 0 ? "+\(String(format: "%.1f", d))" : "−\(String(format: "%.1f", -d))")
-                            .font(.barlow(11, weight: .semibold))
-                            .foregroundStyle(Color.successGreen)
+                        let d = Fmt.unit.fromInches(latest - previous)
+                        Text(d > 0 ? "+\(Fmt.num(d, decimals: 1))" : "−\(Fmt.num(-d, decimals: 1))")
+                            .font(.barlow(12.5, weight: .semibold))
+                            .foregroundStyle(Color.textSoft)
+                            .padding(.leading, 4)
                     }
                 }
             } else {
                 Text("—")
-                    .font(.condensed(18, weight: .bold))
+                    .font(.condensed(20, weight: .bold))
                     .foregroundStyle(Color.textFaint)
             }
         }
         .padding(.horizontal, 16)
-        .padding(.vertical, 10)
+        .frame(minHeight: 48)
     }
-}
 
-// MARK: - Settings
+    // MARK: Links
 
-struct SettingsSheet: View {
-    @Environment(\.dismiss) private var dismiss
-    @Query private var profiles: [Profile]
-    @State private var name = ""
-
-    var body: some View {
-        VStack(spacing: 16) {
-            HStack {
-                Color.clear.frame(width: 50, height: 1)
-                Spacer()
-                Text("SETTINGS")
-                    .font(.condensed(19, weight: .bold))
-                    .kerning(1.5)
-                    .foregroundStyle(Color.textMain)
-                Spacer()
-                Button("Done") {
-                    if let p = profiles.first, !name.trimmingCharacters(in: .whitespaces).isEmpty {
-                        p.name = name.trimmingCharacters(in: .whitespaces)
-                    }
-                    dismiss()
-                }
-                .font(.barlow(14, weight: .semibold))
-                .foregroundStyle(Color.purpleBright)
-                .frame(width: 50, alignment: .trailing)
+    private var linksCard: some View {
+        VStack(spacing: 0) {
+            NavigationLink {
+                SupplementsView()
+            } label: {
+                linkRow(icon: "pills.fill", title: "Supplements")
             }
-            .padding(.top, 18)
-
-            if let profile = profiles.first {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("YOUR NAME")
-                        .font(.barlow(9.5, weight: .bold))
-                        .kerning(1.5)
-                        .foregroundStyle(Color.textFaint)
-                    TextField("Name", text: $name)
-                        .font(.condensed(22, weight: .bold))
-                        .foregroundStyle(Color.textMain)
-                }
-                .padding(12)
-                .background(RoundedRectangle(cornerRadius: 13).fill(Color.surface2))
-
-                settingStepper("Weekly workout goal", value: "\(profile.weeklyGoal)") {
-                    profile.weeklyGoal = max(1, profile.weeklyGoal - 1)
-                } plus: {
-                    profile.weeklyGoal = min(7, profile.weeklyGoal + 1)
-                }
-
-                settingStepper("Default rest timer", value: Fmt.clock(Double(profile.defaultRestSeconds))) {
-                    profile.defaultRestSeconds = max(30, profile.defaultRestSeconds - 15)
-                } plus: {
-                    profile.defaultRestSeconds = min(600, profile.defaultRestSeconds + 15)
-                }
+            .buttonStyle(.plain)
+            Divider().overlay(Color.hairlineSoft).padding(.leading, 56)
+            NavigationLink {
+                RoutinesView()
+            } label: {
+                linkRow(icon: "list.bullet.rectangle", title: "Routines & programs")
             }
-            Spacer()
+            .buttonStyle(.plain)
+            Divider().overlay(Color.hairlineSoft).padding(.leading, 56)
+            NavigationLink {
+                SettingsView()
+            } label: {
+                linkRow(icon: "gearshape.fill", title: "Settings")
+            }
+            .buttonStyle(.plain)
         }
-        .padding(.horizontal, 20)
-        .background(Color.sheetBg.ignoresSafeArea())
-        .presentationDetents([.height(340)])
-        .presentationDragIndicator(.visible)
-        .onAppear { name = profiles.first?.name ?? "" }
+        .card(20)
     }
 
-    private func settingStepper(_ label: String, value: String, minus: @escaping () -> Void, plus: @escaping () -> Void) -> some View {
-        HStack {
-            Text(label.uppercased())
-                .font(.barlow(11, weight: .semibold))
-                .kerning(1.5)
-                .foregroundStyle(Color.textDim)
+    private func linkRow(icon: String, title: String) -> some View {
+        HStack(spacing: 14) {
+            Image(systemName: icon)
+                .font(.system(size: 15))
+                .foregroundStyle(Color.purpleBright)
+                .frame(width: 26)
+            Text(title)
+                .font(.barlow(16, weight: .semibold))
+                .foregroundStyle(Color.textMain)
             Spacer()
-            HStack(spacing: 14) {
-                stepBtn("minus", action: minus)
-                Text(value)
-                    .font(.condensed(22, weight: .bold))
-                    .foregroundStyle(Color.textMain)
-                    .frame(minWidth: 52)
-                    .monospacedDigit()
-                stepBtn("plus", action: plus)
-            }
+            Image(systemName: "chevron.right")
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(Color.textFaint)
         }
         .padding(.horizontal, 16)
-        .padding(.vertical, 10)
-        .card(13)
-    }
-
-    private func stepBtn(_ icon: String, action: @escaping () -> Void) -> some View {
-        Button {
-            action()
-            Haptics.tap()
-        } label: {
-            RoundedRectangle(cornerRadius: 9)
-                .fill(Color.surface2)
-                .frame(width: 32, height: 32)
-                .overlay(
-                    Image(systemName: icon)
-                        .font(.system(size: 12, weight: .bold))
-                        .foregroundStyle(Color.textSoft)
-                )
-        }
-        .buttonStyle(.plain)
+        .frame(minHeight: 54)
+        .contentShape(Rectangle())
     }
 }
 
@@ -486,68 +476,77 @@ struct LogMetricsSheet: View {
     @State private var arm = ""
     @State private var waist = ""
 
+    private func parse(_ s: String) -> Double? {
+        NumberField.parse(s)
+    }
+
     private var hasInput: Bool {
-        [weight, chest, arm, waist].contains { Double($0) != nil }
+        [weight, chest, arm, waist].contains { (parse($0) ?? 0) > 0 }
     }
 
     var body: some View {
-        VStack(spacing: 14) {
+        let unit = Fmt.unit
+        return VStack(spacing: 14) {
             HStack {
                 Button("Cancel") { dismiss() }
-                    .font(.barlow(14, weight: .medium))
+                    .font(.barlow(16, weight: .medium))
                     .foregroundStyle(Color.purpleBright)
-                    .frame(width: 60, alignment: .leading)
+                    .frame(width: 70, alignment: .leading)
                 Spacer()
-                Text("LOG METRICS")
-                    .font(.condensed(19, weight: .bold))
+                Text("LOG BODY")
+                    .font(.condensed(20, weight: .bold))
                     .kerning(1.5)
                     .foregroundStyle(Color.textMain)
                 Spacer()
                 Button("Save") {
                     let metric = BodyMetric(
-                        weight: Double(weight),
-                        chest: Double(chest),
-                        arm: Double(arm),
-                        waist: Double(waist)
+                        weight: parse(weight).map { unit.toLb($0) },
+                        chest: parse(chest).map { unit.toInches($0) },
+                        arm: parse(arm).map { unit.toInches($0) },
+                        waist: parse(waist).map { unit.toInches($0) }
                     )
                     context.insert(metric)
                     try? context.save()
                     Haptics.success()
                     dismiss()
                 }
-                .font(.barlow(14, weight: .bold))
+                .font(.barlow(16, weight: .bold))
                 .foregroundStyle(hasInput ? Color.purpleBright : Color.textFaint)
                 .disabled(!hasInput)
-                .frame(width: 60, alignment: .trailing)
+                .frame(width: 70, alignment: .trailing)
             }
             .padding(.top, 18)
 
-            metricField("Bodyweight (lb)", text: $weight)
-            metricField("Chest (in)", text: $chest)
-            metricField("Arm (in)", text: $arm)
-            metricField("Waist (in)", text: $waist)
+            metricField("Bodyweight (\(unit.label))", text: $weight)
+            metricField("Chest (\(unit.lengthLabel))", text: $chest)
+            metricField("Arm (\(unit.lengthLabel))", text: $arm)
+            metricField("Waist (\(unit.lengthLabel))", text: $waist)
+
+            Text("Fill in any you like — blanks are skipped.")
+                .font(.barlow(13))
+                .foregroundStyle(Color.textDim)
 
             Spacer()
         }
-        .padding(.horizontal, 20)
+        .padding(.horizontal, Layout.screenPad)
         .background(Color.sheetBg.ignoresSafeArea())
-        .presentationDetents([.height(420)])
+        .presentationDetents([.height(470), .large])
         .presentationDragIndicator(.visible)
     }
 
     private func metricField(_ label: String, text: Binding<String>) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(label.uppercased())
-                .font(.barlow(9.5, weight: .bold))
-                .kerning(1.5)
+                .font(.barlow(11, weight: .bold))
+                .kerning(1.4)
                 .foregroundStyle(Color.textFaint)
             TextField("—", text: text)
-                .font(.condensed(24, weight: .bold))
+                .font(.condensed(26, weight: .bold))
                 .foregroundStyle(Color.textMain)
                 .keyboardType(.decimalPad)
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 10)
-        .background(RoundedRectangle(cornerRadius: 13).fill(Color.surface2))
+        .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(Color.surface2))
     }
 }

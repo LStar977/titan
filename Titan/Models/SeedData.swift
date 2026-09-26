@@ -145,40 +145,63 @@ enum SeedData {
 // MARK: - Building live workouts
 
 enum WorkoutBuilder {
+    /// Title given to a workout built from scratch until it's renamed or
+    /// auto-named from what was trained.
+    static let defaultTitle = "My Workout"
+
     /// Create a workout (optionally from a routine), pre-filling each set with
     /// ghost values from the athlete's last session of that exercise.
+    /// `history` must be newest first.
     static func start(routine: Routine?, context: ModelContext, history: [Workout]) -> Workout {
-        let workout = Workout(title: routine?.name ?? "My Workout")
+        let workout = Workout(title: routine?.name ?? defaultTitle)
         // Custom workouts open in setup mode — the clock waits for START.
         workout.hasBegun = routine != nil
         context.insert(workout)
 
         if let routine {
-            for item in routine.sortedItems {
+            for (index, item) in routine.sortedItems.enumerated() {
                 let entry = WorkoutEntry(
-                    orderIndex: item.orderIndex,
+                    orderIndex: index,
                     exercise: item.exercise,
                     restSeconds: item.restSeconds,
                     supersetGroup: item.supersetGroup
                 )
+                entry.exerciseName = item.displayName
+                entry.targetLow = item.repLow
+                entry.targetHigh = item.repHigh
                 context.insert(entry)
                 workout.entries.append(entry)
 
                 let prev = Stats.lastSets(exerciseName: entry.displayName, workouts: history)
+                let bump = progressionBump(prev: prev, plannedSets: item.plannedSets, repHigh: item.repHigh, exercise: item.exercise)
                 for i in 0..<max(1, item.plannedSets) {
                     let prevSet = i < prev.count ? prev[i] : prev.last
-                    let set = SetEntry(
-                        orderIndex: i,
-                        weight: prevSet?.weight ?? 0,
-                        reps: prevSet?.reps ?? item.repLow,
-                        type: .working
-                    )
+                    var weight = prevSet?.weight ?? 0
+                    var reps = prevSet?.reps ?? item.repLow
+                    if bump > 0 && weight > 0 {
+                        weight += bump
+                        reps = item.repLow
+                    }
+                    let set = SetEntry(orderIndex: i, weight: weight, reps: reps, type: .working)
                     context.insert(set)
                     entry.sets.append(set)
                 }
             }
         }
+        // Save now so new objects get permanent IDs before anyone starts typing.
+        try? context.save()
         return workout
+    }
+
+    /// Double progression: when every working set last time reached the top of
+    /// the rep range, add one increment and start back at the bottom of it.
+    static func progressionBump(prev: [SetEntry], plannedSets: Int, repHigh: Int, exercise: Exercise?) -> Double {
+        guard Prefs.shared.autoProgress, repHigh > 0, !prev.isEmpty else { return 0 }
+        guard let exercise, !exercise.muscle.isDuration else { return 0 }
+        guard prev.count >= plannedSets else { return 0 }
+        guard prev.allSatisfy({ $0.weight > 0 && $0.reps >= repHigh }) else { return 0 }
+        let unit = Prefs.shared.unit
+        return unit.toLb(unit.step)
     }
 
     static func addExercise(_ exercise: Exercise, to workout: Workout, context: ModelContext, history: [Workout], defaultRest: Int) {
@@ -191,12 +214,123 @@ enum WorkoutBuilder {
         workout.entries.append(entry)
 
         let prev = Stats.lastSets(exerciseName: exercise.name, workouts: history, excluding: workout)
-        let count = max(3, prev.count)
+        let fallbackReps = exercise.muscle.isDuration ? 10 : 8
+        let count = max(exercise.muscle.isDuration ? 1 : 3, prev.count)
         for i in 0..<count {
             let prevSet = i < prev.count ? prev[i] : prev.last
-            let set = SetEntry(orderIndex: i, weight: prevSet?.weight ?? 0, reps: prevSet?.reps ?? 8, type: .working)
+            let set = SetEntry(orderIndex: i, weight: prevSet?.weight ?? 0, reps: prevSet?.reps ?? fallbackReps, type: .working)
             context.insert(set)
             entry.sets.append(set)
         }
+        try? context.save()
+    }
+
+    /// A fresh copy of a past workout — same exercises and set counts, with
+    /// numbers from the most recent session of each. Starts immediately.
+    static func repeatWorkout(_ source: Workout, context: ModelContext, history: [Workout]) -> Workout {
+        let workout = Workout(title: source.title)
+        workout.hasBegun = true
+        context.insert(workout)
+
+        for (index, old) in source.sortedEntries.enumerated() {
+            let entry = WorkoutEntry(
+                orderIndex: index,
+                exercise: old.exercise,
+                restSeconds: old.restSeconds,
+                supersetGroup: old.supersetGroup
+            )
+            entry.exerciseName = old.displayName
+            entry.targetLow = old.targetLow
+            entry.targetHigh = old.targetHigh
+            context.insert(entry)
+            workout.entries.append(entry)
+
+            let prev = Stats.lastSets(exerciseName: entry.displayName, workouts: history, excluding: workout)
+            let count = max(1, old.workingSets.count)
+            for i in 0..<count {
+                let prevSet = i < prev.count ? prev[i] : prev.last
+                let set = SetEntry(
+                    orderIndex: i,
+                    weight: prevSet?.weight ?? 0,
+                    reps: prevSet?.reps ?? (old.targetLow > 0 ? old.targetLow : 8),
+                    type: .working
+                )
+                context.insert(set)
+                entry.sets.append(set)
+            }
+        }
+        try? context.save()
+        return workout
+    }
+
+    /// Turns a finished workout into a reusable routine.
+    @discardableResult
+    static func saveAsRoutine(_ workout: Workout, context: ModelContext, routines: [Routine]) -> Routine {
+        let taken = Set(routines.map { $0.name })
+        var name = workout.title
+        var n = 2
+        while taken.contains(name) {
+            name = "\(workout.title) \(n)"
+            n += 1
+        }
+        let routine = Routine(name: name, orderIndex: (routines.map { $0.orderIndex }.max() ?? -1) + 1)
+        context.insert(routine)
+        for (i, entry) in workout.sortedEntries.enumerated() {
+            let working = entry.workingSets
+            let reps = working.map { $0.reps }
+            let low = entry.targetLow > 0 ? entry.targetLow : (reps.min() ?? 8)
+            let high = entry.targetHigh > 0 ? entry.targetHigh : (reps.max() ?? 12)
+            let item = RoutineItem(
+                orderIndex: i,
+                exercise: entry.exercise,
+                plannedSets: max(1, working.count),
+                repLow: min(low, high),
+                repHigh: max(low, high),
+                restSeconds: entry.restSeconds,
+                supersetGroup: entry.supersetGroup
+            )
+            if item.exercise == nil { item.exerciseName = entry.displayName }
+            context.insert(item)
+            routine.items.append(item)
+        }
+        try? context.save()
+        return routine
+    }
+
+    /// Drops sets that were never logged and exercises left empty, then
+    /// renumbers what remains. Run when a workout is finished.
+    static func cleanUp(_ workout: Workout, context: ModelContext) {
+        for entry in workout.entries {
+            let pending = entry.sets.filter { !$0.isCompleted }
+            for s in pending {
+                entry.sets.removeAll { $0 === s }
+                context.delete(s)
+            }
+        }
+        let empty = workout.entries.filter { $0.sets.isEmpty }
+        for e in empty {
+            workout.entries.removeAll { $0 === e }
+            context.delete(e)
+        }
+        for (i, e) in workout.sortedEntries.enumerated() {
+            e.orderIndex = i
+        }
+    }
+
+    /// Closes out a workout that was left running (app killed, phone died):
+    /// keeps what was logged, or deletes it when nothing was.
+    static func closeStale(_ workout: Workout, context: ModelContext) {
+        let done = workout.entries.flatMap { $0.sets }.filter { $0.isCompleted }
+        guard !done.isEmpty else {
+            context.delete(workout)
+            return
+        }
+        cleanUp(workout, context: context)
+        if workout.title == defaultTitle {
+            workout.title = Stats.autoTitle(workout)
+        }
+        let last = done.compactMap { $0.completedAt }.max()
+        workout.endedAt = last ?? workout.startedAt.addingTimeInterval(3600)
+        workout.hasBegun = true
     }
 }

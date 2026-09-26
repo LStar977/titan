@@ -2,6 +2,8 @@ import SwiftUI
 import SwiftData
 
 struct ExercisePickerView: View {
+    var singleSelect = false
+    var title = "ADD EXERCISE"
     let onDone: ([Exercise]) -> Void
 
     @Environment(\.dismiss) private var dismiss
@@ -12,151 +14,98 @@ struct ExercisePickerView: View {
     @State private var search = ""
     @State private var muscleFilter: MuscleCategory = .all
     @State private var equipmentFilter: Set<Equipment> = []
-    @State private var selected: Set<ObjectIdentifier> = []
+    /// In the order they were tapped — that's the order they're added.
+    @State private var selected: [ObjectIdentifier] = []
     @State private var showNewExercise = false
     @State private var newExercisePrefill = ""
 
-    private var filtered: [Exercise] {
-        exercises.filter { ex in
-            guard muscleFilter.contains(ex.muscle) else { return false }
-            if !equipmentFilter.isEmpty && !equipmentFilter.contains(ex.equipment) { return false }
-            if !search.isEmpty && !ex.name.localizedCaseInsensitiveContains(search) { return false }
-            return true
+    init(singleSelect: Bool = false, title: String = "ADD EXERCISE", onDone: @escaping ([Exercise]) -> Void) {
+        self.singleSelect = singleSelect
+        self.title = title
+        self.onDone = onDone
+    }
+
+    private var isFiltering: Bool {
+        !search.trimmingCharacters(in: .whitespaces).isEmpty || muscleFilter != .all || !equipmentFilter.isEmpty
+    }
+
+    private func matches(_ ex: Exercise) -> Bool {
+        guard muscleFilter.contains(ex.muscle) else { return false }
+        if !equipmentFilter.isEmpty && !equipmentFilter.contains(ex.equipment) { return false }
+        let q = search.trimmingCharacters(in: .whitespaces)
+        if !q.isEmpty && !ex.name.localizedCaseInsensitiveContains(q) { return false }
+        return true
+    }
+
+    /// Last time each exercise was trained, from one pass over history.
+    private func lastDoneIndex() -> [String: Date] {
+        var out: [String: Date] = [:]
+        for w in workouts where w.endedAt != nil {
+            for e in w.entries where out[e.displayName] == nil && !e.completedSets.isEmpty {
+                out[e.displayName] = w.startedAt
+            }
         }
+        return out
     }
 
     var body: some View {
-        VStack(spacing: 0) {
-            HStack {
-                Button("Cancel") { dismiss() }
-                    .font(.barlow(14, weight: .medium))
-                    .foregroundStyle(Color.purpleBright)
-                    .frame(width: 60, alignment: .leading)
-                Spacer()
-                Text("ADD EXERCISE")
-                    .font(.condensed(19, weight: .bold))
-                    .kerning(1.5)
-                    .foregroundStyle(Color.textMain)
-                Spacer()
-                Button {
-                    newExercisePrefill = search
-                    showNewExercise = true
-                } label: {
-                    HStack(spacing: 3) {
-                        Image(systemName: "plus")
-                            .font(.system(size: 11, weight: .bold))
-                        Text("New")
-                            .font(.barlow(14, weight: .semibold))
-                    }
-                    .foregroundStyle(Color.purpleBright)
-                }
-                .frame(width: 60, alignment: .trailing)
-            }
-            .padding(.horizontal, 16)
-            .padding(.top, 16)
-            .padding(.bottom, 12)
+        let lastDone = lastDoneIndex()
+        let best = Stats.bestSetIndex(workouts)
+        let filtered = exercises.filter(matches)
+        let recent: [Exercise] = isFiltering ? [] : exercises
+            .filter { lastDone[$0.name] != nil }
+            .sorted { (lastDone[$0.name] ?? .distantPast) > (lastDone[$1.name] ?? .distantPast) }
+            .prefix(8)
+            .map { $0 }
 
-            // Search
-            HStack(spacing: 8) {
-                Image(systemName: "magnifyingglass")
-                    .font(.system(size: 14))
-                    .foregroundStyle(Color.textDim)
-                TextField("Search exercises", text: $search)
-                    .font(.barlow(14))
-                    .foregroundStyle(Color.textMain)
-                    .autocorrectionDisabled()
-            }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 10)
-            .background(RoundedRectangle(cornerRadius: 12).fill(Color.surface2))
-            .padding(.horizontal, 16)
-            .padding(.bottom, 10)
-
-            // Muscle chips
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 6) {
-                    ForEach(MuscleCategory.allCases, id: \.self) { cat in
-                        let sel = muscleFilter == cat
-                        Button {
-                            muscleFilter = cat
-                            Haptics.tap()
-                        } label: {
-                            Text(cat.rawValue)
-                                .font(.barlow(12, weight: .semibold))
-                                .foregroundStyle(sel ? .white : Color.textDim)
-                                .padding(.horizontal, 13)
-                                .padding(.vertical, 7)
-                                .background(
-                                    Capsule().fill(
-                                        sel
-                                        ? AnyShapeStyle(LinearGradient(colors: [.purplePrimary, .purpleMid], startPoint: .top, endPoint: .bottom))
-                                        : AnyShapeStyle(Color.surface2)
-                                    )
-                                )
-                                .shadow(color: sel ? Color.purplePrimary.opacity(0.35) : .clear, radius: 6)
-                        }
-                        .buttonStyle(.plain)
-                    }
-                }
-                .padding(.horizontal, 16)
-            }
-            .padding(.bottom, 8)
-
-            // Equipment chips
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 6) {
-                    ForEach(Equipment.allCases.filter { $0 != .other }, id: \.self) { eq in
-                        let sel = equipmentFilter.contains(eq)
-                        Button {
-                            if sel { equipmentFilter.remove(eq) } else { equipmentFilter.insert(eq) }
-                            Haptics.tap()
-                        } label: {
-                            Text(eq.rawValue)
-                                .font(.barlow(11.5, weight: .medium))
-                                .foregroundStyle(sel ? Color.textSoft : Color.textDim)
-                                .padding(.horizontal, 11)
-                                .padding(.vertical, 5)
-                                .background(Capsule().fill(sel ? Color.purplePrimary.opacity(0.1) : Color.clear))
-                                .overlay(
-                                    Capsule().stroke(sel ? Color.purplePrimary.opacity(0.5) : Color.surface3, lineWidth: 1)
-                                )
-                        }
-                        .buttonStyle(.plain)
-                    }
-                }
-                .padding(.horizontal, 16)
-            }
-            .padding(.bottom, 12)
-
+        return VStack(spacing: 0) {
+            header
+            searchField
+            muscleChips
+            equipmentChips
             Divider().overlay(Color.hairline)
 
-            // List
             ScrollView {
-                LazyVStack(spacing: 0) {
+                LazyVStack(alignment: .leading, spacing: 0) {
                     if showCreateRow {
                         createRow
-                        Divider().overlay(Color.hairlineSoft).padding(.leading, 16)
+                        Divider().overlay(Color.hairlineSoft).padding(.leading, 70)
+                    }
+                    if !recent.isEmpty {
+                        listLabel("Recent")
+                        ForEach(recent) { ex in
+                            exerciseRow(ex, lastDone: lastDone[ex.name], best: best[ex.name])
+                            Divider().overlay(Color.hairlineSoft).padding(.leading, 70)
+                        }
+                        listLabel("All exercises")
                     }
                     ForEach(filtered) { ex in
-                        exerciseRow(ex)
-                        Divider().overlay(Color.hairlineSoft).padding(.leading, 16)
+                        exerciseRow(ex, lastDone: lastDone[ex.name], best: best[ex.name])
+                        Divider().overlay(Color.hairlineSoft).padding(.leading, 70)
+                    }
+                    if filtered.isEmpty && !showCreateRow {
+                        Text("No exercises match those filters.")
+                            .font(.barlow(15))
+                            .foregroundStyle(Color.textDim)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 40)
                     }
                 }
-                .padding(.bottom, 90)
+                .padding(.bottom, 100)
             }
+            .scrollDismissesKeyboard(.interactively)
             .overlay(alignment: .bottom) {
-                if !selected.isEmpty {
+                if !singleSelect && !selected.isEmpty {
                     GradientCTA("ADD \(selected.count) EXERCISE\(selected.count == 1 ? "" : "S")", fontSize: 18) {
-                        let picked = exercises.filter { selected.contains(ObjectIdentifier($0)) }
-                        onDone(picked)
-                        Haptics.medium()
-                        dismiss()
+                        commit()
                     }
-                    .padding(.horizontal, 16)
+                    .padding(.horizontal, 18)
                     .padding(.bottom, 14)
+                    .padding(.top, 24)
                     .background(
                         LinearGradient(colors: [Color.sheetBg.opacity(0), Color.sheetBg], startPoint: .top, endPoint: .bottom)
                     )
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
             }
         }
@@ -165,10 +114,140 @@ struct ExercisePickerView: View {
         .presentationDragIndicator(.visible)
         .sheet(isPresented: $showNewExercise) {
             NewExerciseSheet(initialName: newExercisePrefill) { created in
-                selected.insert(ObjectIdentifier(created))
+                if singleSelect {
+                    onDone([created])
+                    dismiss()
+                } else if !selected.contains(ObjectIdentifier(created)) {
+                    selected.append(ObjectIdentifier(created))
+                }
             }
         }
     }
+
+    // MARK: Header & filters
+
+    private var header: some View {
+        HStack {
+            Button("Cancel") { dismiss() }
+                .font(.barlow(16, weight: .medium))
+                .foregroundStyle(Color.purpleBright)
+                .frame(width: 70, alignment: .leading)
+            Spacer()
+            Text(title)
+                .font(.condensed(20, weight: .bold))
+                .kerning(1.5)
+                .foregroundStyle(Color.textMain)
+            Spacer()
+            Button {
+                newExercisePrefill = search.trimmingCharacters(in: .whitespaces)
+                showNewExercise = true
+            } label: {
+                HStack(spacing: 3) {
+                    Image(systemName: "plus")
+                        .font(.system(size: 12, weight: .bold))
+                    Text("New")
+                        .font(.barlow(16, weight: .semibold))
+                }
+                .foregroundStyle(Color.purpleBright)
+                .frame(minHeight: Layout.minTap)
+            }
+            .frame(width: 70, alignment: .trailing)
+            .accessibilityLabel("Create a new exercise")
+        }
+        .padding(.horizontal, 18)
+        .padding(.top, 14)
+        .padding(.bottom, 8)
+    }
+
+    private var searchField: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "magnifyingglass")
+                .font(.system(size: 15))
+                .foregroundStyle(Color.textDim)
+            TextField("Search exercises", text: $search)
+                .font(.barlow(16))
+                .foregroundStyle(Color.textMain)
+                .autocorrectionDisabled()
+                .submitLabel(.search)
+            if !search.isEmpty {
+                Button {
+                    search = ""
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.system(size: 16))
+                        .foregroundStyle(Color.textFaint)
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Clear search")
+            }
+        }
+        .padding(.horizontal, 14)
+        .frame(height: 46)
+        .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(Color.surface2))
+        .padding(.horizontal, 18)
+        .padding(.bottom, 10)
+    }
+
+    private var muscleChips: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 7) {
+                ForEach(MuscleCategory.allCases, id: \.self) { cat in
+                    let sel = muscleFilter == cat
+                    Button {
+                        withAnimation(.snappy) { muscleFilter = cat }
+                        Haptics.selection()
+                    } label: {
+                        Text(cat.rawValue)
+                            .font(.barlow(14, weight: .semibold))
+                            .foregroundStyle(sel ? Color.white : Color.textDim)
+                            .padding(.horizontal, 14)
+                            .frame(height: 36)
+                            .background(
+                                Capsule().fill(sel ? AnyShapeStyle(Color.accentGradient) : AnyShapeStyle(Color.surface2))
+                            )
+                            .shadow(color: sel ? Color.purplePrimary.opacity(0.3) : .clear, radius: 6)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .padding(.horizontal, 18)
+        }
+        .padding(.bottom, 8)
+    }
+
+    private var equipmentChips: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 7) {
+                ForEach(Equipment.allCases.filter { $0 != .other }, id: \.self) { eq in
+                    let sel = equipmentFilter.contains(eq)
+                    Button {
+                        if sel { equipmentFilter.remove(eq) } else { equipmentFilter.insert(eq) }
+                        Haptics.selection()
+                    } label: {
+                        Text(eq.rawValue)
+                            .font(.barlow(13, weight: .medium))
+                            .foregroundStyle(sel ? Color.textMain : Color.textDim)
+                            .padding(.horizontal, 12)
+                            .frame(height: 32)
+                            .background(Capsule().fill(sel ? Color.purplePrimary.opacity(0.12) : Color.clear))
+                            .overlay(Capsule().stroke(sel ? Color.purplePrimary.opacity(0.55) : Color.surface3, lineWidth: 1))
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .padding(.horizontal, 18)
+        }
+        .padding(.bottom, 12)
+    }
+
+    private func listLabel(_ text: String) -> some View {
+        SectionLabel(text)
+            .padding(.horizontal, 18)
+            .padding(.top, 16)
+            .padding(.bottom, 6)
+    }
+
+    // MARK: Rows
 
     /// Offer to create exactly what the athlete typed when nothing matches it.
     private var showCreateRow: Bool {
@@ -182,99 +261,130 @@ struct ExercisePickerView: View {
             newExercisePrefill = search.trimmingCharacters(in: .whitespaces)
             showNewExercise = true
         } label: {
-            HStack(spacing: 12) {
-                RoundedRectangle(cornerRadius: 11)
+            HStack(spacing: 14) {
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
                     .fill(Color.purplePrimary.opacity(0.15))
-                    .frame(width: 38, height: 38)
+                    .frame(width: 40, height: 40)
                     .overlay(
                         Image(systemName: "plus")
-                            .font(.system(size: 15, weight: .bold))
+                            .font(.system(size: 16, weight: .bold))
                             .foregroundStyle(Color.purpleBright)
                     )
-                VStack(alignment: .leading, spacing: 1) {
+                VStack(alignment: .leading, spacing: 2) {
                     Text("Create \"\(search.trimmingCharacters(in: .whitespaces))\"")
-                        .font(.barlow(14.5, weight: .semibold))
+                        .font(.barlow(16, weight: .semibold))
                         .foregroundStyle(Color.purpleBright)
                         .lineLimit(1)
                     Text("Add it as your own exercise")
-                        .font(.barlow(11.5))
+                        .font(.barlow(13))
                         .foregroundStyle(Color.textDim)
                 }
                 Spacer()
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 12)
+            .padding(.horizontal, 18)
+            .frame(minHeight: 64)
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
     }
 
-    private func exerciseRow(_ ex: Exercise) -> some View {
-        let isSelected = selected.contains(ObjectIdentifier(ex))
+    private func exerciseRow(_ ex: Exercise, lastDone: Date?, best: (weight: Double, reps: Int)?) -> some View {
+        let order = selected.firstIndex(of: ObjectIdentifier(ex))
+        let isSelected = order != nil
         return Button {
-            if isSelected { selected.remove(ObjectIdentifier(ex)) } else { selected.insert(ObjectIdentifier(ex)) }
-            Haptics.tap()
+            toggle(ex)
         } label: {
-            HStack(spacing: 12) {
-                RoundedRectangle(cornerRadius: 11)
+            HStack(spacing: 14) {
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
                     .fill(Color.surface2)
-                    .frame(width: 38, height: 38)
+                    .frame(width: 40, height: 40)
                     .overlay(
                         Text(ex.equipment.abbrev)
-                            .font(.condensed(13, weight: .bold))
+                            .font(.condensed(14, weight: .bold))
                             .foregroundStyle(Color.textDim)
                     )
-                VStack(alignment: .leading, spacing: 1) {
+                VStack(alignment: .leading, spacing: 2) {
                     HStack(spacing: 7) {
                         Text(ex.name)
-                            .font(.barlow(14.5, weight: .semibold))
+                            .font(.barlow(16, weight: .semibold))
                             .foregroundStyle(Color.textMain)
                             .lineLimit(1)
-                        if let best = Stats.bestSet(exerciseName: ex.name, workouts: workouts) {
+                        if let best {
                             Text("PR \(Fmt.weight(best.weight))×\(best.reps)")
-                                .font(.barlow(8.5, weight: .bold))
-                                .kerning(0.8)
+                                .font(.barlow(11, weight: .bold))
+                                .kerning(0.6)
                                 .foregroundStyle(Color.glow)
-                                .padding(.horizontal, 4)
-                                .padding(.vertical, 1.5)
-                                .overlay(RoundedRectangle(cornerRadius: 4).stroke(Color.glow.opacity(0.4), lineWidth: 1))
+                                .padding(.horizontal, 5)
+                                .padding(.vertical, 2)
+                                .overlay(RoundedRectangle(cornerRadius: 5).stroke(Color.glow.opacity(0.4), lineWidth: 1))
                         }
                     }
-                    Text(rowSubtitle(ex))
-                        .font(.barlow(11.5))
+                    Text(rowSubtitle(ex, lastDone: lastDone))
+                        .font(.barlow(13))
                         .foregroundStyle(Color.textDim)
+                        .lineLimit(1)
                 }
-                Spacer()
-                if isSelected {
-                    Circle()
-                        .fill(LinearGradient(colors: [.purplePrimary, .purpleDeep], startPoint: .top, endPoint: .bottom))
-                        .frame(width: 26, height: 26)
-                        .overlay(
-                            Image(systemName: "checkmark")
-                                .font(.system(size: 11, weight: .bold))
-                                .foregroundStyle(.white)
-                        )
+                Spacer(minLength: 6)
+                if singleSelect {
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(Color.textFaint)
+                } else if let order {
+                    Text("\(order + 1)")
+                        .font(.condensed(15, weight: .bold))
+                        .foregroundStyle(.white)
+                        .frame(width: 28, height: 28)
+                        .background(Circle().fill(Color.accentGradient))
                         .shadow(color: Color.purplePrimary.opacity(0.4), radius: 5)
                 } else {
                     Circle()
                         .stroke(Color.outline, lineWidth: 1.5)
-                        .frame(width: 26, height: 26)
+                        .frame(width: 28, height: 28)
                 }
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 12)
+            .padding(.horizontal, 18)
+            .frame(minHeight: 64)
             .background(isSelected ? Color.purplePrimary.opacity(0.08) : Color.clear)
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 
-    private func rowSubtitle(_ ex: Exercise) -> String {
+    private func rowSubtitle(_ ex: Exercise, lastDone: Date?) -> String {
         var parts = [ex.equipment.rawValue, ex.muscle.rawValue]
-        if let last = workouts.first(where: { w in
-            w.endedAt != nil && w.entries.contains { $0.displayName == ex.name && !$0.completedSets.isEmpty }
-        }) {
-            parts.append("last \(Fmt.shortDate(last.startedAt))")
+        if let lastDone {
+            parts.append("last \(Fmt.relative(lastDone).lowercased())")
         }
         return parts.joined(separator: " · ")
+    }
+
+    // MARK: Actions
+
+    private func toggle(_ ex: Exercise) {
+        if singleSelect {
+            onDone([ex])
+            Haptics.medium()
+            dismiss()
+            return
+        }
+        let id = ObjectIdentifier(ex)
+        withAnimation(.snappy) {
+            if let i = selected.firstIndex(of: id) {
+                selected.remove(at: i)
+            } else {
+                selected.append(id)
+            }
+        }
+        Haptics.selection()
+    }
+
+    private func commit() {
+        let byID = Dictionary(exercises.map { (ObjectIdentifier($0), $0) }, uniquingKeysWith: { a, _ in a })
+        let picked = selected.compactMap { byID[$0] }
+        onDone(picked)
+        Haptics.medium()
+        dismiss()
     }
 }
 
@@ -291,44 +401,46 @@ struct NewExerciseSheet: View {
     @State private var equipment: Equipment = .barbell
     @State private var muscle: Muscle = .chest
 
+    private var trimmed: String { name.trimmingCharacters(in: .whitespaces) }
+
     var body: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: 18) {
             HStack {
                 Button("Cancel") { dismiss() }
-                    .font(.barlow(14, weight: .medium))
+                    .font(.barlow(16, weight: .medium))
                     .foregroundStyle(Color.purpleBright)
                 Spacer()
                 Text("NEW EXERCISE")
-                    .font(.condensed(19, weight: .bold))
+                    .font(.condensed(20, weight: .bold))
                     .kerning(1.5)
                     .foregroundStyle(Color.textMain)
                 Spacer()
                 Button("Save") {
-                    let ex = Exercise(name: name.trimmingCharacters(in: .whitespaces), equipment: equipment, muscle: muscle, isCustom: true)
+                    let ex = Exercise(name: trimmed, equipment: equipment, muscle: muscle, isCustom: true)
                     context.insert(ex)
                     try? context.save()
                     onCreated?(ex)
                     Haptics.success()
                     dismiss()
                 }
-                .font(.barlow(14, weight: .bold))
-                .foregroundStyle(name.trimmingCharacters(in: .whitespaces).isEmpty ? Color.textFaint : Color.purpleBright)
-                .disabled(name.trimmingCharacters(in: .whitespaces).isEmpty)
+                .font(.barlow(16, weight: .bold))
+                .foregroundStyle(trimmed.isEmpty ? Color.textFaint : Color.purpleBright)
+                .disabled(trimmed.isEmpty)
             }
             .padding(.top, 16)
 
             VStack(alignment: .leading, spacing: 4) {
                 Text("EXERCISE NAME")
-                    .font(.barlow(9.5, weight: .bold))
-                    .kerning(1.5)
+                    .font(.barlow(11, weight: .bold))
+                    .kerning(1.4)
                     .foregroundStyle(Color.textFaint)
                 TextField("e.g. Larsen Press", text: $name)
-                    .font(.condensed(22, weight: .bold))
+                    .font(.condensed(24, weight: .bold))
                     .foregroundStyle(Color.textMain)
             }
-            .padding(12)
-            .background(RoundedRectangle(cornerRadius: 13).fill(Color.surface2))
-            .overlay(RoundedRectangle(cornerRadius: 13).stroke(Color.strokeStrong, lineWidth: 1))
+            .padding(14)
+            .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(Color.surface2))
+            .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(Color.strokeStrong, lineWidth: 1))
 
             VStack(alignment: .leading, spacing: 8) {
                 SectionLabel("Equipment")
@@ -350,7 +462,7 @@ struct NewExerciseSheet: View {
 
             Spacer()
         }
-        .padding(.horizontal, 16)
+        .padding(.horizontal, 18)
         .background(Color.sheetBg.ignoresSafeArea())
         .presentationDetents([.medium, .large])
         .presentationDragIndicator(.visible)
@@ -366,21 +478,23 @@ struct FlowChips: View {
     let isSelected: (String) -> Bool
     let onTap: (String) -> Void
 
-    private let columns = [GridItem(.adaptive(minimum: 92), spacing: 6)]
+    private let columns = [GridItem(.adaptive(minimum: 96), spacing: 7)]
 
     var body: some View {
-        LazyVGrid(columns: columns, alignment: .leading, spacing: 6) {
+        LazyVGrid(columns: columns, alignment: .leading, spacing: 7) {
             ForEach(options, id: \.self) { opt in
                 let sel = isSelected(opt)
                 Button {
                     onTap(opt)
-                    Haptics.tap()
+                    Haptics.selection()
                 } label: {
                     Text(opt)
-                        .font(.barlow(12, weight: .semibold))
-                        .foregroundStyle(sel ? .white : Color.textDim)
+                        .font(.barlow(13.5, weight: .semibold))
+                        .foregroundStyle(sel ? Color.white : Color.textDim)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.8)
                         .frame(maxWidth: .infinity)
-                        .padding(.vertical, 8)
+                        .frame(height: 38)
                         .background(
                             Capsule().fill(sel ? AnyShapeStyle(Color.purplePrimary) : AnyShapeStyle(Color.surface2))
                         )

@@ -28,6 +28,10 @@ enum Stats {
         w.entries.flatMap { $0.sets }.filter { $0.isCompleted }.count
     }
 
+    static func totalSetCount(_ w: Workout) -> Int {
+        w.entries.reduce(0) { $0 + $1.sets.count }
+    }
+
     static func prSets(_ w: Workout) -> [(name: String, set: SetEntry)] {
         w.sortedEntries.flatMap { entry in
             entry.completedSets.filter { $0.isPR }.map { (entry.displayName, $0) }
@@ -35,7 +39,7 @@ enum Stats {
     }
 
     /// Best e1RM ever recorded for an exercise across completed non-warm-up sets,
-    /// excluding one specific set (the one just logged).
+    /// excluding one specific set.
     static func bestE1RM(exerciseName: String, workouts: [Workout], excluding: SetEntry? = nil) -> Double {
         var best: Double = 0
         for w in workouts {
@@ -49,13 +53,17 @@ enum Stats {
         return best
     }
 
-    /// Best single-set weight for an exercise (with reps), for "BEST SET" stats.
+    /// Heaviest single working set for an exercise (ties broken by reps).
     static func bestSet(exerciseName: String, workouts: [Workout]) -> (weight: Double, reps: Int)? {
         var best: (weight: Double, reps: Int)?
         for w in workouts {
             for entry in w.entries where entry.displayName == exerciseName {
                 for s in entry.sets where s.isCompleted && s.type != .warmup && s.weight > 0 {
-                    if best == nil || s.weight > best!.weight || (s.weight == best!.weight && s.reps > best!.reps) {
+                    if let b = best {
+                        if s.weight > b.weight || (s.weight == b.weight && s.reps > b.reps) {
+                            best = (s.weight, s.reps)
+                        }
+                    } else {
                         best = (s.weight, s.reps)
                     }
                 }
@@ -63,6 +71,84 @@ enum Stats {
         }
         return best
     }
+
+    /// Best set per exercise name in one pass — for lists that badge every row.
+    static func bestSetIndex(_ workouts: [Workout]) -> [String: (weight: Double, reps: Int)] {
+        var out: [String: (weight: Double, reps: Int)] = [:]
+        for w in workouts where w.endedAt != nil {
+            for entry in w.entries {
+                for s in entry.sets where s.isCompleted && s.type != .warmup && s.weight > 0 {
+                    if let b = out[entry.displayName] {
+                        if s.weight > b.weight || (s.weight == b.weight && s.reps > b.reps) {
+                            out[entry.displayName] = (s.weight, s.reps)
+                        }
+                    } else {
+                        out[entry.displayName] = (s.weight, s.reps)
+                    }
+                }
+            }
+        }
+        return out
+    }
+
+    // MARK: Personal records
+
+    /// How a set ranks for PR purposes: e1RM for loaded sets, reps for
+    /// unloaded bodyweight sets (push-ups, pull-ups), zero otherwise.
+    static func prScore(_ s: SetEntry, bodyweight: Bool) -> Double {
+        guard s.isCompleted, s.type != .warmup, s.reps > 0 else { return 0 }
+        if s.weight > 0 { return e1RM(s.weight, s.reps) }
+        return bodyweight ? Double(s.reps) : 0
+    }
+
+    /// Re-derives the PR flags for one workout against everything finished
+    /// before it. At most one set per exercise is a PR — the best one.
+    static func recomputePRs(in workout: Workout, all: [Workout]) {
+        let earlier = all.filter {
+            $0 !== workout && $0.endedAt != nil && $0.startedAt < workout.startedAt
+        }
+        for entry in workout.entries {
+            for s in entry.sets { s.isPR = false }
+            if entry.isDuration { continue }
+            let bodyweight = entry.exercise?.equipment == .bodyweight
+
+            var history: Double = 0
+            for w in earlier {
+                for e in w.entries where e.displayName == entry.displayName {
+                    for s in e.sets {
+                        history = max(history, prScore(s, bodyweight: bodyweight))
+                    }
+                }
+            }
+            // The first time is a baseline, not a record.
+            guard history > 0 else { continue }
+
+            var best = history
+            var winner: SetEntry?
+            for s in entry.sets {
+                let score = prScore(s, bodyweight: bodyweight)
+                if score > best + 0.0001 {
+                    best = score
+                    winner = s
+                }
+            }
+            winner?.isPR = true
+        }
+    }
+
+    /// Re-derives PR flags for every finished workout from `date` onward —
+    /// needed after history is edited or deleted, because later records are
+    /// measured against it.
+    static func recomputePRs(since date: Date, all: [Workout]) {
+        let affected = all
+            .filter { $0.endedAt != nil && $0.startedAt >= date }
+            .sorted { $0.startedAt < $1.startedAt }
+        for w in affected {
+            recomputePRs(in: w, all: all)
+        }
+    }
+
+    // MARK: Streaks & calendar
 
     /// Consecutive-day training streak ending today (or yesterday).
     static func streak(_ workouts: [Workout], now: Date = Date()) -> Int {
@@ -95,6 +181,20 @@ enum Stats {
         workouts.filter { interval.contains($0.startedAt) }
     }
 
+    /// Volume per week for the last `count` weeks, oldest first.
+    static func weeklyVolumes(_ finished: [Workout], count: Int, now: Date = Date()) -> [(start: Date, volume: Double)] {
+        var out: [(start: Date, volume: Double)] = []
+        for i in stride(from: count - 1, through: 0, by: -1) {
+            guard let ref = Calendar.current.date(byAdding: .day, value: -7 * i, to: now) else { continue }
+            let week = weekInterval(containing: ref)
+            let vol = workouts(finished, in: week).reduce(0.0) { $0 + volume($1) }
+            out.append((week.start, vol))
+        }
+        return out
+    }
+
+    // MARK: Muscles
+
     /// Total completed volume attributed to each muscle. Primary muscle gets full
     /// credit, secondary muscles half.
     static func volumeByMuscle(_ workouts: [Workout]) -> [Muscle: Double] {
@@ -115,24 +215,140 @@ enum Stats {
         return out
     }
 
-    /// Most recent completed sets for an exercise (used for ghost values).
+    /// Working sets per muscle — the number most programs are written in.
+    /// Primary muscle counts a full set, secondary muscles half.
+    static func setsByMuscle(_ workouts: [Workout]) -> [Muscle: Double] {
+        var out: [Muscle: Double] = [:]
+        for w in workouts {
+            for entry in w.entries {
+                guard let ex = entry.exercise, !ex.muscle.isDuration else { continue }
+                let n = Double(entry.workingSets.count)
+                guard n > 0 else { continue }
+                out[ex.muscle, default: 0] += n
+                for m in ex.secondary {
+                    out[m, default: 0] += n * 0.5
+                }
+            }
+        }
+        return out
+    }
+
+    // MARK: History lookups
+
+    /// Most recent completed working sets for an exercise (used for ghost values).
+    /// `workouts` must be newest first.
     static func lastSets(exerciseName: String, workouts: [Workout], excluding: Workout? = nil) -> [SetEntry] {
-        let sorted = workouts.sorted { $0.startedAt > $1.startedAt }
-        for w in sorted {
+        lastEntry(exerciseName: exerciseName, workouts: workouts, excluding: excluding)?.workingSets ?? []
+    }
+
+    /// The most recent finished entry for an exercise that has working sets.
+    /// `workouts` must be newest first.
+    static func lastEntry(exerciseName: String, workouts: [Workout], excluding: Workout? = nil) -> WorkoutEntry? {
+        for w in workouts {
             if let excluding, w === excluding { continue }
             guard w.endedAt != nil else { continue }
             for entry in w.sortedEntries where entry.displayName == exerciseName {
-                let done = entry.completedSets.filter { $0.type != .warmup }
-                if !done.isEmpty { return done }
+                if !entry.workingSets.isEmpty { return entry }
             }
         }
-        return []
+        return nil
     }
+
+    /// The best weight lifted for at least N reps, for each N in `targets`.
+    static func repMaxes(exerciseName: String, workouts: [Workout], targets: [Int] = [1, 3, 5, 8, 10, 12]) -> [RepMax] {
+        var best: [Int: RepMax] = [:]
+        for w in workouts where w.endedAt != nil {
+            for entry in w.entries where entry.displayName == exerciseName {
+                for s in entry.sets where s.isCompleted && s.type != .warmup && s.weight > 0 {
+                    for t in targets where s.reps >= t {
+                        if s.weight > (best[t]?.weight ?? 0) {
+                            best[t] = RepMax(reps: t, weight: s.weight, actualReps: s.reps, date: w.startedAt)
+                        }
+                    }
+                }
+            }
+        }
+        return targets.compactMap { best[$0] }
+    }
+
+    // MARK: Workout naming
+
+    /// A readable name from what was trained: "Chest & Triceps" style.
+    static func autoTitle(_ w: Workout) -> String {
+        var counts: [String: Int] = [:]
+        for entry in w.entries {
+            guard let m = entry.exercise?.muscle else { continue }
+            let n = entry.isDuration ? entry.completedSets.count : entry.workingSets.count
+            guard n > 0 else { continue }
+            counts[m.groupName, default: 0] += n
+        }
+        let lifting = counts.filter { $0.key != "Cardio" && $0.key != "Mobility" }
+        if lifting.isEmpty {
+            let other = counts.keys.sorted()
+            return other.isEmpty ? "Workout" : other.joined(separator: " & ")
+        }
+        let groups = lifting.sorted { a, b in
+            a.value == b.value ? a.key < b.key : a.value > b.value
+        }.map { $0.key }
+
+        switch groups.count {
+        case 1:
+            switch groups[0] {
+            case "Legs": return "Leg Day"
+            case "Core": return "Core"
+            default: return "\(groups[0]) Day"
+            }
+        case 2:
+            return "\(groups[0]) & \(groups[1])"
+        case 3:
+            return groups.contains("Legs") ? "Full Body" : "Upper Body"
+        default:
+            return "Full Body"
+        }
+    }
+
+    // MARK: Warm-ups
+
+    /// A standard ramp to the first working weight, rounded to loadable jumps.
+    static func warmupRamp(workingLb: Double, barbell: Bool) -> [WarmupStep] {
+        let unit = Prefs.shared.unit
+        let working = unit.fromLb(workingLb)
+        let step = unit.step
+        let bar = unit.barWeight
+        guard working > 0 else { return [] }
+
+        var out: [WarmupStep] = []
+        if barbell && working > bar * 2 {
+            out.append(WarmupStep(lb: unit.toLb(bar), reps: 10))
+        }
+        let ramp: [(pct: Double, reps: Int)] = [(0.5, 8), (0.7, 5), (0.85, 3)]
+        for r in ramp {
+            var load = (working * r.pct / step).rounded() * step
+            if barbell { load = max(load, bar) }
+            guard load < working - 0.01, load > 0 else { continue }
+            if let last = out.last, abs(unit.fromLb(last.lb) - load) < 0.01 { continue }
+            out.append(WarmupStep(lb: unit.toLb(load), reps: r.reps))
+        }
+        return out
+    }
+}
+
+struct RepMax: Identifiable {
+    let reps: Int
+    let weight: Double
+    let actualReps: Int
+    let date: Date
+    var id: Int { reps }
+}
+
+struct WarmupStep {
+    let lb: Double
+    let reps: Int
 }
 
 // MARK: - Titan Ranks
 
-struct Rank {
+struct Rank: Equatable {
     let index: Int // 0...11
 
     var groupIndex: Int { index / 3 }
@@ -174,5 +390,11 @@ enum RankSystem {
             }
         }
         return xp
+    }
+
+    /// Lifetime XP, derived from the log itself — so editing or deleting a
+    /// workout keeps the rank honest.
+    static func totalXP(_ workouts: [Workout]) -> Int {
+        workouts.filter { $0.endedAt != nil }.reduce(0) { $0 + xp(for: $1) }
     }
 }
