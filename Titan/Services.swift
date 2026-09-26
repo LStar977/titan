@@ -1,5 +1,6 @@
 import Foundation
 import SwiftUI
+import CoreTransferable
 import UserNotifications
 import UniformTypeIdentifiers
 
