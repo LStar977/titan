@@ -8,7 +8,10 @@ struct RootView: View {
     @State private var showOnboarding = false
 
     var body: some View {
-        @Bindable var app = app
+        // Bindings only. Everything else reads `app` directly, so the rest-timer
+        // task below captures `self` rather than a local var, which a
+        // concurrently-executing closure may not reference.
+        @Bindable var bindable = app
         ZStack(alignment: .bottom) {
             Group {
                 switch app.tab {
@@ -37,10 +40,10 @@ struct RootView: View {
             }
         }
         .background(Color.bg.ignoresSafeArea())
-        .sheet(isPresented: $app.showStartSheet) {
+        .sheet(isPresented: $bindable.showStartSheet) {
             StartWorkoutSheet()
         }
-        .fullScreenCover(isPresented: $app.workoutPresented) {
+        .fullScreenCover(isPresented: $bindable.workoutPresented) {
             WorkoutFlowView()
         }
         .task {
